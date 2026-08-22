@@ -37,9 +37,21 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 # Configuración de CORS
+cors_origins_env = os.environ.get("CORS_ORIGINS", "")
+if cors_origins_env:
+    allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+else:
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://localhost:8000"
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allowed_origins if "*" not in allowed_origins else ["*"],
+    allow_origin_regex=os.environ.get("CORS_ORIGIN_REGEX", r"https://.*\.onrender\.com"),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,6 +1,10 @@
 import axios from 'axios';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (
+  import.meta.env.DEV ? 'http://localhost:8000' : ''
+);
+
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
 });
 apiClient.interceptors.request.use((config) => {

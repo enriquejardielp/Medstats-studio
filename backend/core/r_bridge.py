@@ -14,7 +14,13 @@ import numpy as np
 
 class RBridge:
 
-    R_LIB_PATH = "/usr/local/lib/R/library"
+    R_LIB_PATH = os.environ.get("R_LIB_PATH", "/usr/local/lib/R/library")
+
+    @staticmethod
+    def _get_libpaths_header() -> str:
+        if RBridge.R_LIB_PATH and os.path.exists(RBridge.R_LIB_PATH):
+            return f'.libPaths(c("{RBridge.R_LIB_PATH}", .libPaths()))\n'
+        return ""
 
     # Listas cerradas para parámetros que se insertan en el script R fuera de
     # comillas (theme) o dentro de comillas sin escapar (palette).
@@ -84,7 +90,7 @@ class RBridge:
     @staticmethod
     def _run_script(script_content: str) -> dict:
         full_script = (
-            f'.libPaths(c("{RBridge.R_LIB_PATH}", .libPaths()))\n'
+            f"{RBridge._get_libpaths_header()}"
             f"options(warn = -1)\n"
             f"{script_content}"
         )
@@ -1935,7 +1941,7 @@ class RBridge:
     @staticmethod
     def _run_ggplot(data_path, script_content):
         full_script = (
-            f'.libPaths(c("{RBridge.R_LIB_PATH}", .libPaths()))\n'
+            f"{RBridge._get_libpaths_header()}"
             f"options(warn = -1)\n"
             f"{script_content}"
         )
@@ -2248,7 +2254,7 @@ class RBridge:
         library(ggplot2)
         library(pROC)
 
-        datos <- read.csv('{data_path}', check.names = FALSE) encoding = 'UTF-8-sig')
+        datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
         roc_obj <- roc(datos[['{safe_out}']], datos[['{safe_pred}']], quiet = TRUE)
         roc_df <- data.frame(
             sensibilidad = roc_obj$sensitivities,

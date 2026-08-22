@@ -2270,10 +2270,4 @@ class RBridge:
                      label = paste("AUC =", round(auc(roc_obj), 3)),
                      size = 5, hjust = 0)
 
-        ggsave("plot.png", plot = p, width = {width}, height = {height}, dpi = {dpi})
-        '''
-        try:
-            img, code = RBridge._run_ggplot(data_path, script)
-            return img, code
-        finally:
-            RBridge._cleanup(data_path)
+        ggsave("plot.png", plot = p, width = {wi

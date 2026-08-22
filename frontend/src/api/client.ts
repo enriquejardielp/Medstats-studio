@@ -19,4 +19,9 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
-      wind
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+export default apiClient;

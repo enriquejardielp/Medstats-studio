@@ -60,6 +60,19 @@ app.add_middleware(
 # Incluir las rutas de autenticación
 app.include_router(auth_router)
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "app": "MedStats Studio API",
+        "version": "2.1.0",
+        "docs": "/docs"
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 # ------------------------------------------------------------
 # INICIALIZACIÓN DE LA BASE DE DATOS
 # ------------------------------------------------------------

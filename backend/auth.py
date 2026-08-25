@@ -12,7 +12,7 @@ from backend.models import User
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "medstats-secret-key-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30  # 30 días
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 

@@ -18,6 +18,8 @@ from backend.models import User, Project
 from backend import schemas
 from backend.auth import get_current_user
 from backend.api.auth_routes import router as auth_router
+from backend.core.analyses.registry import AnalysisRegistry
+from backend.core.results_schema import AnalysisResult
 
 app = FastAPI(title="MedStats Studio API", version="2.1.0")
 
@@ -571,6 +573,23 @@ async def binomial_test(request: BinomialTestRequest):
 # ENDPOINTS DE ANÁLISIS (CON PROYECTO, PROTEGIDOS)
 # ------------------------------------------------------------
 
+class UnifiedAnalysisRequest(BaseModel):
+    project_id: int
+    analysis_type: str
+    params: dict = {}
+
+@app.post("/api/analysis/run", response_model=AnalysisResult)
+def run_unified_analysis(
+    req: UnifiedAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project = get_project_or_404(db, req.project_id, current_user)
+    df = get_df_from_project(project)
+    
+    analyzer = AnalysisRegistry.get(req.analysis_type)
+    return analyzer.run(df, req.params)
+
 @app.post("/api/linear-regression")
 def linear_regression(
     request: LinearRegressionProjectRequest,
@@ -831,18 +850,4 @@ def generate_graph(
 @app.post("/api/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
-        raise HTTPException(400, "Solo se aceptan archivos CSV")
-    contents = await file.read()
-    df = pd.read_csv(StringIO(contents.decode('utf-8')))
-    return {
-        "columnas": df.columns.tolist(),
-        "tipos": [str(df[c].dtype) for c in df.columns],
-        "filas": len(df),
-        "vista_previa": df.head(5).to_dict(orient="records")
-    }
-
-@app.post("/api/descriptive")
-def descriptive_stats(request: DescriptiveRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    project = get_project_or_404(db, request.project_id, current_user)
-    df = get_df_from_project(project)
-    return RBridge.descriptive_stats(df, request.columns)
+        raise HTTPException(400, "Solo se aceptan

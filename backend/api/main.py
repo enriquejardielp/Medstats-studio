@@ -850,4 +850,18 @@ def generate_graph(
 @app.post("/api/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
-        raise HTTPException(400, "Solo se aceptan
+        raise HTTPException(400, "Solo se aceptan archivos CSV")
+    contents = await file.read()
+    df = pd.read_csv(StringIO(contents.decode('utf-8')))
+    return {
+        "columnas": df.columns.tolist(),
+        "tipos": [str(df[c].dtype) for c in df.columns],
+        "filas": len(df),
+        "vista_previa": df.head(5).to_dict(orient="records")
+    }
+
+@app.post("/api/descriptive")
+def descriptive_stats(request: DescriptiveRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    project = get_project_or_404(db, request.project_id, current_user)
+    df = get_df_from_project(project)
+    return RBridge.descriptive_stats(df, request.columns)

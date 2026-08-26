@@ -12,9 +12,14 @@ import {
   Settings,
   Info,
   Copy,
+  FileText,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import apiClient from '../api/client';
 import type { ColumnType } from '../types';
+import type { AnalysisResult } from '../types/analysis';
+import { OutputViewer } from '../components/output/OutputViewer';
 import { formatCorrelationResult } from '../utils/correlation';
 
 // ============================================================
@@ -128,8 +133,10 @@ const ProjectPage: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [panelOpen, setPanelOpen] = useState(false);
+  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
   const [editMode, setEditMode] = useState<'edition' | 'analysis'>('edition');
-  const [activeTab, setActiveTab] = useState<'config' | 'history'>('config');
+  const [activeTab, setActiveTab] = useState<'config' | 'results' | 'history'>('config');
+  const [outputResults, setOutputResults] = useState<AnalysisResult[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisOption | null>(null);
@@ -273,6 +280,14 @@ const ProjectPage: React.FC = () => {
       setPanelOpen(true);
       setEditMode('analysis');
     }
+  };
+
+  const handleDeleteOutputResult = (analysisId: string) => {
+    setOutputResults(prev => prev.filter(r => r.metadata.analysis_id !== analysisId));
+  };
+
+  const handleClearAllOutputs = () => {
+    setOutputResults([]);
   };
 
   const resetAnalysisModalState = () => {
@@ -512,6 +527,66 @@ const ProjectPage: React.FC = () => {
     try {
       const test = selectedAnalysis.id;
       const currentSelectedVars = getCurrentSelectedVars();
+
+      // Módulos de la Nueva Arquitectura (Stata + SPSS + R)
+      if (['descriptive', 'correlation', 'linear-regression'].includes(test)) {
+        let params: any = {};
+        if (test === 'descriptive') {
+          params = { columns: currentSelectedVars };
+        } else if (test === 'correlation') {
+          const v1 = (selectedRoleValues.var1 as string) || currentSelectedVars[0];
+          const v2 = (selectedRoleValues.var2 as string) || currentSelectedVars[1];
+          if (!v1 || !v2) {
+            setAnalysisError('Debes seleccionar dos variables para la correlación.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = {
+            var1: v1,
+            var2: v2,
+            method: useNonParametric ? 'spearman' : 'pearson',
+            conf_level: confLevel,
+          };
+        } else if (test === 'linear-regression') {
+          const depVar = selectedRoleValues.dep_var as string;
+          const indepVars = (selectedRoleValues.indep_vars as string[]) || [];
+          if (!depVar || indepVars.length === 0) {
+            setAnalysisError('Debes seleccionar una variable dependiente y al menos una independiente.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = {
+            dep_var: depVar,
+            indep_vars: indepVars,
+            conf_level: confLevel,
+          };
+        }
+
+        const response = await apiClient.post('/api/analysis/run', {
+          project_id: parseInt(id!),
+          analysis_type: test,
+          params,
+        });
+
+        const structuredResult: AnalysisResult = response.data;
+        setOutputResults(prev => [structuredResult, ...prev]);
+        setAnalysisResult(structuredResult);
+        setActiveTab('results');
+        if (!panelOpen) setPanelOpen(true);
+
+        const entry = {
+          id: structuredResult.metadata.analysis_id,
+          timestamp: new Date(),
+          testName: test,
+          variables: currentSelectedVars,
+          pValue: structuredResult.summary.key_metrics.find(m => m.p_value !== undefined)?.p_value ?? null,
+          result: structuredResult,
+        };
+        setHistory(prev => [entry, ...prev]);
+        setViewingHistoryId(null);
+        return;
+      }
+
       let endpoint = `/api/${test}`;
       let payload: any = {};
 
@@ -832,7 +907,7 @@ const ProjectPage: React.FC = () => {
         {/* PANEL LATERAL */}
         <div
           style={{
-            width: panelOpen ? '440px' : '0px',
+            width: panelOpen ? (isPanelExpanded ? '920px' : '520px') : '0px',
             height: '100%',
             background: 'white',
             borderLeft: panelOpen ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',
@@ -854,45 +929,106 @@ const ProjectPage: React.FC = () => {
                   alignItems: 'center',
                 }}
               >
-                <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a' }}>
-                  Análisis Estadístico
-                </h2>
-                <button
-                  onClick={togglePanel}
-                  style={{
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    color: '#64748b',
-                    padding: '0.25rem',
-                    borderRadius: '6px',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <X size={18} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                    Motor Estadístico & Output
+                  </h2>
+                  <span style={{ fontSize: '0.68rem', backgroundColor: '#e0f2fe', color: '#0369a1', fontWeight: 600, padding: '1px 6px', borderRadius: '4px' }}>
+                    Stata + SPSS + R
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <button
+                    onClick={() => setIsPanelExpanded(!isPanelExpanded)}
+                    title={isPanelExpanded ? 'Reducir panel' : 'Expandir visor de resultados'}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      color: '#64748b',
+                      padding: '0.25rem',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {isPanelExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
+                  <button
+                    onClick={togglePanel}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      color: '#64748b',
+                      padding: '0.25rem',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(226, 232, 240, 0.8)', backgroundColor: '#fafbfc' }}>
                 <button
                   onClick={() => setActiveTab('config')}
                   style={{
                     flex: 1,
                     padding: '0.6rem',
                     border: 'none',
-                    background: activeTab === 'config' ? '#f1f5f9' : 'transparent',
+                    background: activeTab === 'config' ? 'white' : 'transparent',
                     color: activeTab === 'config' ? '#0f172a' : '#64748b',
-                    fontWeight: activeTab === 'config' ? 600 : 400,
+                    fontWeight: activeTab === 'config' ? 700 : 400,
                     cursor: 'pointer',
                     borderBottom: activeTab === 'config' ? '2px solid #2563eb' : '2px solid transparent',
-                    transition: 'all 0.2s',
+                    transition: 'all 0.15s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.4rem',
+                    fontSize: '0.82rem',
                   }}
                 >
-                  <Settings size={16} /> Análisis
+                  <Settings size={15} /> Análisis
+                </button>
+                <button
+                  onClick={() => setActiveTab('results')}
+                  style={{
+                    flex: 1,
+                    padding: '0.6rem',
+                    border: 'none',
+                    background: activeTab === 'results' ? 'white' : 'transparent',
+                    color: activeTab === 'results' ? '#2563eb' : '#64748b',
+                    fontWeight: activeTab === 'results' ? 700 : 400,
+                    cursor: 'pointer',
+                    borderBottom: activeTab === 'results' ? '2px solid #2563eb' : '2px solid transparent',
+                    transition: 'all 0.15s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    fontSize: '0.82rem',
+                  }}
+                >
+                  <FileText size={15} /> Resultados
+                  {outputResults.length > 0 && (
+                    <span
+                      style={{
+                        backgroundColor: activeTab === 'results' ? '#2563eb' : '#cbd5e1',
+                        color: 'white',
+                        borderRadius: '10px',
+                        padding: '0px 6px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {outputResults.length}
+                    </span>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab('history')}
@@ -900,24 +1036,31 @@ const ProjectPage: React.FC = () => {
                     flex: 1,
                     padding: '0.6rem',
                     border: 'none',
-                    background: activeTab === 'history' ? '#f1f5f9' : 'transparent',
+                    background: activeTab === 'history' ? 'white' : 'transparent',
                     color: activeTab === 'history' ? '#0f172a' : '#64748b',
-                    fontWeight: activeTab === 'history' ? 600 : 400,
+                    fontWeight: activeTab === 'history' ? 700 : 400,
                     cursor: 'pointer',
                     borderBottom: activeTab === 'history' ? '2px solid #2563eb' : '2px solid transparent',
-                    transition: 'all 0.2s',
+                    transition: 'all 0.15s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.4rem',
+                    fontSize: '0.82rem',
                   }}
                 >
-                  <History size={16} /> Historial
+                  <History size={15} /> Historial
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-                {activeTab === 'config' ? (
+              <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', backgroundColor: activeTab === 'results' ? '#f8fafc' : 'white' }}>
+                {activeTab === 'results' ? (
+                  <OutputViewer
+                    results={outputResults}
+                    onDeleteResult={handleDeleteOutputResult}
+                    onClearAll={handleClearAllOutputs}
+                  />
+                ) : activeTab === 'config' ? (
                   <div>
                     {!analysisResult ? (
                       <>

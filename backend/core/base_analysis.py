@@ -9,6 +9,7 @@ import pandas as pd
 import tempfile
 import os
 import re
+from datetime import datetime
 import uuid
 
 from backend.core.results_schema import (
@@ -31,6 +32,14 @@ class BaseAnalysis(ABC):
     analysis_type: str = "base"
     title: str = "Análisis Estadístico"
     required_packages: List[str] = ["jsonlite"]
+
+    @staticmethod
+    def _generate_id() -> str:
+        return str(uuid.uuid4())
+
+    @staticmethod
+    def _current_iso_time() -> str:
+        return datetime.utcnow().isoformat() + "Z"
 
     @staticmethod
     def sanitize_r_name(name: str) -> str:

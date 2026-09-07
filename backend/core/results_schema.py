@@ -127,7 +127,7 @@ class TechnicalDetails(BaseModel):
     formula: Optional[str] = None
     r_version: Optional[str] = None
     packages_used: List[str] = Field(default_factory=list)
-    degrees_of_freedom: Optional[Union[int, List[int]]] = None
+    degrees_of_freedom: Optional[Union[int, float, List[Union[int, float]]]] = None
     log_likelihood: Optional[float] = None
     aic: Optional[float] = None
     bic: Optional[float] = None

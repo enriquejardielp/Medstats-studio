@@ -529,7 +529,18 @@ const ProjectPage: React.FC = () => {
       const currentSelectedVars = getCurrentSelectedVars();
 
       // Módulos de la Nueva Arquitectura (Stata + SPSS + R)
-      if (['descriptive', 'correlation', 'linear-regression'].includes(test)) {
+      const unifiedTests = [
+        'descriptive',
+        'correlation',
+        'linear-regression',
+        'logistic-regression',
+        'compare',
+        'anova',
+        'chi-square',
+        'roc-curve',
+      ];
+
+      if (unifiedTests.includes(test)) {
         let params: any = {};
         if (test === 'descriptive') {
           params = { columns: currentSelectedVars };
@@ -560,6 +571,65 @@ const ProjectPage: React.FC = () => {
             indep_vars: indepVars,
             conf_level: confLevel,
           };
+        } else if (test === 'logistic-regression') {
+          const depVar = selectedRoleValues.dep_var as string;
+          const indepVars = (selectedRoleValues.indep_vars as string[]) || [];
+          if (!depVar || indepVars.length === 0) {
+            setAnalysisError('Debes seleccionar la variable dependiente binaria y los predictores.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = {
+            dep_var: depVar,
+            indep_vars: indepVars,
+            conf_level: confLevel,
+          };
+        } else if (test === 'compare') {
+          const numVar = selectedRoleValues.num_var as string;
+          const catVar = selectedRoleValues.cat_var as string;
+          if (!numVar || !catVar) {
+            setAnalysisError('Debes seleccionar una variable numérica y una categórica de 2 grupos.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = {
+            num_var: numVar,
+            cat_var: catVar,
+            method: useNonParametric ? 'mannwhitney' : 'welch',
+            paired: isPaired,
+            conf_level: confLevel,
+          };
+        } else if (test === 'anova') {
+          const depVar = selectedRoleValues.dep_var as string;
+          const groupVar = selectedRoleValues.group_var as string;
+          if (!depVar || !groupVar) {
+            setAnalysisError('Debes seleccionar una variable dependiente numérica y un factor de agrupación.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = {
+            dep_var: depVar,
+            group_var: groupVar,
+            method: useNonParametric ? 'nonparametric' : 'parametric',
+          };
+        } else if (test === 'chi-square') {
+          const v1 = (selectedRoleValues.var1 as string) || currentSelectedVars[0];
+          const v2 = (selectedRoleValues.var2 as string) || currentSelectedVars[1];
+          if (!v1 || !v2) {
+            setAnalysisError('Debes seleccionar dos variables categóricas para la tabla de contingencia.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = { var1: v1, var2: v2 };
+        } else if (test === 'roc-curve') {
+          const outcome = selectedRoleValues.outcome as string;
+          const predictor = selectedRoleValues.predictor as string;
+          if (!outcome || !predictor) {
+            setAnalysisError('Debes seleccionar la variable de desenlace (outcome) y el biomarcador.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = { outcome, predictor, conf_level: confLevel };
         }
 
         const response = await apiClient.post('/api/analysis/run', {

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -9,6 +8,7 @@ import {
   Code2,
   Clock,
   Database,
+  Image as ImageIcon,
 } from 'lucide-react';
 import type { AnalysisResult } from '../../types/analysis';
 import { WarningsBanner } from './WarningsBanner';
@@ -17,6 +17,7 @@ import { Layer2Tables } from './Layer2Tables';
 import { Layer3Diagnostics } from './Layer3Diagnostics';
 import { Layer4Technical } from './Layer4Technical';
 import { Layer5ReproducibleCode } from './Layer5ReproducibleCode';
+import { StatisticalPlots } from './StatisticalPlots';
 
 interface Props {
   result: AnalysisResult;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
+  const [openPlots, setOpenPlots] = useState(true);
   const [openTables, setOpenTables] = useState(true);
   const [openDiagnostics, setOpenDiagnostics] = useState(true);
   const [openTechnical, setOpenTechnical] = useState(false);
@@ -133,6 +135,42 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 3. CAPA 1: Resumen Ejecutivo (Siempre visible) */}
       <Layer1Summary summary={result.summary} />
+
+      {/* 3.1 Gráficos Estadísticos Contextuales */}
+      {result.plots && result.plots.length > 0 && (
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+          <button
+            onClick={() => setOpenPlots(!openPlots)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.75rem 1rem',
+              background: openPlots ? '#f8fafc' : 'white',
+              border: 'none',
+              borderBottom: openPlots ? '1px solid #e2e8f0' : 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>
+              <ImageIcon size={16} color="#2563eb" />
+              <span>Gráficos Estadísticos Contextuales</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>
+                ({result.plots.length} visualización{result.plots.length !== 1 ? 'es' : ''})
+              </span>
+            </div>
+            {openPlots ? <ChevronDown size={16} color="#64748b" /> : <ChevronRight size={16} color="#64748b" />}
+          </button>
+
+          {openPlots && (
+            <div style={{ padding: '1rem', backgroundColor: 'white' }}>
+              <StatisticalPlots plots={result.plots} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 4. CAPA 2: Resultados Completos (Tablas) */}
       <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>

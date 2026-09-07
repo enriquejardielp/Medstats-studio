@@ -5,10 +5,18 @@ ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     PORT=8000
 
-# Instalar R y dependencias de sistema requeridas para paquetes estadísticos
+# Instalar R y paquetes estadísticos precompilados de Debian + dependencias
 RUN apt-get update && apt-get install -y --no-install-recommends \
     r-base \
     r-base-dev \
+    r-cran-jsonlite \
+    r-cran-car \
+    r-cran-survival \
+    r-cran-ggplot2 \
+    r-cran-rcolorbrewer \
+    r-cran-viridis \
+    r-cran-proc \
+    r-cran-pwr \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
@@ -17,8 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar paquetes de R requeridos por MedStats Studio
-RUN R -e "install.packages(c('jsonlite', 'car', 'table1', 'dunn.test', 'irr', 'pROC', 'survival', 'pwr', 'ggplot2', 'RColorBrewer', 'viridis'), repos='https://cloud.r-project.org')"
+# Instalar paquetes adicionales de CRAN que no están en apt
+RUN R -e "install.packages(c('table1', 'dunn.test', 'irr'), repos='https://cloud.r-project.org')"
 
 WORKDIR /app
 

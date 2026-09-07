@@ -30,7 +30,7 @@ from backend.core.results_schema import (
 class LinearRegressionAnalysis(BaseAnalysis):
     analysis_type = "linear-regression"
     title = "Regresión Lineal Múltiple (MCO)"
-    required_packages = ["jsonlite", "car", "lmtest"]
+    required_packages = ["jsonlite"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         dep_var = params.get("dep_var")
@@ -89,7 +89,6 @@ class LinearRegressionAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
-        library(car)
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -108,20 +107,27 @@ class LinearRegressionAnalysis(BaseAnalysis):
             error = function(e) NA
         )
 
-        # 2. Autocorrelación de residuos (Durbin-Watson)
-        dw_val <- tryCatch(as.numeric(durbinWatsonTest(fit)$dw), error = function(e) NA)
+        # 2. Autocorrelación de residuos (Durbin-Watson en base R)
+        dw_val <- tryCatch(
+            if (n_resids > 2 && sum(resids^2) > 0) as.numeric(sum(diff(resids)^2) / sum(resids^2)) else NA,
+            error = function(e) NA
+        )
 
-        # 3. Multicolinealidad (VIF) si k > 1
+        # 3. Multicolinealidad (VIF en base R) si k > 1
         vif_list <- list()
-        if (length(c({indep_r_vector})) > 1) {{
-            vif_calc <- tryCatch(vif(fit), error = function(e) NULL)
-            if (!is.null(vif_calc)) {{
-                if (is.matrix(vif_calc)) {{
-                    vif_list <- as.list(vif_calc[,1])
-                }} else {{
-                    vif_list <- as.list(vif_calc)
+        indep_cols <- c({indep_r_vector})
+        if (length(indep_cols) > 1) {{
+            tryCatch({{
+                X <- as.matrix(datos[, indep_cols, drop = FALSE])
+                sds <- apply(X, 2, sd, na.rm = TRUE)
+                if (all(!is.na(sds) & sds > 0)) {{
+                    R_mat <- cor(X, use = "complete.obs")
+                    inv_R <- solve(R_mat)
+                    vif_vec <- diag(inv_R)
+                    names(vif_vec) <- indep_cols
+                    vif_list <- as.list(vif_vec)
                 }}
-            }}
+            }}, error = function(e) {{}})
         }}
 
         f_stat <- as.numeric(s$fstatistic[1])

@@ -142,6 +142,39 @@ def test_roc_curve_analysis():
     assert len(result.plots) >= 1
 
 
+def test_kaplan_meier_analysis():
+    np.random.seed(42)
+    time = np.random.exponential(20, 50)
+    event = np.random.binomial(1, 0.7, 50)
+    group = np.random.choice(["Tratamiento A", "Tratamiento B"], 50)
+    df = pd.DataFrame({"tiempo": time, "evento": event, "brazo": group})
+
+    analyzer = AnalysisRegistry.get("kaplan-meier")
+    result = analyzer.run(df, {"time_var": "tiempo", "event_var": "evento", "group_var": "brazo"})
+
+    assert isinstance(result, AnalysisResult)
+    assert len(result.tables) >= 2  # Resumen de estratos + Tabla de vida
+    assert len(result.plots) >= 1   # Curva Kaplan-Meier
+    assert result.metadata.valid_observations == 50
+
+
+def test_table1_analysis():
+    np.random.seed(42)
+    df = pd.DataFrame({
+        "edad": np.random.normal(55, 10, 60),
+        "presion": np.random.normal(130, 15, 60),
+        "fumador": np.random.choice(["Sí", "No"], 60),
+        "grupo": np.random.choice(["Control", "Intervención"], 60)
+    })
+
+    analyzer = AnalysisRegistry.get("table1")
+    result = analyzer.run(df, {"variables": ["edad", "presion", "fumador"], "group_var": "grupo"})
+
+    assert isinstance(result, AnalysisResult)
+    assert len(result.tables[0].rows) >= 3
+    assert result.summary.key_metrics[0].value == 60
+
+
 if __name__ == "__main__":
     test_descriptive_analysis()
     print("✓ Test Descriptivos completado con éxito")
@@ -159,3 +192,7 @@ if __name__ == "__main__":
     print("✓ Test Chi-Cuadrado completado con éxito")
     test_roc_curve_analysis()
     print("✓ Test Curva ROC completado con éxito")
+    test_kaplan_meier_analysis()
+    print("✓ Test Kaplan-Meier completado con éxito")
+    test_table1_analysis()
+    print("✓ Test Tabla 1 completado con éxito")

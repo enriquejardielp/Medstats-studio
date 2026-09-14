@@ -538,6 +538,8 @@ const ProjectPage: React.FC = () => {
         'anova',
         'chi-square',
         'roc-curve',
+        'kaplan-meier',
+        'table1',
       ];
 
       if (unifiedTests.includes(test)) {
@@ -630,6 +632,33 @@ const ProjectPage: React.FC = () => {
             return;
           }
           params = { outcome, predictor, conf_level: confLevel };
+        } else if (test === 'kaplan-meier') {
+          const timeVar = selectedRoleValues.time_var as string;
+          const eventVar = selectedRoleValues.event_var as string;
+          const groupVar = selectedRoleValues.group_var as string | undefined;
+          if (!timeVar || !eventVar) {
+            setAnalysisError('Debes seleccionar la variable de tiempo y la de evento.');
+            setAnalysisLoading(false);
+            return;
+          }
+          params = {
+            time_var: timeVar,
+            event_var: eventVar,
+            group_var: groupVar || null,
+            conf_level: confLevel,
+          };
+        } else if (test === 'table1') {
+          if (currentSelectedVars.length === 0) {
+            setAnalysisError('Debes seleccionar al menos una variable para la Tabla 1.');
+            setAnalysisLoading(false);
+            return;
+          }
+          const catCol = currentSelectedVars.find(c => columnTypes[c] === 'categorical' || columnTypes[c] === 'binary');
+          params = {
+            variables: currentSelectedVars,
+            group_var: catCol || null,
+            decimals: 2,
+          };
         }
 
         const response = await apiClient.post('/api/analysis/run', {

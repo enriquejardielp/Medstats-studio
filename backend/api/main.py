@@ -1,15 +1,20 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 from typing import Optional, List
 import pandas as pd
 import base64
 import json
 import os
+import logging
 from io import StringIO, BytesIO
 from datetime import datetime
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from backend.core.r_bridge import RBridge
 from backend.core.data_utils import clean_uploaded_dataframe
@@ -23,19 +28,35 @@ from backend.core.results_schema import AnalysisResult
 
 app = FastAPI(title="MedStats Studio API", version="2.1.0")
 
+@app.exception_handler(StarletteHTTPException)
+async def starlette_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    msg = "; ".join([f"{'.'.join(str(loc) for loc in err.get('loc', []))}: {err.get('msg', '')}" for err in errors])
+    return JSONResponse(status_code=422, content={"detail": f"Error de validación: {msg}"})
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
     return JSONResponse(status_code=400, content={"detail": str(exc)})
 
+@app.exception_handler(RuntimeError)
+async def runtime_error_handler(request: Request, exc: RuntimeError):
+    logger.error(f"RuntimeError during request: {exc}", exc_info=True)
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
-        status_code=400,
-        content={"detail": f"Error al ejecutar el análisis: {exc}"},
+        status_code=500,
+        content={"detail": f"Error interno del servidor: {exc}"},
     )
 
 # Configuración de CORS
@@ -313,6 +334,7 @@ def _sanitize_json(obj):
 # ENDPOINTS DE PROYECTOS (PROTEGIDOS)
 # ------------------------------------------------------------
 
+@app.post("/api/projects", response_model=schemas.ProjectResponse)
 @app.post("/api/projects/", response_model=schemas.ProjectResponse)
 def create_project(
     project: schemas.ProjectCreate,
@@ -338,6 +360,7 @@ def create_project(
         db_project.column_types = json.loads(db_project.column_types)
     return db_project
 
+@app.get("/api/projects", response_model=List[schemas.ProjectResponse])
 @app.get("/api/projects/", response_model=List[schemas.ProjectResponse])
 def list_projects(
     current_user: User = Depends(get_current_user),
@@ -353,6 +376,7 @@ def list_projects(
     return projects
 
 @app.get("/api/projects/{project_id}", response_model=schemas.ProjectResponse)
+@app.get("/api/projects/{project_id}/", response_model=schemas.ProjectResponse)
 def get_project(
     project_id: int,
     current_user: User = Depends(get_current_user),
@@ -365,6 +389,7 @@ def get_project(
     return project
 
 @app.delete("/api/projects/{project_id}")
+@app.delete("/api/projects/{project_id}/")
 def delete_project(
     project_id: int,
     current_user: User = Depends(get_current_user),
@@ -376,6 +401,7 @@ def delete_project(
     return {"message": "Proyecto eliminado"}
 
 @app.post("/api/projects/upload", response_model=schemas.ProjectResponse)
+@app.post("/api/projects/upload/", response_model=schemas.ProjectResponse)
 async def create_project_from_file(
     name: str = Form(...),
     description: Optional[str] = Form(None),
@@ -428,6 +454,7 @@ async def create_project_from_file(
 # ------------------------------------------------------------
 
 @app.get("/api/projects/{project_id}/data")
+@app.get("/api/projects/{project_id}/data/")
 def get_project_data(
     project_id: int,
     current_user: User = Depends(get_current_user),
@@ -456,6 +483,7 @@ def get_project_data(
     }
 
 @app.put("/api/projects/{project_id}/data")
+@app.put("/api/projects/{project_id}/data/")
 def update_project_data(
     project_id: int,
     payload: dict,
@@ -507,10 +535,12 @@ def update_project_data(
 # ------------------------------------------------------------
 
 @app.post("/api/shapiro")
+@app.post("/api/shapiro/")
 async def shapiro_test(request: ShapiroRequest):
     return RBridge.shapiro_test(pd.Series(request.values))
 
 @app.post("/api/compare")
+@app.post("/api/compare/")
 async def compare_groups(request: CompareRequest):
     return RBridge.compare_two_groups(
         pd.Series(request.group1),
@@ -521,6 +551,7 @@ async def compare_groups(request: CompareRequest):
     )
 
 @app.post("/api/correlation")
+@app.post("/api/correlation/")
 async def correlation_test(request: CorrelationRequest):
     return RBridge.correlation(
         pd.Series(request.series1),
@@ -530,15 +561,18 @@ async def correlation_test(request: CorrelationRequest):
     )
 
 @app.post("/api/chi-square")
+@app.post("/api/chi-square/")
 async def chi_square_test(request: ChiSquareRequest):
     df = pd.DataFrame({"var1": request.var1, "var2": request.var2})
     return RBridge.chi_square(df, "var1", "var2")
 
 @app.post("/api/z-test")
+@app.post("/api/z-test/")
 async def z_test(request: ZTestRequest):
     return RBridge.z_test(pd.Series(request.values), request.mu)
 
 @app.post("/api/kolmogorov-smirnov")
+@app.post("/api/kolmogorov-smirnov/")
 async def ks_test(request: KolmogorovSmirnovRequest):
     return RBridge.kolmogorov_smirnov(
         pd.Series(request.series1),
@@ -546,6 +580,7 @@ async def ks_test(request: KolmogorovSmirnovRequest):
     )
 
 @app.post("/api/ks-one-sample")
+@app.post("/api/ks-one-sample/")
 async def ks_one_sample(request: KsOneSampleRequest):
     return RBridge.ks_one_sample(
         pd.Series(request.values),
@@ -555,14 +590,17 @@ async def ks_one_sample(request: KsOneSampleRequest):
     )
 
 @app.post("/api/sample-size")
+@app.post("/api/sample-size/")
 async def sample_size(request: SampleSizeRequest):
     return RBridge.sample_size(request.alpha, request.power, request.effect, request.test_type)
 
 @app.post("/api/bonferroni")
+@app.post("/api/bonferroni/")
 async def bonferroni(request: BonferroniRequest):
     return RBridge.bonferroni_correction(request.p_values)
 
 @app.post("/api/binomial-test")
+@app.post("/api/binomial-test/")
 async def binomial_test(request: BinomialTestRequest):
     return RBridge.binomial_test(
         request.successes, request.trials,
@@ -579,6 +617,7 @@ class UnifiedAnalysisRequest(BaseModel):
     params: dict = {}
 
 @app.post("/api/analysis/run", response_model=AnalysisResult)
+@app.post("/api/analysis/run/", response_model=AnalysisResult)
 def run_unified_analysis(
     req: UnifiedAnalysisRequest,
     current_user: User = Depends(get_current_user),
@@ -591,6 +630,7 @@ def run_unified_analysis(
     return analyzer.run(df, req.params)
 
 @app.post("/api/linear-regression")
+@app.post("/api/linear-regression/")
 def linear_regression(
     request: LinearRegressionProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -601,6 +641,7 @@ def linear_regression(
     return RBridge.linear_regression(df, request.dep_var, request.indep_vars)
 
 @app.post("/api/logistic-regression")
+@app.post("/api/logistic-regression/")
 def logistic_regression(
     request: LogisticRegressionProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -614,6 +655,7 @@ def logistic_regression(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @app.post("/api/anova")
+@app.post("/api/anova/")
 def anova_test(
     request: AnovaProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -629,6 +671,7 @@ def anova_test(
     )
 
 @app.post("/api/friedman")
+@app.post("/api/friedman/")
 def friedman_test(
     request: FriedmanProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -639,6 +682,7 @@ def friedman_test(
     return RBridge.friedman_test(df, request.columns)
 
 @app.post("/api/mcnemar")
+@app.post("/api/mcnemar/")
 def mcnemar_test(
     request: McNemarProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -649,6 +693,7 @@ def mcnemar_test(
     return RBridge.mcnemar_test(df, request.var1, request.var2)
 
 @app.post("/api/odds-ratio")
+@app.post("/api/odds-ratio/")
 def odds_ratio(
     request: OddsRatioProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -659,6 +704,7 @@ def odds_ratio(
     return RBridge.odds_ratio(df, request.var1, request.var2)
 
 @app.post("/api/kappa")
+@app.post("/api/kappa/")
 def kappa(
     request: KappaProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -669,6 +715,7 @@ def kappa(
     return RBridge.kappa_cohen(df, request.var1, request.var2)
 
 @app.post("/api/roc-curve")
+@app.post("/api/roc-curve/")
 def roc_curve(
     request: RocCurveProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -679,6 +726,7 @@ def roc_curve(
     return RBridge.roc_curve(df, request.outcome, request.predictor)
 
 @app.post("/api/diagnostic-accuracy")
+@app.post("/api/diagnostic-accuracy/")
 def diagnostic_accuracy(
     request: DiagnosticAccuracyProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -689,6 +737,7 @@ def diagnostic_accuracy(
     return RBridge.diagnostic_accuracy(df, request.outcome, request.predictor, request.threshold)
 
 @app.post("/api/kaplan-meier")
+@app.post("/api/kaplan-meier/")
 def kaplan_meier(
     request: KaplanMeierProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -699,6 +748,7 @@ def kaplan_meier(
     return RBridge.kaplan_meier(df, request.time_var, request.event_var, request.group_var)
 
 @app.post("/api/cox-regression")
+@app.post("/api/cox-regression/")
 def cox_regression(
     request: CoxRegressionProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -709,6 +759,7 @@ def cox_regression(
     return RBridge.cox_regression(df, request.time_var, request.event_var, request.covariates)
 
 @app.post("/api/bland-altman")
+@app.post("/api/bland-altman/")
 def bland_altman(
     request: BlandAltmanProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -719,6 +770,7 @@ def bland_altman(
     return RBridge.bland_altman(df, request.var1, request.var2)
 
 @app.post("/api/icc")
+@app.post("/api/icc/")
 def icc(
     request: ICCProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -729,6 +781,7 @@ def icc(
     return RBridge.icc(df, request.columns)
 
 @app.post("/api/ancova")
+@app.post("/api/ancova/")
 def ancova(
     request: AncovaProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -739,6 +792,7 @@ def ancova(
     return RBridge.ancova(df, request.dep_var, request.group_var, request.covariates)
 
 @app.post("/api/propensity-score")
+@app.post("/api/propensity-score/")
 def propensity_score(
     request: PropensityScoreProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -749,6 +803,7 @@ def propensity_score(
     return RBridge.propensity_score(df, request.treatment, request.covariates)
 
 @app.post("/api/table1")
+@app.post("/api/table1/")
 def table1(
     request: Table1ProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -765,6 +820,7 @@ def table1(
     return RBridge.table1(df, request.variables, request.group_var, request.decimals)
 
 @app.post("/api/levene")
+@app.post("/api/levene/")
 def levene(
     request: LeveneProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -775,6 +831,7 @@ def levene(
     return RBridge.levene_test(df, request.dep_var, request.group_var)
 
 @app.post("/api/chisq-goodness-of-fit")
+@app.post("/api/chisq-goodness-of-fit/")
 def chisq_goodness_of_fit(
     request: ChisqGoodnessOfFitProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -785,6 +842,7 @@ def chisq_goodness_of_fit(
     return RBridge.chisq_goodness_of_fit(df, request.var, request.p_null)
 
 @app.post("/api/graph")
+@app.post("/api/graph/")
 def generate_graph(
     request: GraphProjectRequest,
     current_user: User = Depends(get_current_user),
@@ -848,6 +906,7 @@ def generate_graph(
 # ENDPOINT DE SUBIDA DIRECTA (UTILIDAD, SIN PROYECTO)
 # ------------------------------------------------------------
 @app.post("/api/upload-csv")
+@app.post("/api/upload-csv/")
 async def upload_csv(file: UploadFile = File(...)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(400, "Solo se aceptan archivos CSV")
@@ -861,6 +920,7 @@ async def upload_csv(file: UploadFile = File(...)):
     }
 
 @app.post("/api/descriptive")
+@app.post("/api/descriptive/")
 def descriptive_stats(request: DescriptiveRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     project = get_project_or_404(db, request.project_id, current_user)
     df = get_df_from_project(project)

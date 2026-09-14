@@ -1472,7 +1472,7 @@ class RBridge:
         script = f"""
         library(jsonlite)
         library(pROC)
-        datos   <- read.csv('{data_path}', check.names = FALSE), encoding = 'UTF-8-sig')
+        datos   <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
         roc_obj <- roc(datos[['{safe_out}']], datos[['{safe_pred}']], quiet = TRUE)
         coords  <- coords(roc_obj, "all",
                           ret = c("threshold","sensitivity","specificity","ppv","npv"))
@@ -1512,7 +1512,7 @@ class RBridge:
 
         script = f"""
         library(jsonlite)
-        datos     <- read.csv('{data_path}', check.names = FALSE), encoding = 'UTF-8-sig')
+        datos     <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
         outcome   <- datos[['{safe_out}']]
         predictor <- datos[['{safe_pred}']]
         valid     <- complete.cases(outcome, predictor)
@@ -1574,7 +1574,7 @@ class RBridge:
         script = f"""
         library(jsonlite)
         library(survival)
-        datos  <- read.csv('{data_path}', check.names = FALSE), encoding = 'UTF-8-sig')
+        datos  <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
         time   <- datos[['{safe_time}']]
         event  <- datos[['{safe_event}']]
         group  <- if (!is.null({group_code})) datos[[{group_code}]] else NULL
@@ -1631,7 +1631,7 @@ class RBridge:
         script = f"""
         library(jsonlite)
         library(survival)
-        datos  <- read.csv('{data_path}', check.names = FALSE), encoding = 'UTF-8-sig')
+        datos  <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
         time   <- datos[['{safe_time}']]
         event  <- datos[['{safe_event}']]
         covs   <- datos[, c({cov_r}), drop = FALSE]
@@ -1740,7 +1740,7 @@ class RBridge:
         script = f"""
         library(jsonlite)
         library(irr)
-        datos  <- read.csv('{data_path}', check.names = FALSE), encoding = 'UTF-8-sig')
+        datos  <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
         matriz <- as.matrix(datos)
         test   <- icc(matriz, model = "twoway", type = "agreement", unit = "single")
 

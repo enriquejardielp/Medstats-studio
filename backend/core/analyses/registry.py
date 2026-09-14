@@ -13,6 +13,8 @@ from backend.core.analyses.compare import CompareTwoGroupsAnalysis
 from backend.core.analyses.anova import AnovaAnalysis
 from backend.core.analyses.chi_square import ChiSquareAnalysis
 from backend.core.analyses.roc_curve import RocCurveAnalysis
+from backend.core.analyses.kaplan_meier import KaplanMeierAnalysis
+from backend.core.analyses.table1 import Table1Analysis
 
 
 class AnalysisRegistry:
@@ -29,6 +31,8 @@ class AnalysisRegistry:
         "anova": AnovaAnalysis,
         "chi-square": ChiSquareAnalysis,
         "roc-curve": RocCurveAnalysis,
+        "kaplan-meier": KaplanMeierAnalysis,
+        "table1": Table1Analysis,
     }
 
     @classmethod

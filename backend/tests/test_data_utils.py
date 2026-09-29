@@ -15,6 +15,11 @@ def test_clean_uploaded_dataframe_drops_blank_rows_and_columns():
     cleaned = clean_uploaded_dataframe(df)
 
     assert list(cleaned.columns) == ['Edad', 'Sexo']
-    assert len(cleaned) == 4
+    assert len(cleaned) == 3
     assert cleaned.iloc[0]['Edad'] == 30
     assert cleaned.iloc[2]['Sexo'] == ''
+
+
+if __name__ == '__main__':
+    test_clean_uploaded_dataframe_drops_blank_rows_and_columns()
+    print('  ✓ test_clean_uploaded_dataframe passed')

@@ -222,7 +222,12 @@ class RBridge:
     @staticmethod
     def shapiro_test(series: pd.Series) -> dict:
         RBridge._validate_series(series, 'series', min_n=3)
-        n = series.dropna().shape[0]
+        clean = series.dropna()
+        if clean.nunique() <= 1:
+            raise ValueError(
+                "Todos los valores de la variable son idénticos; la varianza es cero y no se puede contrastar normalidad."
+            )
+        n = clean.shape[0]
         if n > 5000:
             raise ValueError(
                 f"Shapiro-Wilk no es aplicable con n={n} (máximo 5000). "
@@ -525,7 +530,13 @@ class RBridge:
         RBridge._validate_series(group1, 'group1')
         RBridge._validate_series(group2, 'group2')
         if paired:
-            RBridge._validate_paired(group1, group2)
+            pair_df = pd.concat([group1.rename('g1'), group2.rename('g2')], axis=1).dropna()
+            if len(pair_df) < 3:
+                raise ValueError(
+                    f"Para muestras pareadas se necesitan al menos 3 pares completos de observaciones (válidos: {len(pair_df)})"
+                )
+            group1 = pair_df['g1']
+            group2 = pair_df['g2']
 
         if method not in ("welch", "mannwhitney", "auto"):
             raise ValueError(
@@ -904,14 +915,18 @@ class RBridge:
         series1: pd.Series,
         series2: pd.Series,
         method: str = "auto",
-        conf_level: float = 0.95
     ) -> dict:
-        RBridge._validate_series(series1, 'series1')
-        RBridge._validate_series(series2, 'series2')
         if method not in ("pearson", "spearman", "auto"):
             raise ValueError(
                 f"method='{method}' no válido. Usa 'pearson', 'spearman' o 'auto'."
             )
+        pair_df = pd.concat([series1.rename('s1'), series2.rename('s2')], axis=1).dropna()
+        if len(pair_df) < 3:
+            raise ValueError(
+                f"Se necesitan al menos 3 observaciones completas para correlación (válidas: {len(pair_df)})"
+            )
+        series1 = pair_df['s1']
+        series2 = pair_df['s2']
 
         path1 = RBridge._write_temp_csv(series1)
         path2 = RBridge._write_temp_csv(series2)
@@ -1103,13 +1118,31 @@ class RBridge:
         nagelkerke_r2 <- cox_r2 / (1 - exp(2 * ll_null / n))
 
         hl_p <- tryCatch({{
-            probs  <- fitted(fit)
-            obs    <- dep[complete.cases(dep)]
-            grupos <- cut(probs, breaks = quantile(probs, probs = seq(0, 1, by = 0.1)), include.lowest = TRUE)
-            obs_e  <- tapply(obs, grupos, sum)
-            exp_e  <- tapply(probs, grupos, sum)
-            chi_hl <- sum((obs_e - exp_e)^2 / exp_e)
-            pchisq(chi_hl, df = 8, lower.tail = FALSE)
+            if (requireNamespace("ResourceSelection", quietly = TRUE)) {{
+                g_val <- min(10, length(unique(fitted(fit))))
+                if (g_val >= 3) {{
+                    as.numeric(ResourceSelection::hoslem.test(fit$y, fitted(fit), g = g_val)$p.value)
+                }} else {{
+                    NA_real_
+                }}
+            }} else {{
+                probs <- fitted(fit)
+                y_bin <- as.numeric(fit$y)
+                q_breaks <- unique(quantile(probs, probs = seq(0, 1, by = 0.1)))
+                if (length(q_breaks) > 2) {{
+                    grupos <- cut(probs, breaks = q_breaks, include.lowest = TRUE)
+                    obs_1  <- tapply(y_bin, grupos, sum)
+                    exp_1  <- tapply(probs, grupos, sum)
+                    n_g    <- tapply(y_bin, grupos, length)
+                    obs_0  <- n_g - obs_1
+                    exp_0  <- n_g - exp_1
+                    chi_hl <- sum((obs_1 - exp_1)^2 / pmax(exp_1, 1e-6) + (obs_0 - exp_0)^2 / pmax(exp_0, 1e-6))
+                    df_hl  <- max(1, length(levels(grupos)) - 2)
+                    as.numeric(pchisq(chi_hl, df = df_hl, lower.tail = FALSE))
+                }} else {{
+                    NA_real_
+                }}
+            }}
         }}, error = function(e) NA_real_)
 
         vif_vals <- if (length(c({indep_r})) > 1) tryCatch(vif(fit), error=function(e) NULL) else NULL
@@ -1273,14 +1306,28 @@ class RBridge:
         esperadas  <- chisq.test(tabla)$expected
         celdas_bajas <- any(esperadas < 5)
 
+        base_chisq <- tryCatch(chisq.test(tabla, correct = FALSE), error = function(e) NULL)
+        stat_val   <- if (!is.null(base_chisq)) as.numeric(base_chisq$statistic) else NA_real_
+        gl_val     <- if (!is.null(base_chisq)) as.integer(base_chisq$parameter) else NA_integer_
+        p_val      <- if (!is.null(base_chisq)) as.numeric(base_chisq$p.value) else NA_real_
+
         if (all(dim(tabla) == c(2, 2))) {{
-            test   <- fisher.test(tabla)
-            metodo <- "Fisher (tabla 2×2)"
+            test_fisher <- tryCatch(fisher.test(tabla), error = function(e) NULL)
+            if (!is.null(test_fisher)) {{
+                p_val  <- as.numeric(test_fisher$p.value)
+                metodo <- "Fisher (tabla 2×2)"
+            }} else {{
+                metodo <- "Chi-cuadrado de Pearson"
+            }}
         }} else if (celdas_bajas) {{
-            test   <- chisq.test(tabla, simulate.p.value = TRUE, B = 2000)
-            metodo <- "Chi-cuadrado (Monte Carlo, celdas esperadas < 5)"
+            test_mc <- tryCatch(chisq.test(tabla, simulate.p.value = TRUE, B = 2000), error = function(e) NULL)
+            if (!is.null(test_mc)) {{
+                p_val  <- as.numeric(test_mc$p.value)
+                metodo <- "Chi-cuadrado (Monte Carlo, celdas esperadas < 5)"
+            }} else {{
+                metodo <- "Chi-cuadrado de Pearson"
+            }}
         }} else {{
-            test   <- chisq.test(tabla)
             metodo <- "Chi-cuadrado de Pearson"
         }}
 
@@ -1289,10 +1336,8 @@ class RBridge:
         r  <- nrow(tabla)
         c_ <- ncol(tabla)
 
-        chi2 <- ifelse(is.null(test$statistic), NA_real_, as.numeric(test$statistic))
-
-        cramer <- if (!is.na(chi2) && n > 0 && k > 1) {{
-            phi2   <- chi2 / n
+        cramer <- if (!is.na(stat_val) && n > 0 && k > 1) {{
+            phi2   <- stat_val / n
             phi2c  <- max(0, phi2 - ((r-1)*(c_-1))/(n-1))
             rc     <- r - (r-1)^2/(n-1)
             cc     <- c_ - (c_-1)^2/(n-1)
@@ -1302,15 +1347,14 @@ class RBridge:
         tabla_df <- as.data.frame(tabla)
         names(tabla_df) <- c("{safe1}", "{safe2}", "frecuencia")
 
-        resid <- tryCatch(
-            as.data.frame(round(test$stdres, 3)),
-            error = function(e) NULL
-        )
+        resid <- if (!is.null(base_chisq)) {{
+            tryCatch(as.data.frame(round(base_chisq$stdres, 3)), error = function(e) NULL)
+        }} else NULL
 
         cat(toJSON(list(
-            p_valor      = as.numeric(test$p.value),
-            estadistico  = ifelse(is.null(test$statistic), NA, as.numeric(test$statistic)),
-            gl           = ifelse(is.null(test$parameter), NA, as.numeric(test$parameter)),
+            p_valor      = p_val,
+            estadistico  = stat_val,
+            gl           = gl_val,
             metodo       = metodo,
             cramer_v     = ifelse(is.na(cramer), NA, as.numeric(cramer)),
             tabla        = tabla_df,
@@ -1394,17 +1438,22 @@ class RBridge:
         v1    <- v1[valid]; v2 <- v2[valid]
         tabla <- table(v1, v2)
 
-        or       <- (tabla[1,1] * tabla[2,2]) / (tabla[1,2] * tabla[2,1])
+        if (nrow(tabla) != 2 || ncol(tabla) != 2) {{
+            stop("El cálculo de Odds Ratio requiere dos variables binarias (tabla 2×2).")
+        }}
+        test <- fisher.test(tabla)
+        t_calc <- if (any(tabla == 0)) tabla + 0.5 else tabla
+        or       <- (t_calc[1,1] * t_calc[2,2]) / (t_calc[1,2] * t_calc[2,1])
         log_or   <- log(or)
-        se_log   <- sqrt(1/tabla[1,1] + 1/tabla[1,2] + 1/tabla[2,1] + 1/tabla[2,2])
-        test     <- fisher.test(tabla)
+        se_log   <- sqrt(1/t_calc[1,1] + 1/t_calc[1,2] + 1/t_calc[2,1] + 1/t_calc[2,2])
 
         cat(toJSON(list(
             odds_ratio  = as.numeric(or),
             ic_inferior = as.numeric(exp(log_or - 1.96 * se_log)),
             ic_superior = as.numeric(exp(log_or + 1.96 * se_log)),
-            p_valor     = as.numeric(test$p.value)
-        ), auto_unbox = TRUE))
+            p_valor     = as.numeric(test$p.value),
+            nota        = if (any(tabla == 0)) "Se aplicó corrección de Haldane-Anscombe (+0.5) por celdas con frecuencia cero." else NA
+        ), auto_unbox = TRUE, na = "null"))
         """
         try:
             res = RBridge._run_script(script)
@@ -1435,13 +1484,12 @@ class RBridge:
         v1    <- v1[valid]; v2 <- v2[valid]
         test  <- kappa2(data.frame(v1, v2), weight = "unweighted")
 
-        k     <- as.numeric(test$value)
-        interp <- if (k < 0)       "pobre"
-                  else if (k < 0.2) "leve"
-                  else if (k < 0.4) "aceptable"
-                  else if (k < 0.6) "moderado"
-                  else if (k < 0.8) "considerable"
-                  else               "casi perfecto"
+        k      <- as.numeric(test$value)
+        interp <- ifelse(k < 0, "pobre",
+                  ifelse(k < 0.2, "leve",
+                  ifelse(k < 0.4, "aceptable",
+                  ifelse(k < 0.6, "moderado",
+                  ifelse(k < 0.8, "considerable", "casi perfecto")))))
 
         cat(toJSON(list(
             kappa                = k,
@@ -1745,10 +1793,9 @@ class RBridge:
         test   <- icc(matriz, model = "twoway", type = "agreement", unit = "single")
 
         icc_val <- as.numeric(test$value)
-        interp  <- if (icc_val < 0.5)       "pobre"
-                   else if (icc_val < 0.75)  "moderado"
-                   else if (icc_val < 0.9)   "bueno"
-                   else                       "excelente"
+        interp  <- ifelse(icc_val < 0.5, "pobre",
+                   ifelse(icc_val < 0.75, "moderado",
+                   ifelse(icc_val < 0.9, "bueno", "excelente")))
 
         cat(toJSON(list(
             icc             = icc_val,

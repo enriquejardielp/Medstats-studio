@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 from backend.core.r_bridge import RBridge
 from backend.core.data_utils import clean_uploaded_dataframe
-from backend.database import engine, get_db, Base
+from backend.database import engine, get_db, Base, init_db
 from backend.models import User, Project
 from backend import schemas
 from backend.auth import get_current_user
@@ -99,7 +99,7 @@ def health_check():
 # ------------------------------------------------------------
 # INICIALIZACIÓN DE LA BASE DE DATOS
 # ------------------------------------------------------------
-Base.metadata.create_all(bind=engine)
+init_db()
 
 # ------------------------------------------------------------
 # MODELOS DE PETICIÓN (ANÁLISIS)

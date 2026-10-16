@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Info, ShieldCheck } from 'lucide-react';
 import type { DiagnosticItem } from '../../types/analysis';
 
 interface Props {
@@ -9,88 +9,253 @@ interface Props {
 export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
   if (!diagnostics || diagnostics.length === 0) {
     return (
-      <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.85rem' }}>
-        No se requirieron pruebas de supuestos específicas para este procedimiento.
+      <div
+        style={{
+          padding: '2rem',
+          textAlign: 'center',
+          color: '#64748b',
+          fontSize: '0.88rem',
+          backgroundColor: '#f8fafc',
+          borderRadius: '8px',
+          border: '1px dashed #cbd5e1',
+        }}
+      >
+        <ShieldCheck size={24} color="#94a3b8" style={{ marginBottom: '0.5rem' }} />
+        <div>No se requirieron pruebas de supuestos específicas para este procedimiento.</div>
       </div>
     );
   }
 
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-      {diagnostics.map(diag => {
-        const isPass = diag.status === 'pass';
-        const isWarning = diag.status === 'warning';
-        const isFail = diag.status === 'fail';
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'pass':
+        return {
+          label: 'Supuesto Verificado',
+          icon: CheckCircle2,
+          iconColor: '#10b981',
+          badgeBg: '#ecfdf5',
+          badgeText: '#065f46',
+          badgeBorder: '#a7f3d0',
+          cardBorder: '#d1fae5',
+          indicatorColor: '#10b981',
+        };
+      case 'warning':
+        return {
+          label: 'Precaución / Desviación',
+          icon: AlertTriangle,
+          iconColor: '#f59e0b',
+          badgeBg: '#fffbeb',
+          badgeText: '#92400e',
+          badgeBorder: '#fde68a',
+          cardBorder: '#fef3c7',
+          indicatorColor: '#f59e0b',
+        };
+      case 'fail':
+        return {
+          label: 'Supuesto Violado',
+          icon: XCircle,
+          iconColor: '#ef4444',
+          badgeBg: '#fef2f2',
+          badgeText: '#991b1b',
+          badgeBorder: '#fecaca',
+          cardBorder: '#fee2e2',
+          indicatorColor: '#ef4444',
+        };
+      default:
+        return {
+          label: 'Informativo',
+          icon: Info,
+          iconColor: '#64748b',
+          badgeBg: '#f8fafc',
+          badgeText: '#334155',
+          badgeBorder: '#e2e8f0',
+          cardBorder: '#e2e8f0',
+          indicatorColor: '#64748b',
+        };
+    }
+  };
 
-        const borderColor = isPass ? '#bbf7d0' : isWarning ? '#fde68a' : isFail ? '#fecaca' : '#e2e8f0';
-        const badgeBg = isPass ? '#f0fdf4' : isWarning ? '#fffbeb' : isFail ? '#fef2f2' : '#f8fafc';
-        const textColor = isPass ? '#166534' : isWarning ? '#92400e' : isFail ? '#991b1b' : '#475569';
-        const Icon = isPass ? CheckCircle2 : isWarning ? AlertTriangle : isFail ? XCircle : Info;
-        const iconColor = isPass ? '#16a34a' : isWarning ? '#d97706' : isFail ? '#dc2626' : '#64748b';
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '1.25rem',
+      }}
+    >
+      {diagnostics.map(diag => {
+        const config = getStatusConfig(diag.status);
+        const Icon = config.icon;
 
         return (
           <div
             key={diag.id}
             style={{
               backgroundColor: 'white',
-              border: `1px solid ${borderColor}`,
-              borderRadius: '8px',
-              padding: '1rem',
+              border: `1px solid ${config.cardBorder}`,
+              borderRadius: '10px',
+              padding: '1.15rem 1.25rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.5rem',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+              gap: '0.75rem',
+              boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.04)',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'box-shadow 0.15s ease, transform 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.boxShadow = '0 6px 16px -4px rgba(15, 23, 42, 0.08)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.boxShadow = '0 2px 6px -2px rgba(15, 23, 42, 0.04)';
             }}
           >
+            {/* Barra lateral de acento de estado */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: '4px',
+                backgroundColor: config.indicatorColor,
+              }}
+            />
+
             {/* Cabecera del Diagnóstico */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Icon size={16} color={iconColor} />
-                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                paddingLeft: '0.25rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icon size={18} color={config.iconColor} style={{ flexShrink: 0 }} />
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    color: '#0f172a',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
                   {diag.name}
                 </span>
               </div>
+
               <span
                 style={{
-                  backgroundColor: badgeBg,
-                  color: textColor,
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                  fontSize: '0.7rem',
+                  backgroundColor: config.badgeBg,
+                  color: config.badgeText,
+                  border: `1px solid ${config.badgeBorder}`,
+                  padding: '3px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.68rem',
                   fontWeight: 700,
+                  whiteSpace: 'nowrap',
                   textTransform: 'uppercase',
-                  border: `1px solid ${borderColor}`,
+                  letterSpacing: '0.03em',
+                  flexShrink: 0,
                 }}
               >
-                {diag.status}
+                {config.label}
               </span>
             </div>
 
-            {/* Resultado y Estadística */}
-            <div style={{ fontSize: '0.82rem', color: '#334155', lineHeight: 1.4 }}>
-              <strong>Hallazgo:</strong> {diag.finding}
-            </div>
+            {/* Chips de Valores Estadísticos si existen */}
+            {(diag.statistic_value !== undefined || diag.p_value !== undefined || diag.threshold) && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.4rem',
+                  paddingLeft: '0.25rem',
+                }}
+              >
+                {diag.statistic_name && diag.statistic_value !== undefined && (
+                  <span
+                    style={{
+                      backgroundColor: '#f1f5f9',
+                      color: '#1e293b',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {diag.statistic_name} = {typeof diag.statistic_value === 'number' ? diag.statistic_value.toFixed(3) : diag.statistic_value}
+                  </span>
+                )}
 
-            {diag.threshold && (
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                <strong>Criterio:</strong> {diag.threshold}
+                {diag.p_value !== undefined && (
+                  <span
+                    style={{
+                      backgroundColor: '#eff6ff',
+                      color: '#1d4ed8',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    p = {diag.p_value < 0.001 ? '< .001' : diag.p_value.toFixed(3)}
+                  </span>
+                )}
+
+                {diag.threshold && (
+                  <span
+                    style={{
+                      backgroundColor: '#f8fafc',
+                      color: '#64748b',
+                      border: '1px solid #e2e8f0',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '0.72rem',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Criterio: {diag.threshold}
+                  </span>
+                )}
               </div>
             )}
 
-            {/* Recomendación Metodológica */}
+            {/* Hallazgo Empírico */}
+            <div
+              style={{
+                fontSize: '0.84rem',
+                color: '#334155',
+                lineHeight: 1.5,
+                paddingLeft: '0.25rem',
+              }}
+            >
+              <strong style={{ color: '#0f172a' }}>Evaluación: </strong>
+              {diag.finding}
+            </div>
+
+            {/* Recomendación Metodológica para el Investigador */}
             {diag.recommendation && (
               <div
                 style={{
                   marginTop: '0.25rem',
-                  padding: '0.5rem 0.75rem',
-                  backgroundColor: '#f8fafc',
-                  borderLeft: '3px solid #f59e0b',
-                  borderRadius: '0 4px 4px 0',
+                  padding: '0.65rem 0.85rem',
+                  backgroundColor: diag.status === 'fail' ? '#fff1f2' : '#f8fafc',
+                  borderLeft: `3px solid ${diag.status === 'fail' ? '#f43f5e' : '#3b82f6'}`,
+                  borderRadius: '0 6px 6px 0',
                   fontSize: '0.78rem',
-                  color: '#475569',
+                  color: diag.status === 'fail' ? '#9f1239' : '#334155',
+                  lineHeight: 1.45,
                 }}
               >
-                <strong>Sugerencia:</strong> {diag.recommendation}
+                <div style={{ fontWeight: 700, marginBottom: '2px', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+                  {diag.status === 'fail' ? '⚠️ Acción Recomendada:' : '💡 Sugerencia Metodológica:'}
+                </div>
+                {diag.recommendation}
               </div>
             )}
           </div>

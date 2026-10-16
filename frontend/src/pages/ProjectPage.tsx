@@ -10,17 +10,21 @@ import {
   X,
   History,
   Settings,
-  Info,
-  Copy,
   FileText,
   Maximize2,
   Minimize2,
+  TrendingUp,
+  GitCompare,
+  Activity,
+  Table2,
+  Layers,
+  Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
 import apiClient from '../api/client';
 import type { ColumnType } from '../types';
 import type { AnalysisResult } from '../types/analysis';
 import { OutputViewer } from '../components/output/OutputViewer';
-import { formatCorrelationResult } from '../utils/correlation';
 
 // ============================================================
 // Cabecera personalizada con selector de tipo
@@ -99,6 +103,8 @@ interface ProjectInfo {
 interface AnalysisOption {
   id: string;
   label: string;
+  category: string;
+  badge?: string;
   icon: React.ReactNode;
   description: string;
   requiredTypes: { numeric: number; categorical: number };
@@ -106,16 +112,106 @@ interface AnalysisOption {
 }
 
 const analysisOptions: AnalysisOption[] = [
-  { id: 'descriptive', label: 'Descriptivos', icon: <BarChart3 size={20} />, description: 'Media, mediana, SD, etc.', requiredTypes: { numeric: 1, categorical: 0 }, allowMore: true },
-  { id: 'compare', label: 'Comparar grupos', icon: <BarChart3 size={20} />, description: 't-test, Mann-Whitney', requiredTypes: { numeric: 1, categorical: 1 }, allowMore: false },
-  { id: 'correlation', label: 'Correlación', icon: <BarChart3 size={20} />, description: 'Pearson, Spearman', requiredTypes: { numeric: 2, categorical: 0 }, allowMore: false },
-  { id: 'anova', label: 'ANOVA / Kruskal-Wallis', icon: <BarChart3 size={20} />, description: 'Comparación de múltiples grupos', requiredTypes: { numeric: 1, categorical: 1 }, allowMore: false },
-  { id: 'chi-square', label: 'Chi-cuadrado', icon: <BarChart3 size={20} />, description: 'Asociación entre categóricas', requiredTypes: { numeric: 0, categorical: 2 }, allowMore: false },
-  { id: 'linear-regression', label: 'Regresión lineal', icon: <BarChart3 size={20} />, description: 'Relación lineal', requiredTypes: { numeric: 2, categorical: 0 }, allowMore: true },
-  { id: 'logistic-regression', label: 'Regresión logística', icon: <BarChart3 size={20} />, description: 'Outcome binario', requiredTypes: { numeric: 1, categorical: 1 }, allowMore: true },
-  { id: 'roc-curve', label: 'Curva ROC', icon: <BarChart3 size={20} />, description: 'Diagnóstico', requiredTypes: { numeric: 1, categorical: 1 }, allowMore: false },
-  { id: 'kaplan-meier', label: 'Kaplan-Meier', icon: <BarChart3 size={20} />, description: 'Supervivencia', requiredTypes: { numeric: 1, categorical: 1 }, allowMore: false },
-  { id: 'table1', label: 'Tabla 1', icon: <BarChart3 size={20} />, description: 'Características basales', requiredTypes: { numeric: 1, categorical: 0 }, allowMore: true },
+  {
+    id: 'descriptive',
+    label: 'Estadística Descriptiva',
+    category: '1. Descriptiva y Basal',
+    badge: 'Media, DE, Mediana, IQR',
+    icon: <BarChart3 size={18} color="#2563eb" />,
+    description: 'Resumen numérico y categórico univariado con test de normalidad.',
+    requiredTypes: { numeric: 1, categorical: 0 },
+    allowMore: true,
+  },
+  {
+    id: 'table1',
+    label: 'Tabla 1 Basal (Lancet / NEJM)',
+    category: '1. Descriptiva y Basal',
+    badge: 'Características Basales',
+    icon: <Table2 size={18} color="#2563eb" />,
+    description: 'Demografía y variables basales estratificadas con comparaciones.',
+    requiredTypes: { numeric: 1, categorical: 0 },
+    allowMore: true,
+  },
+  {
+    id: 'compare',
+    label: 'Comparar 2 Grupos (t / Mann-Whitney)',
+    category: '2. Comparación de Grupos',
+    badge: 't de Student / Welch / U',
+    icon: <GitCompare size={18} color="#16a34a" />,
+    description: 'Diferencia de medias o rangos para muestras independientes o pareadas.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: false,
+  },
+  {
+    id: 'anova',
+    label: 'Comparar 3+ Grupos (ANOVA / Kruskal)',
+    category: '2. Comparación de Grupos',
+    badge: 'ANOVA / Kruskal-Wallis',
+    icon: <Layers size={18} color="#16a34a" />,
+    description: 'Prueba F global, homocedasticidad de Levene y comparaciones post-hoc Tukey.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: false,
+  },
+  {
+    id: 'correlation',
+    label: 'Correlación Bivariada',
+    category: '3. Asociación y Contingencia',
+    badge: 'Pearson / Spearman',
+    icon: <TrendingUp size={18} color="#9333ea" />,
+    description: 'Fuerza y dirección de asociación lineal o monótona con IC 95%.',
+    requiredTypes: { numeric: 2, categorical: 0 },
+    allowMore: false,
+  },
+  {
+    id: 'chi-square',
+    label: 'Tablas de Contingencia (Chi² / Fisher)',
+    category: '3. Asociación y Contingencia',
+    badge: 'Odds Ratio / Riesgo Relativo',
+    icon: <Sparkles size={18} color="#9333ea" />,
+    description: 'Asociación entre cualitativas, corrección de Yates y corrección de Haldane.',
+    requiredTypes: { numeric: 0, categorical: 2 },
+    allowMore: false,
+  },
+  {
+    id: 'linear-regression',
+    label: 'Regresión Lineal Múltiple',
+    category: '4. Modelos Predictivos',
+    badge: 'Ajuste de Covariables',
+    icon: <SlidersHorizontal size={18} color="#0284c7" />,
+    description: 'Estimación de coeficientes beta, R² ajustado y diagnóstico de residuos.',
+    requiredTypes: { numeric: 2, categorical: 0 },
+    allowMore: true,
+  },
+  {
+    id: 'logistic-regression',
+    label: 'Regresión Logística Binaria',
+    category: '4. Modelos Predictivos',
+    badge: 'Odds Ratios Ajustados',
+    icon: <Activity size={18} color="#0284c7" />,
+    description: 'Modelado de desenlace clínico binario con Hosmer-Lemeshow y Nagelkerke.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: true,
+  },
+  {
+    id: 'roc-curve',
+    label: 'Curva ROC & Biomarcadores',
+    category: '5. Medicina Diagnóstica & Supervivencia',
+    badge: 'AUC & Índice Youden',
+    icon: <Activity size={18} color="#ea580c" />,
+    description: 'Capacidad diagnóstica, sensibilidad, especificidad y punto de corte.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: false,
+  },
+  {
+    id: 'kaplan-meier',
+    label: 'Supervivencia Kaplan-Meier',
+    category: '5. Medicina Diagnóstica & Supervivencia',
+    badge: 'Curvas & Log-Rank Test',
+    icon: <Activity size={18} color="#ea580c" />,
+    description: 'Tiempo hasta el evento, medianas de supervivencia y contraste Log-Rank.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: false,
+  },
 ];
 
 const ProjectPage: React.FC = () => {
@@ -143,7 +239,7 @@ const ProjectPage: React.FC = () => {
   const [selectedVars, setSelectedVars] = useState<string[]>([]);
   const [selectedRoleValues, setSelectedRoleValues] = useState<Record<string, string | string[]>>({});
 
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [_analysisResult, setAnalysisResult] = useState<any>(null);
   const [, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisNotes, setAnalysisNotes] = useState('');
@@ -237,7 +333,7 @@ const ProjectPage: React.FC = () => {
       });
 
       setColumnDefs(cols);
-    } catch (err: any) {
+    } catch {
       setError('Error al cargar el proyecto');
     } finally {
       setLoading(false);
@@ -407,7 +503,6 @@ const ProjectPage: React.FC = () => {
         if (role === 'num') return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
         return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
       case 'correlation':
-      case 'linear-regression':
         return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
       case 'chi-square':
         return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
@@ -832,122 +927,213 @@ const ProjectPage: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f8fafc' }}>
-      {/* HEADER */}
+      {/* HEADER DE GRADO CLÍNICO */}
       <header
         style={{
-          height: '60px',
+          height: '64px',
           background: 'white',
-          borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 1.5rem',
           flexShrink: 0,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           <button
             onClick={() => navigate('/projects')}
+            title="Volver a lista de proyectos"
             style={{
-              border: 'none',
-              background: 'none',
+              border: '1px solid #e2e8f0',
+              background: '#f8fafc',
               cursor: 'pointer',
-              padding: '0.5rem',
-              borderRadius: '6px',
-              color: '#64748b',
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'all 0.2s',
-            }}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#0f172a' }}>
-            {project?.name || 'Proyecto'}
-          </h1>
-          <span
-            style={{
-              background: '#f1f5f9',
+              padding: '0.45rem',
+              borderRadius: '8px',
               color: '#475569',
-              padding: '0.15rem 0.6rem',
-              borderRadius: '12px',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-            }}
-          >
-            N = {project?.row_count || 0}
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button
-            onClick={handleSave}
-            disabled={saving || editMode === 'analysis'}
-            style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.5rem 1rem',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
-              borderRadius: '8px',
-              background: 'white',
-              color: editMode === 'analysis' ? '#94a3b8' : '#334155',
-              fontSize: '0.85rem',
-              cursor: editMode === 'analysis' ? 'not-allowed' : 'pointer',
-              fontWeight: 500,
-              opacity: editMode === 'analysis' ? 0.4 : 1,
-              transition: 'all 0.2s',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = '#f1f5f9';
+              e.currentTarget.style.borderColor = '#cbd5e1';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = '#f8fafc';
+              e.currentTarget.style.borderColor = '#e2e8f0';
             }}
           >
-            <Save size={16} /> {saving ? 'Guardando...' : 'Guardar'}
+            <ArrowLeft size={18} />
           </button>
-          <button
-            onClick={loadProject}
-            disabled={editMode === 'analysis'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.5rem 1rem',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
-              borderRadius: '8px',
-              background: 'white',
-              color: editMode === 'analysis' ? '#94a3b8' : '#334155',
-              fontSize: '0.85rem',
-              cursor: editMode === 'analysis' ? 'not-allowed' : 'pointer',
-              fontWeight: 500,
-              opacity: editMode === 'analysis' ? 0.4 : 1,
-              transition: 'all 0.2s',
-            }}
-          >
-            <RotateCcw size={16} /> Recargar
-          </button>
-          <button
-            onClick={togglePanel}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.5rem 1.2rem',
-              border: panelOpen ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',
-              borderRadius: '8px',
-              background: panelOpen ? 'white' : '#2563eb',
-              color: panelOpen ? '#64748b' : 'white',
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-            }}
-          >
-            {panelOpen ? (
-              <>
-                <X size={16} /> Cerrar Panel
-              </>
-            ) : (
-              <>
-                <BarChart3 size={16} /> Lanzar Análisis Estadístico
-              </>
+
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <h1 style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                {project?.name || 'Proyecto'}
+              </h1>
+              <span
+                style={{
+                  background: '#eff6ff',
+                  color: '#1d4ed8',
+                  border: '1px solid #bfdbfe',
+                  padding: '1px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                }}
+              >
+                N = {project?.row_count?.toLocaleString() || 0} filas
+              </span>
+              <span
+                style={{
+                  background: '#f8fafc',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  padding: '1px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                }}
+              >
+                K = {columnDefs.length || 0} variables
+              </span>
+            </div>
+            {project?.filename && (
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
+                Archivo: <span style={{ fontFamily: 'ui-monospace, monospace', color: '#64748b' }}>{project.filename}</span>
+              </div>
             )}
-          </button>
+          </div>
+        </div>
+
+        {/* CONTROLES CENTRALES Y DE ACCIÓN */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Segmented Mode Switcher */}
+          <div
+            style={{
+              display: 'inline-flex',
+              backgroundColor: '#f1f5f9',
+              padding: '3px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <button
+              onClick={() => setEditMode('edition')}
+              style={{
+                border: 'none',
+                backgroundColor: editMode === 'edition' ? 'white' : 'transparent',
+                color: editMode === 'edition' ? '#0f172a' : '#64748b',
+                fontWeight: editMode === 'edition' ? 700 : 500,
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                boxShadow: editMode === 'edition' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              ✏️ Modo Edición
+            </button>
+            <button
+              onClick={() => {
+                setEditMode('analysis');
+                if (!panelOpen) setPanelOpen(true);
+              }}
+              style={{
+                border: 'none',
+                backgroundColor: editMode === 'analysis' ? 'white' : 'transparent',
+                color: editMode === 'analysis' ? '#1d4ed8' : '#64748b',
+                fontWeight: editMode === 'analysis' ? 700 : 500,
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                boxShadow: editMode === 'analysis' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              📊 Modo Análisis
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={handleSave}
+              disabled={saving || editMode === 'analysis'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.45rem 0.9rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                background: 'white',
+                color: editMode === 'analysis' ? '#94a3b8' : '#334155',
+                fontSize: '0.82rem',
+                cursor: editMode === 'analysis' ? 'not-allowed' : 'pointer',
+                fontWeight: 600,
+                opacity: editMode === 'analysis' ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Save size={15} /> {saving ? 'Guardando...' : 'Guardar'}
+            </button>
+
+            <button
+              onClick={loadProject}
+              disabled={editMode === 'analysis'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.45rem 0.9rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                background: 'white',
+                color: editMode === 'analysis' ? '#94a3b8' : '#334155',
+                fontSize: '0.82rem',
+                cursor: editMode === 'analysis' ? 'not-allowed' : 'pointer',
+                fontWeight: 600,
+                opacity: editMode === 'analysis' ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <RotateCcw size={15} /> Recargar
+            </button>
+
+            <button
+              onClick={togglePanel}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.5rem 1.25rem',
+                border: panelOpen ? '1px solid #cbd5e1' : 'none',
+                borderRadius: '8px',
+                background: panelOpen ? '#f8fafc' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                color: panelOpen ? '#334155' : 'white',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                fontWeight: 700,
+                boxShadow: panelOpen ? 'none' : '0 2px 8px rgba(37, 99, 235, 0.25)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {panelOpen ? (
+                <>
+                  <X size={16} /> Cerrar Panel
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} /> Lanzar Análisis Estadístico
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1160,573 +1346,155 @@ const ProjectPage: React.FC = () => {
                     onClearAll={handleClearAllOutputs}
                   />
                 ) : activeTab === 'config' ? (
-                  <div>
-                    {!analysisResult ? (
-                      <>
-                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem' }}>
-                          Selecciona el tipo de análisis que deseas realizar:
-                        </p>
-                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                          {analysisOptions.map(option => (
-                            <button
-                              key={option.id}
-                              onClick={() => openAnalysisModal(option)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.75rem',
-                                background: 'white',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                transition: 'all 0.15s',
-                                color: '#0f172a',
-                              }}
-                              onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                              onMouseLeave={e => e.currentTarget.style.background = 'white'}
-                            >
-                              <div style={{ color: '#2563eb' }}>{option.icon}</div>
-                              <div>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{option.label}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{option.description}</div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <div>
-                        {/* Vista específica para descriptivos */}
-                        {selectedAnalysis?.id === 'descriptive' ? (
-                          <div style={{ marginTop: '1rem' }}>
-                            {analysisResult.numeric && Object.keys(analysisResult.numeric).length > 0 && (
-                              <div style={{ marginBottom: '1.5rem' }}>
-                                <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Variables numéricas</h4>
-                                <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                    <thead>
-                                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                        <th style={{ padding: '0.4rem', textAlign: 'left' }}>Variable</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>N</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Media</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Mediana</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>SD</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Min</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Max</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Q1</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Q3</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {Object.entries(analysisResult.numeric).map(([varName, stats]: [string, any]) => (
-                                        <tr key={varName} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                          <td style={{ padding: '0.3rem 0.4rem', fontWeight: 500 }}>{varName}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.n}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.mean?.toFixed(2)}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.median?.toFixed(2)}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.sd?.toFixed(2)}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.min?.toFixed(2)}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.max?.toFixed(2)}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.q1?.toFixed(2)}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{stats.q3?.toFixed(2)}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-                            {analysisResult.categorical && Object.keys(analysisResult.categorical).length > 0 && (
-                              <div style={{ marginBottom: '1.5rem' }}>
-                                <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>Variables categóricas</h4>
-                                {Object.entries(analysisResult.categorical).map(([varName, freqs]: [string, any]) => (
-                                  <div key={varName} style={{ marginBottom: '1rem' }}>
-                                    <p style={{ fontWeight: 500, fontSize: '0.85rem', marginBottom: '0.25rem' }}>{varName}</p>
-                                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                        <thead>
-                                          <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                            <th style={{ padding: '0.4rem', textAlign: 'left' }}>Valor</th>
-                                            <th style={{ padding: '0.4rem', textAlign: 'right' }}>Frecuencia</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {Array.isArray(freqs) && freqs.map((row: any, i: number) => (
-                                            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                              <td style={{ padding: '0.3rem 0.4rem' }}>{row.value}</td>
-                                              <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.count}</td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ) : selectedAnalysis?.id === 'linear-regression' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Regresión lineal</h4>
-                            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                <thead>
-                                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                    <th style={{ padding: '0.45rem', textAlign: 'left' }}>Variable</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>Estimación</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>Error std</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>t</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>p-valor</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>IC 95% inf</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>IC 95% sup</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {Array.isArray(analysisResult.coeficientes) && analysisResult.coeficientes.map((row: any, index: number) => (
-                                    <tr key={`${row.variable || 'coef'}-${index}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                      <td style={{ padding: '0.4rem 0.45rem', fontWeight: 500 }}>{row.variable || '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.estimacion !== undefined ? Number(row.estimacion).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.error_std !== undefined ? Number(row.error_std).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.t_valor !== undefined ? Number(row.t_valor).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.p_valor !== undefined ? Number(row.p_valor).toFixed(4) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.ic_inferior !== undefined ? Number(row.ic_inferior).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.ic_superior !== undefined ? Number(row.ic_superior).toFixed(3) : '-'}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>R²</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.r_cuadrado !== undefined ? Number(analysisResult.r_cuadrado).toFixed(3) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>R² ajustado</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.r_cuadrado_adj !== undefined ? Number(analysisResult.r_cuadrado_adj).toFixed(3) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>F estadístico</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                                  {analysisResult.f_estadistico !== undefined ? `${Number(analysisResult.f_estadistico).toFixed(2)}` : '-'}
-                                  {analysisResult.p_valor_f !== undefined ? ` (p = ${Number(analysisResult.p_valor_f).toFixed(3)})` : ''}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : selectedAnalysis?.id === 'logistic-regression' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Regresión logística</h4>
-                            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                <thead>
-                                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                    <th style={{ padding: '0.45rem', textAlign: 'left' }}>Variable</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>OR</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>IC 95% inf</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>IC 95% sup</th>
-                                    <th style={{ padding: '0.45rem', textAlign: 'right' }}>p-valor</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {Array.isArray(analysisResult.coeficientes) && analysisResult.coeficientes.map((row: any, index: number) => (
-                                    <tr key={`${row.variable || 'coef'}-${index}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                      <td style={{ padding: '0.4rem 0.45rem', fontWeight: 500 }}>{row.variable || '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.odds_ratio !== undefined ? Number(row.odds_ratio).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.ic_inferior !== undefined ? Number(row.ic_inferior).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.ic_superior !== undefined ? Number(row.ic_superior).toFixed(3) : '-'}</td>
-                                      <td style={{ padding: '0.4rem 0.45rem', textAlign: 'right' }}>{row.p_valor !== undefined ? Number(row.p_valor).toFixed(4) : '-'}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>AIC</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.aic !== undefined ? Number(analysisResult.aic).toFixed(2) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Nagelkerke R²</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.nagelkerke_r2 !== undefined ? Number(analysisResult.nagelkerke_r2).toFixed(3) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Hosmer-Lemeshow</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.hosmer_lemeshow_p !== undefined ? `p = ${Number(analysisResult.hosmer_lemeshow_p).toFixed(3)}` : '-'}</div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : selectedAnalysis?.id === 'anova' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>ANOVA</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Método</div>
-                                <div style={{ fontSize: '1rem', fontWeight: 600 }}>{analysisResult.metodo || '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>p-valor</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.p_valor !== undefined ? Number(analysisResult.p_valor).toFixed(4) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Estadístico</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.estadistico !== undefined ? Number(analysisResult.estadistico).toFixed(3) : '-'}</div>
-                              </div>
-                            </div>
-                            {analysisResult.effect_size !== undefined && (
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.75rem' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Tamaño del efecto</div>
-                                <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>{analysisResult.effect_label || 'effect size'}: {Number(analysisResult.effect_size).toFixed(3)}</div>
-                              </div>
-                            )}
-                            {(analysisResult.levene_p !== undefined || analysisResult.shapiro_residuos_p !== undefined) && (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                                {analysisResult.levene_p !== undefined && (
-                                  <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Levene</div>
-                                    <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>p = {Number(analysisResult.levene_p).toFixed(3)}</div>
-                                  </div>
-                                )}
-                                {analysisResult.shapiro_residuos_p !== undefined && (
-                                  <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Shapiro residuos</div>
-                                    <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>p = {Number(analysisResult.shapiro_residuos_p).toFixed(3)}</div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {Array.isArray(analysisResult.tukey) && analysisResult.tukey.length > 0 && (
-                              <div>
-                                <h5 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Tukey HSD</h5>
-                                <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                    <thead>
-                                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                        <th style={{ padding: '0.4rem', textAlign: 'left' }}>Comparación</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>Diff</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>lwr</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>upr</th>
-                                        <th style={{ padding: '0.4rem', textAlign: 'right' }}>p adj</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {analysisResult.tukey.map((row: any, idx: number) => (
-                                        <tr key={`${row.comparacion || idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                          <td style={{ padding: '0.3rem 0.4rem', fontWeight: 500 }}>{row.comparacion || '-'}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.diff !== undefined ? Number(row.diff).toFixed(3) : '-'}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.lwr !== undefined ? Number(row.lwr).toFixed(3) : '-'}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.upr !== undefined ? Number(row.upr).toFixed(3) : '-'}</td>
-                                          <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.p_adj !== undefined ? Number(row.p_adj).toFixed(4) : '-'}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : selectedAnalysis?.id === 'correlation' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            {(() => {
-                              const correlationView = formatCorrelationResult(analysisResult);
-                              return (
-                                <>
-                                  <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#f1f5f9', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 500, color: '#475569', marginBottom: '1rem' }}>
-                                    {correlationView.methodBadge}
-                                  </div>
-
-                                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', textAlign: 'center', marginBottom: '1rem' }}>
-                                    <div style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>
-                                      {correlationView.rLabel}
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
-                                      {correlationView.strengthLabel}
-                                    </div>
-                                  </div>
-
-                                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                                    <div style={{ flex: 1, minWidth: '180px', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>p-valor</div>
-                                      <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-                                        {correlationView.pValueLabel}
-                                      </div>
-                                    </div>
-                                    <div style={{ flex: 2, minWidth: '220px', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>IC 95%</div>
-                                      <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-                                        {correlationView.confidenceIntervalLabel}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>
-                                    {correlationView.sampleSizeLabel}
-                                  </div>
-                                  {correlationView.diagnosticsLabel && (
-                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                                      {correlationView.diagnosticsLabel}
-                                    </div>
-                                  )}
-                                  {correlationView.autoNote && (
-                                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                                      {correlationView.autoNote}
-                                    </div>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        ) : selectedAnalysis?.id === 'chi-square' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Chi-cuadrado</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Método</div>
-                                <div style={{ fontSize: '1rem', fontWeight: 600 }}>{analysisResult.metodo || '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Estadístico χ²</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.estadistico !== undefined ? Number(analysisResult.estadistico).toFixed(3) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>gl</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.gl !== undefined ? Number(analysisResult.gl).toFixed(0) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>p-valor</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.p_valor !== undefined ? Number(analysisResult.p_valor).toFixed(4) : '-'}</div>
-                              </div>
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>V de Cramér</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{analysisResult.cramer_v !== undefined ? Number(analysisResult.cramer_v).toFixed(3) : '-'}</div>
-                              </div>
-                            </div>
-                            {Array.isArray(analysisResult.tabla) && analysisResult.tabla.length > 0 && (
-                              <div>
-                                <h5 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Tabla de contingencia</h5>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                    <thead>
-                                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                        {Object.keys(analysisResult.tabla[0]).map((key: string) => (
-                                          <th key={key} style={{ padding: '0.4rem', textAlign: 'left' }}>{key}</th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {analysisResult.tabla.map((row: any, idx: number) => (
-                                        <tr key={`${row.var1 || idx}-${row.var2 || idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                          {Object.entries(row).map(([key, value]: [string, any]) => (
-                                            <td key={`${key}-${idx}`} style={{ padding: '0.3rem 0.4rem' }}>{value}</td>
-                                          ))}
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : selectedAnalysis?.id === 'roc-curve' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Curva ROC</h4>
-                            <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.75rem' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>AUC</div>
-                              <div style={{ fontSize: '1.15rem', fontWeight: 600 }}>{analysisResult.auc !== undefined ? Number(analysisResult.auc).toFixed(3) : '-'} <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{analysisResult.auc !== undefined ? (Number(analysisResult.auc) < 0.5 ? 'malo' : Number(analysisResult.auc) < 0.7 ? 'regular' : Number(analysisResult.auc) < 0.8 ? 'bueno' : Number(analysisResult.auc) < 0.9 ? 'muy bueno' : 'excelente') : ''}</span></div>
-                            </div>
-                            {Array.isArray(analysisResult.coords) && analysisResult.coords.length > 0 && (
-                              <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                  <thead>
-                                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                      <th style={{ padding: '0.4rem', textAlign: 'left' }}>Umbral</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>Sensibilidad</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>Especificidad</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>VPP</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>VPN</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {analysisResult.coords.map((row: any, idx: number) => (
-                                      <tr key={`${row.umbral || idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '0.3rem 0.4rem', fontWeight: 500 }}>{row.umbral !== undefined ? Number(row.umbral).toFixed(2) : '-'}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.sensibilidad !== undefined ? Number(row.sensibilidad).toFixed(3) : '-'}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.especificidad !== undefined ? Number(row.especificidad).toFixed(3) : '-'}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.vpp !== undefined ? Number(row.vpp).toFixed(3) : '-'}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{row.vpn !== undefined ? Number(row.vpn).toFixed(3) : '-'}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                          </div>
-                        ) : selectedAnalysis?.id === 'kaplan-meier' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Kaplan-Meier</h4>
-                            {analysisResult.logrank_p !== undefined && (
-                              <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', marginBottom: '0.75rem' }}>
-                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Log-rank p</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{Number(analysisResult.logrank_p).toFixed(4)}</div>
-                              </div>
-                            )}
-                            {analysisResult.strata_nombres && analysisResult.strata_nombres.length > 0 && (
-                              <div style={{ marginBottom: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
-                                Estratos: {analysisResult.strata_nombres.join(', ')}
-                              </div>
-                            )}
-                            {Array.isArray(analysisResult.tiempos) && analysisResult.tiempos.length > 0 && (
-                              <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                  <thead>
-                                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                      <th style={{ padding: '0.4rem', textAlign: 'left' }}>Tiempo</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>Supervivencia</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>N riesgo</th>
-                                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>N evento</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {analysisResult.tiempos.map((time: any, idx: number) => (
-                                      <tr key={`${time}-${idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '0.3rem 0.4rem', fontWeight: 500 }}>{time}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{analysisResult.supervivencia?.[idx] !== undefined ? Number(analysisResult.supervivencia[idx]).toFixed(3) : '-'}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{analysisResult.n_riesgo?.[idx] !== undefined ? Number(analysisResult.n_riesgo[idx]).toFixed(0) : '-'}</td>
-                                        <td style={{ padding: '0.3rem 0.4rem', textAlign: 'right' }}>{analysisResult.n_evento?.[idx] !== undefined ? Number(analysisResult.n_evento[idx]).toFixed(0) : '-'}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                          </div>
-                        ) : selectedAnalysis?.id === 'table1' ? (
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Tabla 1</h4>
-                            <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
-                              {Array.isArray(analysisResult.table) && analysisResult.table.length > 0 && (
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                  <tbody>
-                                    {analysisResult.table.map((row: any, idx: number) => (
-                                      <tr key={`${Object.keys(row)[0] || idx}`} style={{ borderBottom: idx < analysisResult.table.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                                        {Object.entries(row).map(([key, value]: [string, any]) => (
-                                          <td key={`${key}-${idx}`} style={{ padding: '0.45rem 0.6rem', borderRight: key === 'Overall' ? 'none' : 'none' }}>
-                                            <div style={{ fontWeight: key === 'Overall' ? 600 : 500, color: '#0f172a' }}>{key}</div>
-                                            <div style={{ color: '#64748b', marginTop: '0.15rem' }}>{value}</div>
-                                          </td>
-                                        ))}
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                            <div style={{ flex: 1, background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Tamaño del efecto</div>
-                              <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-                                {analysisResult.effect_size !== undefined ? `${Number(analysisResult.effect_size).toFixed(3)}` : '-'}
-                              </div>
-                              <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{analysisResult.effect_label || analysisResult.effect_size_label || ''}</div>
-                            </div>
-                            <div style={{ flex: 1, background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>IC 95%</div>
-                              <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-                                {analysisResult.ic_inferior !== undefined ? `[${Number(analysisResult.ic_inferior).toFixed(3)}, ${Number(analysisResult.ic_superior).toFixed(3)}]` : '-'}
-                              </div>
-                            </div>
-                            <div style={{ flex: 1, background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                                p-valor <span title="Con N grande, variaciones triviales pueden ser estadísticamente significativas. Evalúe siempre el tamaño del efecto."><Info size={12} style={{ cursor: 'help' }} /></span>
-                              </div>
-                              <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#0f172a' }}>
-                                {analysisResult.p_valor !== undefined ? Number(analysisResult.p_valor).toFixed(4) : '-'}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {analysisResult.script_r && (
-                          <details style={{ marginBottom: '1rem' }}>
-                            <summary style={{ cursor: 'pointer', fontSize: '0.85rem', color: '#2563eb', fontWeight: 500 }}>📄 Ver script R utilizado</summary>
-                            <pre style={{ background: '#1e293b', color: '#e2e8f0', padding: '0.75rem', borderRadius: '6px', fontSize: '0.75rem', overflowX: 'auto', maxHeight: '300px', marginTop: '0.5rem' }}>
-                              {analysisResult.script_r}
-                            </pre>
-                            <button
-                              onClick={() => navigator.clipboard.writeText(analysisResult.script_r)}
-                              style={{ marginTop: '0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', border: 'none', background: 'transparent', cursor: 'pointer', color: '#2563eb' }}
-                            >
-                              <Copy size={14} /> Copiar código
-                            </button>
-                          </details>
-                        )}
-
-                        {analysisResult.graph_base64 && (
-                          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-                            <img
-                              src={`data:image/png;base64,${analysisResult.graph_base64}`}
-                              alt="Gráfico del análisis"
-                              style={{ maxWidth: '100%', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                            />
-                          </div>
-                        )}
-
-                        {analysisResult.tabla && (
-                          <div style={{ marginTop: '1rem' }}>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Tabla de contingencia</h4>
-                            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                                <thead>
-                                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                    {Array.isArray(analysisResult.tabla) && analysisResult.tabla.length > 0 &&
-                                      Object.keys(analysisResult.tabla[0]).map(key => (
-                                        <th key={key} style={{ padding: '0.5rem', textAlign: 'left', fontWeight: 600, color: '#334155' }}>{key}</th>
-                                      ))
-                                    }
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {Array.isArray(analysisResult.tabla) && analysisResult.tabla.map((row: any, i: number) => (
-                                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                      {Object.values(row).map((val: any, j: number) => (
-                                        <td key={j} style={{ padding: '0.4rem 0.5rem', color: '#475569' }}>{String(val)}</td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-
-                        <button
-                          onClick={() => { setAnalysisResult(null); setAnalysisError(null); }}
-                          style={{
-                            marginTop: '1rem',
-                            width: '100%',
-                            padding: '0.6rem',
-                            background: '#f1f5f9',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            color: '#334155',
-                          }}
-                        >
-                          ← Volver a lista de análisis
-                        </button>
-                      </div>
-                    )}
-
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '1rem' }}>
                     {analysisError && (
-                      <div style={{ marginTop: '1rem', padding: '1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', color: '#991b1b', fontSize: '0.875rem' }}>
-                        <strong>Error:</strong> {analysisError}
+                      <div
+                        style={{
+                          padding: '0.85rem 1.15rem',
+                          background: '#fef2f2',
+                          border: '1px solid #fecaca',
+                          borderRadius: '10px',
+                          color: '#991b1b',
+                          fontSize: '0.84rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <strong>Error en el análisis:</strong> {analysisError}
                       </div>
                     )}
+
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '10px',
+                        padding: '1rem 1.25rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+                        <Sparkles size={15} color="#2563eb" />
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Catálogo de Procedimientos Estadísticos
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#475569', lineHeight: 1.45 }}>
+                        Selecciona un test estadístico para configurar las variables clínicas, ajustar covariables de confusión y verificar supuestos con el motor R.
+                      </p>
+                    </div>
+
+                    {/* Agrupaciones por Disciplina / Categoría */}
+                    {Array.from(new Set(analysisOptions.map(o => o.category))).map(categoryName => {
+                      const optionsInCategory = analysisOptions.filter(o => o.category === categoryName);
+
+                      return (
+                        <div key={categoryName} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                          <div
+                            style={{
+                              fontSize: '0.74rem',
+                              fontWeight: 800,
+                              color: '#64748b',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.06em',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              paddingBottom: '0.25rem',
+                              borderBottom: '1px solid #f1f5f9',
+                            }}
+                          >
+                            <span>{categoryName}</span>
+                            <span style={{ color: '#cbd5e1' }}>({optionsInCategory.length})</span>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: isPanelExpanded ? 'repeat(2, 1fr)' : '1fr',
+                              gap: '0.65rem',
+                            }}
+                          >
+                            {optionsInCategory.map(option => (
+                              <button
+                                key={option.id}
+                                onClick={() => openAnalysisModal(option)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: '0.85rem',
+                                  padding: '0.9rem 1rem',
+                                  background: 'white',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: '10px',
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  transition: 'all 0.15s ease',
+                                  color: '#0f172a',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                                }}
+                                onMouseEnter={e => {
+                                  e.currentTarget.style.borderColor = '#93c5fd';
+                                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.05)';
+                                  e.currentTarget.style.transform = 'translateY(-1px)';
+                                }}
+                                onMouseLeave={e => {
+                                  e.currentTarget.style.borderColor = '#e2e8f0';
+                                  e.currentTarget.style.backgroundColor = 'white';
+                                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f1f5f9',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    marginTop: '2px',
+                                  }}
+                                >
+                                  {option.icon}
+                                </div>
+
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '3px' }}>
+                                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                                      {option.label}
+                                    </div>
+                                    {option.badge && (
+                                      <span
+                                        style={{
+                                          backgroundColor: '#eff6ff',
+                                          color: '#1d4ed8',
+                                          border: '1px solid #bfdbfe',
+                                          fontSize: '0.66rem',
+                                          fontWeight: 700,
+                                          padding: '1px 6px',
+                                          borderRadius: '4px',
+                                          whiteSpace: 'nowrap',
+                                        }}
+                                      >
+                                        {option.badge}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div style={{ fontSize: '0.76rem', color: '#64748b', lineHeight: 1.4 }}>
+                                    {option.description}
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div>

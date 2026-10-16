@@ -1,101 +1,349 @@
-import React from 'react';
-import { BookOpen, Sparkles } from 'lucide-react';
-import type { ExecutiveSummary } from '../../types/analysis';
+import React, { useState } from 'react';
+import { BookOpen, Sparkles, Copy, Check, CheckCircle2 } from 'lucide-react';
+import type { ExecutiveSummary, MetricItem } from '../../types/analysis';
 
 interface Props {
   summary: ExecutiveSummary;
 }
 
 export const Layer1Summary: React.FC<Props> = ({ summary }) => {
+  const [copiedNarrative, setCopiedNarrative] = useState(false);
+
+  const handleCopyNarrative = async () => {
+    if (!summary.interpretation) return;
+    try {
+      await navigator.clipboard.writeText(summary.interpretation);
+      setCopiedNarrative(true);
+      setTimeout(() => setCopiedNarrative(false), 2000);
+    } catch (err) {
+      console.error('Error al copiar narrativa:', err);
+    }
+  };
+
+  const getSignificanceBadge = (metric: MetricItem) => {
+    const p = metric.p_value;
+    const star = metric.significance_star;
+
+    if (p !== undefined && p !== null) {
+      if (p < 0.001) {
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              backgroundColor: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #a7f3d0',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+            }}
+          >
+            <CheckCircle2 size={11} color="#059669" /> p &lt; .001 ***
+          </span>
+        );
+      }
+      if (p < 0.01) {
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              backgroundColor: '#eff6ff',
+              color: '#1e40af',
+              border: '1px solid #bfdbfe',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+            }}
+          >
+            p &lt; .01 **
+          </span>
+        );
+      }
+      if (p < 0.05) {
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              backgroundColor: '#f0fdfa',
+              color: '#0f766e',
+              border: '1px solid #99f6e4',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+            }}
+          >
+            p &lt; .05 *
+          </span>
+        );
+      }
+      if (p < 0.10) {
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              backgroundColor: '#fffbeb',
+              color: '#92400e',
+              border: '1px solid #fde68a',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              fontSize: '0.68rem',
+              fontWeight: 600,
+            }}
+          >
+            p &lt; .10 (tendencia)
+          </span>
+        );
+      }
+      return (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            backgroundColor: '#f1f5f9',
+            color: '#64748b',
+            border: '1px solid #e2e8f0',
+            padding: '2px 7px',
+            borderRadius: '999px',
+            fontSize: '0.68rem',
+            fontWeight: 500,
+          }}
+        >
+          p = {p.toFixed(3)} ns
+        </span>
+      );
+    }
+
+    if (star) {
+      return (
+        <span
+          style={{
+            backgroundColor: '#eff6ff',
+            color: '#2563eb',
+            border: '1px solid #bfdbfe',
+            padding: '2px 6px',
+            borderRadius: '999px',
+            fontSize: '0.7rem',
+            fontWeight: 700,
+          }}
+        >
+          {star}
+        </span>
+      );
+    }
+
+    return null;
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Titular Principal */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* 1. Titular Principal del Hallazgo Clínico */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
           border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '1rem 1.25rem',
+          borderLeft: '4px solid #2563eb',
+          borderRadius: '10px',
+          padding: '1.15rem 1.4rem',
+          boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.04)',
+          position: 'relative',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-          <Sparkles size={16} color="#3b82f6" />
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
-            Resumen del Hallazgo
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              backgroundColor: '#eff6ff',
+              color: '#1d4ed8',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            <Sparkles size={13} color="#2563eb" /> Resumen Ejecutivo
+          </span>
+          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+            Evidencia estadística sintetizada
           </span>
         </div>
-        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em' }}>
+
+        <div
+          style={{
+            fontSize: '1.18rem',
+            fontWeight: 700,
+            color: '#0f172a',
+            lineHeight: 1.4,
+            letterSpacing: '-0.02em',
+          }}
+        >
           {summary.headline}
         </div>
       </div>
 
-      {/* Grid de Métricas Clave */}
+      {/* 2. Grid de Métricas Clave (KPIs Estadísticos de Alta Definición) */}
       {summary.key_metrics && summary.key_metrics.length > 0 && (
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '0.75rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '0.85rem',
           }}
         >
-          {summary.key_metrics.map((metric, idx) => (
-            <div
-              key={idx}
-              style={{
-                backgroundColor: 'white',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '0.75rem 1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-              }}
-            >
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
-                {metric.label}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' }}>
-                  {metric.formatted}
-                </span>
-                {metric.significance_star && (
-                  <span style={{ color: '#2563eb', fontWeight: 700, fontSize: '0.9rem' }}>
-                    {metric.significance_star}
+          {summary.key_metrics.map((metric, idx) => {
+            const badge = getSignificanceBadge(metric);
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  padding: '1rem 1.15rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.05)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      color: '#64748b',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {metric.label}
+                  </span>
+                  {badge}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.2rem' }}>
+                  <span
+                    style={{
+                      fontSize: '1.45rem',
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      fontVariantNumeric: 'tabular-nums',
+                      letterSpacing: '-0.03em',
+                      fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+                    }}
+                  >
+                    {metric.formatted}
+                  </span>
+                </div>
+
+                {metric.description && (
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      color: '#64748b',
+                      lineHeight: 1.35,
+                      marginTop: '0.15rem',
+                    }}
+                  >
+                    {metric.description}
                   </span>
                 )}
               </div>
-              {metric.description && (
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                  {metric.description}
-                </span>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Interpretación Estadística Prudente */}
+      {/* 3. Interpretación Estadística en Formato Publicación (APA / Lancet) */}
       {summary.interpretation && (
         <div
           style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderLeft: '4px solid #6366f1',
+            borderRadius: '10px',
+            padding: '1.1rem 1.35rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
             display: 'flex',
-            gap: '0.75rem',
-            backgroundColor: '#f8fafc',
-            borderLeft: '4px solid #3b82f6',
-            borderRadius: '0 8px 8px 0',
-            padding: '0.85rem 1rem',
-            color: '#334155',
-            fontSize: '0.88rem',
-            lineHeight: 1.5,
+            flexDirection: 'column',
+            gap: '0.6rem',
           }}
         >
-          <BookOpen size={18} color="#3b82f6" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '2px', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-              Interpretación Estadística
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <BookOpen size={16} color="#6366f1" />
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: '#334155',
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Narrativa Estadística (Norma APA 7 / Revista Biomédica)
+              </span>
             </div>
-            {summary.interpretation}
+
+            <button
+              onClick={handleCopyNarrative}
+              title="Copiar texto para insertar en tu manuscrito o informe"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                backgroundColor: copiedNarrative ? '#ecfdf5' : '#f8fafc',
+                color: copiedNarrative ? '#065f46' : '#475569',
+                border: `1px solid ${copiedNarrative ? '#a7f3d0' : '#e2e8f0'}`,
+                borderRadius: '6px',
+                padding: '3px 9px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {copiedNarrative ? <Check size={12} /> : <Copy size={12} />}
+              <span>{copiedNarrative ? 'Copiada' : 'Copiar texto'}</span>
+            </button>
           </div>
+
+          <p
+            style={{
+              margin: 0,
+              color: '#1e293b',
+              fontSize: '0.88rem',
+              lineHeight: 1.6,
+              fontStyle: 'normal',
+            }}
+          >
+            {summary.interpretation}
+          </p>
         </div>
       )}
     </div>

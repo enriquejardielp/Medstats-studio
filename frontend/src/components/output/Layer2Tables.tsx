@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Download, Check, Eye, EyeOff } from 'lucide-react';
+import { Copy, Download, Check, Eye, EyeOff, SlidersHorizontal, Table2 } from 'lucide-react';
 import type { StatisticalTable } from '../../types/analysis';
 
 interface Props {
@@ -13,14 +13,25 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
 
   if (!tables || tables.length === 0) {
     return (
-      <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.85rem' }}>
-        No hay tablas estadísticas disponibles para este análisis.
+      <div
+        style={{
+          padding: '2rem',
+          textAlign: 'center',
+          color: '#64748b',
+          fontSize: '0.88rem',
+          backgroundColor: '#f8fafc',
+          borderRadius: '8px',
+          border: '1px dashed #cbd5e1',
+        }}
+      >
+        <Table2 size={24} color="#94a3b8" style={{ marginBottom: '0.5rem' }} />
+        <div>No hay tablas estadísticas generadas para este procedimiento.</div>
       </div>
     );
   }
 
   const formatCellValue = (val: any, formatType: string, customDecimals?: number): string => {
-    if (val === null || val === undefined || isNaN(val) && typeof val === 'number') {
+    if (val === null || val === undefined || (isNaN(val) && typeof val === 'number')) {
       return '—';
     }
     if (typeof val === 'string') return val;
@@ -54,7 +65,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
     try {
       await navigator.clipboard.writeText(fullTsv);
       setCopiedTableId(table.id);
-      setTimeout(() => setCopiedTableId(null), 2000);
+      setTimeout(() => setCopiedTableId(null), 2500);
     } catch (err) {
       console.error('Error al copiar:', err);
     }
@@ -78,42 +89,54 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Barra de Control de Presentación */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      {/* Barra de Control de Presentación Científica */}
       <div
         style={{
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1rem',
-          padding: '0.6rem 0.85rem',
+          gap: '0.75rem',
+          padding: '0.75rem 1rem',
           backgroundColor: '#f8fafc',
           border: '1px solid #e2e8f0',
-          borderRadius: '6px',
+          borderRadius: '8px',
           fontSize: '0.8rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Selector de Decimales */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ color: '#64748b', fontWeight: 500 }}>Decimales:</span>
-            <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+          {/* Selector de Decimales Segmentado */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <SlidersHorizontal size={13} color="#64748b" /> Precisión:
+            </span>
+            <div
+              style={{
+                display: 'inline-flex',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                overflow: 'hidden',
+                backgroundColor: 'white',
+              }}
+            >
               {[2, 3, 4].map(d => (
                 <button
                   key={d}
                   onClick={() => setDecimalPrecision(d)}
                   style={{
-                    padding: '2px 8px',
+                    padding: '3px 10px',
                     border: 'none',
+                    borderRight: d < 4 ? '1px solid #e2e8f0' : 'none',
                     background: decimalPrecision === d ? '#2563eb' : 'white',
                     color: decimalPrecision === d ? 'white' : '#334155',
                     cursor: 'pointer',
                     fontWeight: 600,
                     fontSize: '0.75rem',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {d}
+                  {d} dec
                 </button>
               ))}
             </div>
@@ -123,133 +146,149 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
           <button
             onClick={() => setShowCI(!showCI)}
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.35rem',
-              background: 'white',
-              border: '1px solid #cbd5e1',
-              borderRadius: '4px',
-              padding: '3px 8px',
+              gap: '0.4rem',
+              backgroundColor: showCI ? '#eff6ff' : 'white',
+              border: `1px solid ${showCI ? '#bfdbfe' : '#cbd5e1'}`,
+              borderRadius: '6px',
+              padding: '4px 10px',
               cursor: 'pointer',
-              color: '#334155',
+              color: showCI ? '#1d4ed8' : '#475569',
               fontSize: '0.75rem',
-              fontWeight: 500,
+              fontWeight: 600,
+              transition: 'all 0.15s ease',
             }}
           >
-            {showCI ? <Eye size={14} color="#2563eb" /> : <EyeOff size={14} color="#94a3b8" />}
-            <span>{showCI ? 'Ocultar IC' : 'Mostrar IC'}</span>
+            {showCI ? <Eye size={13} color="#2563eb" /> : <EyeOff size={13} color="#94a3b8" />}
+            <span>{showCI ? 'IC 95% Visible' : 'IC 95% Oculto'}</span>
           </button>
         </div>
 
-        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-          Separación: Datos estadísticos independientes de la vista
+        <span style={{ color: '#94a3b8', fontSize: '0.72rem', fontStyle: 'italic' }}>
+          Formato APA 7 / Revista Biomédica (NEJM, Lancet)
         </span>
       </div>
 
-      {/* Renderizado de Tablas */}
+      {/* Renderizado de Tablas Académicas */}
       {tables.map(table => {
         const visibleCols = table.columns.filter(c => showCI || !c.key.includes('ci_'));
+        const isCopied = copiedTableId === table.id;
 
         return (
           <div
             key={table.id}
             style={{
-              border: '1px solid #cbd5e1',
-              borderRadius: '8px',
-              overflow: 'hidden',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
               backgroundColor: 'white',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.04)',
+              overflow: 'hidden',
             }}
           >
-            {/* Cabecera de la Tabla */}
+            {/* Cabecera de la Tabla y Acciones de Exportación */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                padding: '0.75rem 1rem',
-                backgroundColor: '#f1f5f9',
-                borderBottom: '1px solid #cbd5e1',
+                padding: '0.9rem 1.25rem',
+                backgroundColor: '#ffffff',
+                borderBottom: '1px solid #f1f5f9',
               }}
             >
               <div>
-                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
                   {table.title}
                 </h4>
                 {table.subtitle && (
-                  <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '0.76rem', color: '#64748b' }}>
                     {table.subtitle}
                   </p>
                 )}
               </div>
 
-              {/* Botones de Acción (Copiar / CSV) */}
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
+              {/* Botones de Exportación Instantánea (Word/Excel TSV y CSV) */}
+              <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
                 <button
                   onClick={() => copyTableToClipboard(table)}
-                  title="Copiar tabla en formato compatible con Excel y Word"
+                  title="Copiar tabla en formato TSV (pegar directamente en Word o Excel manteniendo formato)"
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '4px 8px',
-                    backgroundColor: 'white',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
+                    gap: '0.35rem',
+                    padding: '4px 10px',
+                    backgroundColor: isCopied ? '#ecfdf5' : '#ffffff',
+                    border: `1px solid ${isCopied ? '#86efac' : '#cbd5e1'}`,
+                    borderRadius: '6px',
+                    fontSize: '0.74rem',
                     cursor: 'pointer',
-                    color: copiedTableId === table.id ? '#16a34a' : '#334155',
-                    fontWeight: 500,
+                    color: isCopied ? '#166534' : '#334155',
+                    fontWeight: 600,
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {copiedTableId === table.id ? <Check size={14} /> : <Copy size={14} />}
-                  <span>{copiedTableId === table.id ? 'Copiada' : 'Copiar'}</span>
+                  {isCopied ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+                  <span>{isCopied ? '¡Copiada para Excel/Word!' : 'Copiar tabla'}</span>
                 </button>
 
                 <button
                   onClick={() => downloadCsv(table)}
-                  title="Descargar tabla como archivo CSV"
+                  title="Descargar tabla completa en archivo CSV"
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.3rem',
-                    padding: '4px 8px',
-                    backgroundColor: 'white',
+                    gap: '0.35rem',
+                    padding: '4px 10px',
+                    backgroundColor: '#ffffff',
                     border: '1px solid #cbd5e1',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.74rem',
                     cursor: 'pointer',
                     color: '#334155',
-                    fontWeight: 500,
+                    fontWeight: 600,
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <Download size={14} />
+                  <Download size={13} />
                   <span>CSV</span>
                 </button>
               </div>
             </div>
 
-            {/* Cuerpo de la Tabla (Estilo Stata / SPSS Compacto) */}
-            <div style={{ overflowX: 'auto' }}>
+            {/* Cuerpo de la Tabla (Estilo Estricto APA / Lancet / NEJM) */}
+            <div style={{ overflowX: 'auto', padding: '0.5rem 1.25rem 1rem 1.25rem' }}>
               <table
                 style={{
                   width: '100%',
                   borderCollapse: 'collapse',
-                  fontSize: '0.82rem',
-                  fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+                  fontSize: '0.84rem',
+                  fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
+                  borderTop: '2.5px solid #0f172a',
+                  borderBottom: '2.5px solid #0f172a',
                 }}
               >
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #0f172a', backgroundColor: '#f8fafc' }}>
+                  <tr style={{ borderBottom: '1.5px solid #334155' }}>
                     {visibleCols.map(col => (
                       <th
                         key={col.key}
                         style={{
-                          padding: '0.5rem 0.75rem',
+                          padding: '0.6rem 0.85rem',
                           textAlign: col.align || 'right',
-                          fontWeight: 600,
-                          color: '#1e293b',
+                          fontWeight: 700,
+                          color: '#0f172a',
                           whiteSpace: 'nowrap',
+                          fontSize: '0.8rem',
+                          letterSpacing: '0.01em',
                         }}
                       >
                         {col.label}
@@ -262,55 +301,70 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                     <tr
                       key={rowIdx}
                       style={{
-                        borderBottom: '1px solid #e2e8f0',
-                        backgroundColor: rowIdx % 2 === 0 ? 'white' : '#fcfdfe',
-                        transition: 'background-color 0.1s',
+                        borderBottom: rowIdx === table.rows.length - 1 ? 'none' : '1px solid #f1f5f9',
+                        transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                      onMouseLeave={e => e.currentTarget.style.backgroundColor = rowIdx % 2 === 0 ? 'white' : '#fcfdfe'}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      {visibleCols.map(col => (
-                        <td
-                          key={col.key}
-                          style={{
-                            padding: '0.45rem 0.75rem',
-                            textAlign: col.align || 'right',
-                            color: col.align === 'left' ? '#0f172a' : '#334155',
-                            fontWeight: col.align === 'left' ? 500 : 400,
-                            fontVariantNumeric: 'tabular-nums',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {formatCellValue(row[col.key], col.format_type, col.decimals)}
-                          {row.significance && col.key === 'p_value' && (
-                            <span style={{ color: '#2563eb', fontWeight: 700, marginLeft: '2px' }}>
-                              {row.significance}
-                            </span>
-                          )}
-                        </td>
-                      ))}
+                      {visibleCols.map(col => {
+                        const isLeft = col.align === 'left';
+                        const isPVal = col.key === 'p_value';
+                        const val = row[col.key];
+
+                        return (
+                          <td
+                            key={col.key}
+                            style={{
+                              padding: '0.5rem 0.85rem',
+                              textAlign: col.align || 'right',
+                              color: isLeft ? '#0f172a' : '#1e293b',
+                              fontWeight: isLeft ? 600 : 400,
+                              fontVariantNumeric: 'tabular-nums',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {formatCellValue(val, col.format_type, col.decimals)}
+                            {row.significance && isPVal && (
+                              <sup
+                                style={{
+                                  color: '#2563eb',
+                                  fontWeight: 700,
+                                  marginLeft: '3px',
+                                  fontSize: '0.75rem',
+                                }}
+                              >
+                                {row.significance}
+                              </sup>
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Notas al pie de la tabla */}
+            {/* Notas al pie de la tabla (Criterio Científico / APA) */}
             {table.footnotes && table.footnotes.length > 0 && (
               <div
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.65rem 1.25rem',
                   backgroundColor: '#f8fafc',
                   borderTop: '1px solid #e2e8f0',
-                  fontSize: '0.72rem',
+                  fontSize: '0.74rem',
                   color: '#64748b',
                   display: 'flex',
-                  gap: '1.5rem',
+                  flexWrap: 'wrap',
+                  gap: '1.25rem',
+                  lineHeight: 1.4,
                 }}
               >
                 {table.footnotes.map((fn, idx) => (
                   <span key={idx}>
-                    <strong style={{ color: '#334155' }}>{fn.symbol}</strong> {fn.text}
+                    <strong style={{ color: '#0f172a', marginRight: '3px' }}>{fn.symbol}</strong>
+                    {fn.text}
                   </span>
                 ))}
               </div>

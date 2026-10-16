@@ -10,6 +10,8 @@ import {
   Clock,
   Database,
   Image as ImageIcon,
+  Check,
+  Copy,
 } from 'lucide-react';
 import type { AnalysisResult } from '../../types/analysis';
 import { WarningsBanner } from './WarningsBanner';
@@ -31,9 +33,43 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
   const [openDiagnostics, setOpenDiagnostics] = useState(true);
   const [openTechnical, setOpenTechnical] = useState(false);
   const [openCode, setOpenCode] = useState(false);
+  const [copiedSummary, setCopiedSummary] = useState(false);
 
   const meta = result.metadata;
   const createdDate = meta.created_at ? new Date(meta.created_at).toLocaleTimeString() : '';
+
+  const handleCopySummary = async () => {
+    const textToCopy = `${meta.title}\n${result.summary.headline}\n\n${result.summary.interpretation || ''}`;
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedSummary(true);
+      setTimeout(() => setCopiedSummary(false), 2000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getAnalysisTypeTheme = (type: string) => {
+    switch (type) {
+      case 'descriptive':
+      case 'table1':
+        return { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
+      case 'compare':
+      case 'anova':
+        return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' };
+      case 'correlation':
+      case 'linear-regression':
+      case 'logistic-regression':
+        return { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' };
+      case 'roc-curve':
+      case 'kaplan-meier':
+        return { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' };
+      default:
+        return { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' };
+    }
+  };
+
+  const typeTheme = getAnalysisTypeTheme(meta.analysis_type);
 
   return (
     <div
@@ -41,13 +77,14 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
       style={{
         backgroundColor: 'white',
         border: '1px solid #e2e8f0',
-        borderRadius: '10px',
+        borderRadius: '12px',
         overflow: 'hidden',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
+        boxShadow: '0 4px 16px -4px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04)',
         display: 'flex',
         flexDirection: 'column',
         gap: '1.25rem',
         padding: '1.5rem',
+        transition: 'border-color 0.15s ease',
       }}
     >
       {/* 1. Cabecera del Bloque de Análisis (Estilo SPSS Output Tree Header) */}
@@ -56,80 +93,166 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          borderBottom: '2px solid #f1f5f9',
-          paddingBottom: '1rem',
+          borderBottom: '1px solid #f1f5f9',
+          paddingBottom: '1.15rem',
+          gap: '1rem',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.45rem' }}>
             <span
               style={{
-                backgroundColor: '#eff6ff',
-                color: '#2563eb',
-                fontSize: '0.7rem',
+                backgroundColor: typeTheme.bg,
+                color: typeTheme.text,
+                border: `1px solid ${typeTheme.border}`,
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 padding: '2px 8px',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
               }}
             >
               {meta.analysis_type}
             </span>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <Clock size={12} /> {createdDate}
+
+            <span
+              style={{
+                fontSize: '0.74rem',
+                color: '#64748b',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                backgroundColor: '#f8fafc',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <Clock size={12} color="#94a3b8" /> {createdDate}
+            </span>
+
+            <span
+              style={{
+                fontSize: '0.74rem',
+                color: '#0f766e',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                backgroundColor: '#f0fdfa',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                border: '1px solid #ccfbf1',
+                fontWeight: 600,
+              }}
+            >
+              <Database size={12} /> N = {meta.sample_size} (Válidos: {meta.valid_observations})
             </span>
           </div>
 
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
+          <h3
+            style={{
+              margin: '0 0 0.35rem 0',
+              fontSize: '1.25rem',
+              fontWeight: 800,
+              color: '#0f172a',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.3,
+            }}
+          >
             {meta.title}
           </h3>
 
           {meta.description && (
-            <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+            <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.82rem', color: '#64748b', lineHeight: 1.45 }}>
               {meta.description}
             </p>
           )}
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <Database size={13} color="#94a3b8" />
-              <strong>Muestra:</strong> N = {meta.sample_size} (Válidos: {meta.valid_observations})
-            </span>
-            <span>
-              <strong>Variables:</strong> {meta.variables_used.join(', ')}
-            </span>
-          </div>
+          {/* Chips de Variables Seleccionadas */}
+          {meta.variables_used && meta.variables_used.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>
+                Variables:
+              </span>
+              {meta.variables_used.map(v => (
+                <span
+                  key={v}
+                  style={{
+                    backgroundColor: '#f8fafc',
+                    color: '#334155',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '4px',
+                    padding: '1px 6px',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    fontFamily: 'ui-monospace, monospace',
+                  }}
+                >
+                  {v}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        {onDelete && (
+        {/* Acciones de Cabecera: Copiar Resumen y Eliminar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
           <button
-            onClick={() => onDelete(meta.analysis_id)}
-            title="Eliminar este bloque de resultados"
+            onClick={handleCopySummary}
+            title="Copiar resumen del análisis al portapapeles"
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#94a3b8',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              backgroundColor: copiedSummary ? '#ecfdf5' : '#ffffff',
+              border: `1px solid ${copiedSummary ? '#86efac' : '#e2e8f0'}`,
+              color: copiedSummary ? '#166534' : '#475569',
               cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '4px',
-              transition: 'color 0.15s, background-color 0.15s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = '#ef4444';
-              e.currentTarget.style.backgroundColor = '#fef2f2';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = '#94a3b8';
-              e.currentTarget.style.backgroundColor = 'transparent';
+              padding: '6px 10px',
+              borderRadius: '6px',
+              fontSize: '0.74rem',
+              fontWeight: 600,
+              transition: 'all 0.15s ease',
             }}
           >
-            <Trash2 size={16} />
+            {copiedSummary ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+            <span>{copiedSummary ? 'Copiado' : 'Copiar'}</span>
           </button>
-        )}
+
+          {onDelete && (
+            <button
+              onClick={() => onDelete(meta.analysis_id)}
+              title="Eliminar este bloque de resultados"
+              style={{
+                background: 'transparent',
+                border: '1px solid #e2e8f0',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                transition: 'all 0.15s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = '#ef4444';
+                e.currentTarget.style.borderColor = '#fca5a5';
+                e.currentTarget.style.backgroundColor = '#fef2f2';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = '#94a3b8';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 2. Advertencias Estadísticas */}
+      {/* 2. Advertencias Estadísticas Críticas */}
       {result.warnings && result.warnings.length > 0 && (
         <WarningsBanner warnings={result.warnings} />
       )}
@@ -139,7 +262,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 3.1 Gráficos Estadísticos Contextuales */}
       {result.plots && result.plots.length > 0 && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
           <button
             onClick={() => setOpenPlots(!openPlots)}
             style={{
@@ -153,28 +276,39 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               borderBottom: openPlots ? '1px solid #e2e8f0' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
+              transition: 'background-color 0.1s ease',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>
               <ImageIcon size={16} color="#2563eb" />
               <span>Gráficos Estadísticos Contextuales</span>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>
-                ({result.plots.length} visualización{result.plots.length !== 1 ? 'es' : ''})
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  backgroundColor: '#eff6ff',
+                  color: '#2563eb',
+                  border: '1px solid #bfdbfe',
+                  padding: '1px 7px',
+                  borderRadius: '999px',
+                  fontWeight: 700,
+                }}
+              >
+                {result.plots.length}
               </span>
             </div>
             {openPlots ? <ChevronDown size={16} color="#64748b" /> : <ChevronRight size={16} color="#64748b" />}
           </button>
 
           {openPlots && (
-            <div style={{ padding: '1rem', backgroundColor: 'white' }}>
+            <div style={{ padding: '1.25rem', backgroundColor: 'white' }}>
               <StatisticalPlots plots={result.plots} />
             </div>
           )}
         </div>
       )}
 
-      {/* 4. CAPA 2: Resultados Completos (Tablas) */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+      {/* 4. CAPA 2: Resultados Completos (Tablas Detalladas) */}
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
         <button
           onClick={() => setOpenTables(!openTables)}
           style={{
@@ -188,20 +322,31 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
             borderBottom: openTables ? '1px solid #e2e8f0' : 'none',
             cursor: 'pointer',
             textAlign: 'left',
+            transition: 'background-color 0.1s ease',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>
             <Table size={16} color="#2563eb" />
             <span>Tablas Estadísticas Detalladas</span>
-            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>
-              ({result.tables.length} tabla{result.tables.length !== 1 ? 's' : ''})
+            <span
+              style={{
+                fontSize: '0.7rem',
+                backgroundColor: '#eff6ff',
+                color: '#2563eb',
+                border: '1px solid #bfdbfe',
+                padding: '1px 7px',
+                borderRadius: '999px',
+                fontWeight: 700,
+              }}
+            >
+              {result.tables.length} tabla{result.tables.length !== 1 ? 's' : ''}
             </span>
           </div>
           {openTables ? <ChevronDown size={16} color="#64748b" /> : <ChevronRight size={16} color="#64748b" />}
         </button>
 
         {openTables && (
-          <div style={{ padding: '1rem', backgroundColor: 'white' }}>
+          <div style={{ padding: '1.25rem', backgroundColor: 'white' }}>
             <Layer2Tables tables={result.tables} />
           </div>
         )}
@@ -209,7 +354,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 5. CAPA 3: Diagnósticos y Supuestos */}
       {result.diagnostics && result.diagnostics.length > 0 && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
           <button
             onClick={() => setOpenDiagnostics(!openDiagnostics)}
             style={{
@@ -223,28 +368,39 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               borderBottom: openDiagnostics ? '1px solid #e2e8f0' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
+              transition: 'background-color 0.1s ease',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.88rem', color: '#1e293b' }}>
-              <ShieldCheck size={16} color="#16a34a" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>
+              <ShieldCheck size={16} color="#10b981" />
               <span>Diagnósticos y Pruebas de Supuestos</span>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 400 }}>
-                ({result.diagnostics.length} prueba{result.diagnostics.length !== 1 ? 's' : ''})
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  backgroundColor: '#ecfdf5',
+                  color: '#059669',
+                  border: '1px solid #a7f3d0',
+                  padding: '1px 7px',
+                  borderRadius: '999px',
+                  fontWeight: 700,
+                }}
+              >
+                {result.diagnostics.length} prueba{result.diagnostics.length !== 1 ? 's' : ''}
               </span>
             </div>
             {openDiagnostics ? <ChevronDown size={16} color="#64748b" /> : <ChevronRight size={16} color="#64748b" />}
           </button>
 
           {openDiagnostics && (
-            <div style={{ padding: '1rem', backgroundColor: 'white' }}>
+            <div style={{ padding: '1.25rem', backgroundColor: 'white' }}>
               <Layer3Diagnostics diagnostics={result.diagnostics} />
             </div>
           )}
         </div>
       )}
 
-      {/* 6. CAPA 4: Información Técnica */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+      {/* 6. CAPA 4: Información Técnica y Ajuste */}
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
         <button
           onClick={() => setOpenTechnical(!openTechnical)}
           style={{
@@ -258,17 +414,18 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
             borderBottom: openTechnical ? '1px solid #e2e8f0' : 'none',
             cursor: 'pointer',
             textAlign: 'left',
+            transition: 'background-color 0.1s ease',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: '#475569' }}>
-            <Info size={15} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.84rem', color: '#475569' }}>
+            <Info size={15} color="#64748b" />
             <span>Ficha Técnica y Parámetros del Modelo</span>
           </div>
           {openTechnical ? <ChevronDown size={16} color="#64748b" /> : <ChevronRight size={16} color="#64748b" />}
         </button>
 
         {openTechnical && (
-          <div style={{ padding: '1rem', backgroundColor: 'white' }}>
+          <div style={{ padding: '1.25rem', backgroundColor: 'white' }}>
             <Layer4Technical technical={result.technical} metadata={meta} />
           </div>
         )}
@@ -276,7 +433,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 7. CAPA 5: Código R Reproducible */}
       {result.reproducible_code && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
           <button
             onClick={() => setOpenCode(!openCode)}
             style={{
@@ -290,17 +447,18 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               borderBottom: openCode ? '1px solid #e2e8f0' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
+              transition: 'background-color 0.1s ease',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.85rem', color: '#475569' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.84rem', color: '#475569' }}>
               <Code2 size={15} color="#0284c7" />
-              <span>Código R Reproducible</span>
+              <span>Código R Reproducible (RStudio)</span>
             </div>
             {openCode ? <ChevronDown size={16} color="#64748b" /> : <ChevronRight size={16} color="#64748b" />}
           </button>
 
           {openCode && (
-            <div style={{ padding: '1rem', backgroundColor: 'white' }}>
+            <div style={{ padding: '1.25rem', backgroundColor: 'white' }}>
               <Layer5ReproducibleCode code={result.reproducible_code} />
             </div>
           )}

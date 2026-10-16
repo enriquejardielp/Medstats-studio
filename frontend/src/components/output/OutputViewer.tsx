@@ -7,6 +7,9 @@ import {
   Trash2,
   ChevronRight,
   Sparkles,
+  Layers,
+  Activity,
+  GitCompare,
 } from 'lucide-react';
 import type { AnalysisResult } from '../../types/analysis';
 import { AnalysisBlock } from './AnalysisBlock';
@@ -25,13 +28,21 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
   const getAnalysisIcon = (type: string) => {
     switch (type) {
       case 'descriptive':
+      case 'table1':
         return <BarChart3 size={15} color="#2563eb" />;
+      case 'compare':
+      case 'anova':
+        return <GitCompare size={15} color="#16a34a" />;
       case 'correlation':
-        return <TrendingUp size={15} color="#16a34a" />;
+        return <TrendingUp size={15} color="#9333ea" />;
       case 'linear-regression':
-        return <FileSpreadsheet size={15} color="#9333ea" />;
+      case 'logistic-regression':
+        return <FileSpreadsheet size={15} color="#0284c7" />;
+      case 'roc-curve':
+      case 'kaplan-meier':
+        return <Activity size={15} color="#ea580c" />;
       default:
-        return <BarChart3 size={15} color="#64748b" />;
+        return <Layers size={15} color="#64748b" />;
     }
   };
 
@@ -51,21 +62,72 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '4rem 2rem',
+          padding: '5rem 2rem',
           textAlign: 'center',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#ffffff',
           border: '1px dashed #cbd5e1',
-          borderRadius: '12px',
+          borderRadius: '16px',
           color: '#64748b',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
         }}
       >
-        <Sparkles size={36} color="#94a3b8" style={{ marginBottom: '1rem' }} />
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b', margin: '0 0 0.5rem 0' }}>
-          Visor de Resultados (Output Viewer)
+        <div
+          style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '20px',
+            backgroundColor: '#eff6ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '1.25rem',
+            border: '1px solid #dbeafe',
+          }}
+        >
+          <Sparkles size={32} color="#2563eb" />
+        </div>
+
+        <h3
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 800,
+            color: '#0f172a',
+            margin: '0 0 0.5rem 0',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Visor de Informes Estadísticos
         </h3>
-        <p style={{ maxWidth: '450px', fontSize: '0.85rem', lineHeight: 1.5, margin: 0 }}>
-          Ejecuta un análisis estadístico (Descriptivos, Correlación o Regresión) para generar un informe estructurado interactivo de 5 capas (Stata + SPSS + R).
+
+        <p
+          style={{
+            maxWidth: '520px',
+            fontSize: '0.88rem',
+            lineHeight: 1.6,
+            color: '#64748b',
+            margin: '0 0 1.5rem 0',
+          }}
+        >
+          Selecciona una prueba estadística en el panel lateral (Descriptivos, Comparación de Grupos, Correlación, Regresión o Supervivencia) para generar un informe reproducible estructurado de 5 capas.
         </p>
+
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            padding: '0.5rem 1rem',
+            borderRadius: '999px',
+            fontSize: '0.78rem',
+            color: '#475569',
+          }}
+        >
+          <span>Estándar editorial: <strong>APA 7ª Edición</strong></span>
+          <span style={{ color: '#cbd5e1' }}>•</span>
+          <span>Motor de cálculo: <strong>R 4.3+ Backend</strong></span>
+        </div>
       </div>
     );
   }
@@ -74,9 +136,9 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '260px 1fr',
+        gridTemplateColumns: '270px 1fr',
         gap: '1.5rem',
-        minHeight: '600px',
+        minHeight: '650px',
         alignItems: 'start',
       }}
     >
@@ -87,9 +149,9 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
           top: '1rem',
           backgroundColor: 'white',
           border: '1px solid #e2e8f0',
-          borderRadius: '10px',
+          borderRadius: '12px',
           overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.05)',
         }}
       >
         {/* Cabecera del Navegador */}
@@ -98,14 +160,29 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0.75rem 1rem',
+            padding: '0.85rem 1rem',
             backgroundColor: '#f8fafc',
             borderBottom: '1px solid #e2e8f0',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, fontSize: '0.82rem', color: '#1e293b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <FolderTree size={16} color="#2563eb" />
-            <span>ÍNDICE DE RESULTADOS</span>
+            <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#0f172a', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Índice de Salida
+            </span>
+            <span
+              style={{
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                padding: '1px 6px',
+                borderRadius: '999px',
+              }}
+            >
+              {results.length}
+            </span>
           </div>
 
           <button
@@ -116,19 +193,32 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
               border: 'none',
               color: '#94a3b8',
               cursor: 'pointer',
-              padding: '2px',
+              padding: '4px',
+              borderRadius: '4px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              transition: 'all 0.15s ease',
             }}
-            onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-            onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = '#ef4444';
+              e.currentTarget.style.backgroundColor = '#fef2f2';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             <Trash2 size={14} />
           </button>
         </div>
 
         {/* Lista de Análisis (Árbol) */}
-        <div style={{ maxHeight: '550px', overflowY: 'auto', padding: '0.5rem' }}>
+        <div style={{ maxHeight: 'calc(100vh - 160px)', overflowY: 'auto', padding: '0.5rem' }}>
           {results.map((res, index) => {
             const isSelected = selectedId === res.metadata.analysis_id;
+            const pValMetric = res.summary.key_metrics.find(m => m.p_value !== undefined);
+            const isSignificant = pValMetric && pValMetric.p_value !== undefined && pValMetric.p_value < 0.05;
+
             return (
               <button
                 key={res.metadata.analysis_id}
@@ -137,18 +227,18 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.6rem',
-                  padding: '0.6rem 0.75rem',
-                  borderRadius: '6px',
-                  border: 'none',
+                  gap: '0.65rem',
+                  padding: '0.65rem 0.8rem',
+                  borderRadius: '8px',
+                  border: isSelected ? '1px solid #bfdbfe' : '1px solid transparent',
                   backgroundColor: isSelected ? '#eff6ff' : 'transparent',
                   color: isSelected ? '#1d4ed8' : '#334155',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  marginBottom: '2px',
-                  transition: 'all 0.1s',
-                  fontWeight: isSelected ? 600 : 400,
-                  fontSize: '0.8rem',
+                  marginBottom: '3px',
+                  transition: 'all 0.12s ease',
+                  fontWeight: isSelected ? 700 : 500,
+                  fontSize: '0.82rem',
                 }}
                 onMouseEnter={e => {
                   if (!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc';
@@ -167,16 +257,40 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
+                      lineHeight: 1.3,
                     }}
                   >
                     {index + 1}. {res.metadata.title}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: isSelected ? '#3b82f6' : '#94a3b8' }}>
-                    {res.metadata.created_at ? new Date(res.metadata.created_at).toLocaleTimeString() : ''}
+                  <div
+                    style={{
+                      fontSize: '0.7rem',
+                      color: isSelected ? '#3b82f6' : '#94a3b8',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      marginTop: '2px',
+                    }}
+                  >
+                    <span>{res.metadata.created_at ? new Date(res.metadata.created_at).toLocaleTimeString() : ''}</span>
+                    {pValMetric && (
+                      <span
+                        style={{
+                          color: isSignificant ? '#16a34a' : '#64748b',
+                          fontWeight: 700,
+                        }}
+                      >
+                        • {pValMetric.formatted}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <ChevronRight size={13} color={isSelected ? '#2563eb' : '#cbd5e1'} style={{ flexShrink: 0 }} />
+                <ChevronRight
+                  size={14}
+                  color={isSelected ? '#2563eb' : '#cbd5e1'}
+                  style={{ flexShrink: 0 }}
+                />
               </button>
             );
           })}
@@ -184,7 +298,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
       </div>
 
       {/* 2. Documento Principal con los Bloques de Resultados */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', minWidth: 0 }}>
         {results.map(res => (
           <AnalysisBlock
             key={res.metadata.analysis_id}

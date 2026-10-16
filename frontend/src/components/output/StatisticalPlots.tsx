@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, ZoomIn, ZoomOut, Image as ImageIcon } from 'lucide-react';
+import { Download, ZoomIn, ZoomOut } from 'lucide-react';
 import type { AnalysisPlot } from '../../types/analysis';
 
 interface Props {
@@ -19,8 +19,8 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {plots.map(plot => {
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {plots.map((plot, idx) => {
         const isZoomed = zoomPlotId === plot.id;
 
         return (
@@ -28,10 +28,10 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
             key={plot.id}
             style={{
               border: '1px solid #e2e8f0',
-              borderRadius: '8px',
+              borderRadius: '10px',
               overflow: 'hidden',
               backgroundColor: 'white',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.04)',
             }}
           >
             {/* Cabecera del Gráfico */}
@@ -40,14 +40,26 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '0.65rem 1rem',
+                padding: '0.75rem 1.15rem',
                 backgroundColor: '#f8fafc',
                 borderBottom: '1px solid #e2e8f0',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <ImageIcon size={15} color="#2563eb" />
-                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#1e293b' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span
+                  style={{
+                    backgroundColor: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe',
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  Figura {idx + 1}
+                </span>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
                   {plot.title}
                 </span>
               </div>
@@ -55,42 +67,44 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
               <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <button
                   onClick={() => setZoomPlotId(isZoomed ? null : plot.id)}
-                  title={isZoomed ? 'Reducir tamaño' : 'Ampliar gráfico'}
+                  title={isZoomed ? 'Reducir tamaño' : 'Ampliar gráfico a ancho completo'}
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.3rem',
-                    padding: '3px 8px',
+                    padding: '4px 9px',
                     backgroundColor: 'white',
                     border: '1px solid #cbd5e1',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.74rem',
                     cursor: 'pointer',
                     color: '#334155',
+                    fontWeight: 600,
                   }}
                 >
                   {isZoomed ? <ZoomOut size={13} /> : <ZoomIn size={13} />}
-                  <span>{isZoomed ? 'Normal' : 'Zoom'}</span>
+                  <span>{isZoomed ? 'Vista Normal' : 'Zoom Completo'}</span>
                 </button>
 
                 <button
                   onClick={() => downloadImage(plot)}
-                  title="Descargar imagen PNG en alta resolución"
+                  title="Descargar imagen PNG en alta resolución (300 DPI)"
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.3rem',
-                    padding: '3px 8px',
+                    padding: '4px 9px',
                     backgroundColor: 'white',
                     border: '1px solid #cbd5e1',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.74rem',
                     cursor: 'pointer',
                     color: '#334155',
+                    fontWeight: 600,
                   }}
                 >
                   <Download size={13} />
-                  <span>PNG</span>
+                  <span>Descargar PNG</span>
                 </button>
               </div>
             </div>
@@ -102,7 +116,7 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '1rem',
+                padding: '1.25rem',
                 backgroundColor: '#ffffff',
               }}
             >
@@ -110,11 +124,12 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
                 src={`data:image/png;base64,${plot.image_base64}`}
                 alt={plot.title}
                 style={{
-                  maxWidth: isZoomed ? '100%' : '520px',
+                  maxWidth: isZoomed ? '100%' : '560px',
                   width: '100%',
                   height: 'auto',
                   borderRadius: '6px',
                   transition: 'max-width 0.2s ease-in-out',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                 }}
               />
             </div>
@@ -123,14 +138,15 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
             {plot.description && (
               <div
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.65rem 1.15rem',
                   backgroundColor: '#f8fafc',
                   borderTop: '1px solid #e2e8f0',
-                  fontSize: '0.75rem',
-                  color: '#64748b',
+                  fontSize: '0.78rem',
+                  color: '#475569',
+                  lineHeight: 1.5,
                 }}
               >
-                {plot.description}
+                <strong style={{ color: '#0f172a' }}>Nota de la figura:</strong> {plot.description}
               </div>
             )}
           </div>

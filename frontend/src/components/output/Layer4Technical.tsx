@@ -9,93 +9,176 @@ interface Props {
 
 export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-      {/* Ficha del Modelo */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+      {/* 1. Especificación del Modelo */}
       <div
         style={{
           backgroundColor: '#f8fafc',
           border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '1rem',
+          borderRadius: '10px',
+          padding: '1.1rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.4rem',
+          gap: '0.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#475569', marginBottom: '0.25rem' }}>
-          <Cpu size={16} />
-          <span style={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase' }}>Especificación</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#1e293b', marginBottom: '0.2rem' }}>
+          <Cpu size={16} color="#2563eb" />
+          <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Especificación del Modelo
+          </span>
         </div>
-        <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-          <strong>Método:</strong> {technical.method}
+
+        <div style={{ fontSize: '0.84rem', color: '#334155' }}>
+          <strong style={{ color: '#0f172a' }}>Método:</strong> {technical.method}
         </div>
+
         {technical.formula && (
           <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-            <strong>Fórmula:</strong> <code style={{ backgroundColor: '#e2e8f0', padding: '1px 4px', borderRadius: '3px' }}>{technical.formula}</code>
+            <strong style={{ color: '#0f172a' }}>Fórmula R:</strong>{' '}
+            <code
+              style={{
+                backgroundColor: '#e2e8f0',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '0.78rem',
+                fontFamily: 'ui-monospace, monospace',
+                color: '#0f172a',
+              }}
+            >
+              {technical.formula}
+            </code>
           </div>
         )}
+
         <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-          <strong>Muestra Válida:</strong> N = {metadata.valid_observations}
+          <strong style={{ color: '#0f172a' }}>Muestra Válida:</strong> N = {metadata.valid_observations}{' '}
+          {metadata.missing_observations ? `(${metadata.missing_observations} valores perdidos omitidos)` : ''}
         </div>
       </div>
 
-      {/* Criterios de Ajuste / Información */}
-      {(technical.aic !== undefined || technical.bic !== undefined || technical.degrees_of_freedom !== undefined) && (
+      {/* 2. Criterios de Ajuste / Información */}
+      {(technical.aic !== undefined || technical.bic !== undefined || technical.degrees_of_freedom !== undefined || technical.log_likelihood !== undefined) && (
         <div
           style={{
             backgroundColor: '#f8fafc',
             border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            padding: '1rem',
+            borderRadius: '10px',
+            padding: '1.1rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.4rem',
+            gap: '0.5rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#475569', marginBottom: '0.25rem' }}>
-            <Terminal size={16} />
-            <span style={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase' }}>Ajuste y Grados de Libertad</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#1e293b', marginBottom: '0.2rem' }}>
+            <Terminal size={16} color="#7c3aed" />
+            <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Ajuste y Grados de Libertad
+            </span>
           </div>
+
           {technical.degrees_of_freedom !== undefined && (
-            <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-              <strong>Grados de libertad:</strong> {Array.isArray(technical.degrees_of_freedom) ? technical.degrees_of_freedom.join(', ') : technical.degrees_of_freedom}
+            <div style={{ fontSize: '0.84rem', color: '#334155' }}>
+              <strong style={{ color: '#0f172a' }}>Grados de libertad (df):</strong>{' '}
+              {Array.isArray(technical.degrees_of_freedom) ? technical.degrees_of_freedom.join(', ') : technical.degrees_of_freedom}
             </div>
           )}
-          {technical.aic !== undefined && technical.aic !== null && (
-            <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-              <strong>AIC:</strong> {technical.aic.toFixed(2)}
-            </div>
-          )}
-          {technical.bic !== undefined && technical.bic !== null && (
-            <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-              <strong>BIC:</strong> {technical.bic.toFixed(2)}
-            </div>
-          )}
+
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+            {technical.aic !== undefined && technical.aic !== null && (
+              <span
+                style={{
+                  backgroundColor: 'white',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  fontSize: '0.78rem',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                <strong style={{ color: '#0f172a' }}>AIC:</strong> {technical.aic.toFixed(2)}
+              </span>
+            )}
+
+            {technical.bic !== undefined && technical.bic !== null && (
+              <span
+                style={{
+                  backgroundColor: 'white',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  fontSize: '0.78rem',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                <strong style={{ color: '#0f172a' }}>BIC:</strong> {technical.bic.toFixed(2)}
+              </span>
+            )}
+
+            {technical.log_likelihood !== undefined && technical.log_likelihood !== null && (
+              <span
+                style={{
+                  backgroundColor: 'white',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  fontSize: '0.78rem',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                <strong style={{ color: '#0f172a' }}>LogLik:</strong> {technical.log_likelihood.toFixed(2)}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Dependencias y Entorno */}
+      {/* 3. Dependencias y Entorno R */}
       <div
         style={{
           backgroundColor: '#f8fafc',
           border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '1rem',
+          borderRadius: '10px',
+          padding: '1.1rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.4rem',
+          gap: '0.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#475569', marginBottom: '0.25rem' }}>
-          <Package size={16} />
-          <span style={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase' }}>Entorno y Paquetes</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#1e293b', marginBottom: '0.2rem' }}>
+          <Package size={16} color="#059669" />
+          <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Entorno y Reproducibilidad
+          </span>
         </div>
-        <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-          <strong>Motor Estadístico:</strong> {technical.r_version || 'R 4.3+'}
+
+        <div style={{ fontSize: '0.84rem', color: '#334155' }}>
+          <strong style={{ color: '#0f172a' }}>Motor Estadístico:</strong> {technical.r_version || 'R 4.3+ Core Engine'}
         </div>
-        <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-          <strong>Paquetes R:</strong> {technical.packages_used.join(', ')}
-        </div>
+
+        {technical.packages_used && technical.packages_used.length > 0 && (
+          <div style={{ fontSize: '0.82rem', color: '#334155' }}>
+            <strong style={{ color: '#0f172a' }}>Paquetes de R:</strong>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+              {technical.packages_used.map(pkg => (
+                <span
+                  key={pkg}
+                  style={{
+                    backgroundColor: '#e0f2fe',
+                    color: '#0369a1',
+                    border: '1px solid #bae6fd',
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  {pkg}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/authContext';
-import { Home, FolderOpen, BarChart3, LogOut, User, Database } from 'lucide-react';
+import { Home, FolderOpen, BarChart3, LogOut, User, Database, ClipboardList } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { logout, user } = useAuth();
@@ -9,6 +9,7 @@ const MainLayout: React.FC = () => {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: Home },
     { to: '/projects', label: 'Proyectos', icon: FolderOpen },
+    { to: '/forms', label: 'Formularios eCRF', icon: ClipboardList },
     { to: '/analysis', label: 'Análisis', icon: BarChart3 },
   ];
 

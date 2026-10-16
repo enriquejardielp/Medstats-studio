@@ -20,11 +20,13 @@ import {
   Layers,
   Sparkles,
   SlidersHorizontal,
+  ClipboardList,
 } from 'lucide-react';
 import apiClient from '../api/client';
 import type { ColumnType } from '../types';
 import type { AnalysisResult } from '../types/analysis';
 import { OutputViewer } from '../components/output/OutputViewer';
+import { ProjectECRFView } from '../forms/components/ProjectECRFView';
 
 // ============================================================
 // Cabecera personalizada con selector de tipo
@@ -230,7 +232,7 @@ const ProjectPage: React.FC = () => {
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
-  const [editMode, setEditMode] = useState<'edition' | 'analysis'>('edition');
+  const [editMode, setEditMode] = useState<'edition' | 'form' | 'analysis'>('edition');
   const [activeTab, setActiveTab] = useState<'config' | 'results' | 'history'>('config');
   const [outputResults, setOutputResults] = useState<AnalysisResult[]>([]);
 
@@ -1040,6 +1042,26 @@ const ProjectPage: React.FC = () => {
             </button>
             <button
               onClick={() => {
+                setEditMode('form');
+                if (panelOpen) setPanelOpen(false);
+              }}
+              style={{
+                border: 'none',
+                backgroundColor: editMode === 'form' ? 'white' : 'transparent',
+                color: editMode === 'form' ? '#0d9488' : '#64748b',
+                fontWeight: editMode === 'form' ? 700 : 500,
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                boxShadow: editMode === 'form' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              📋 Cuaderno eCRF
+            </button>
+            <button
+              onClick={() => {
                 setEditMode('analysis');
                 if (!panelOpen) setPanelOpen(true);
               }}
@@ -1161,33 +1183,57 @@ const ProjectPage: React.FC = () => {
 
       {/* CONTENEDOR PRINCIPAL */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* TABLA AG GRID */}
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            height: '100%',
-            transition: 'margin-right 0.3s ease-in-out',
-          }}
-        >
-          <div className="ag-theme-alpine" style={{ height: '100%', width: '100%' }}>
-            <AgGridReact
-              ref={gridRef}
-              rowData={rowData}
-              columnDefs={columnDefs}
-              defaultColDef={{
-                sortable: true,
-                filter: true,
-                resizable: true,
-                minWidth: 100,
-                flex: 1,
-                editable: editMode === 'edition',
-              }}
-              pagination={true}
-              paginationPageSize={100}
-            />
+        {editMode === 'form' ? (
+          <ProjectECRFView
+            projectId={project?.id || parseInt(id!)}
+            projectName={project?.name || `Proyecto #${id}`}
+            projectDescription={project?.description}
+            projectColumns={project?.columns || []}
+            projectColumnTypes={columnTypes}
+            projectRows={rowData}
+            onDataSynced={(newRows, newColumns, newTypes) => {
+              setRowData(newRows);
+              setColumnTypes(newTypes as any);
+              if (project) {
+                setProject({
+                  ...project,
+                  columns: newColumns,
+                  column_types: newTypes as any,
+                  row_count: newRows.length,
+                });
+              }
+              setSuccessMsg('Dataset del proyecto actualizado desde el eCRF.');
+              setTimeout(() => setSuccessMsg(null), 3000);
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              height: '100%',
+              transition: 'margin-right 0.3s ease-in-out',
+            }}
+          >
+            <div className="ag-theme-alpine" style={{ height: '100%', width: '100%' }}>
+              <AgGridReact
+                ref={gridRef}
+                rowData={rowData}
+                columnDefs={columnDefs}
+                defaultColDef={{
+                  sortable: true,
+                  filter: true,
+                  resizable: true,
+                  minWidth: 100,
+                  flex: 1,
+                  editable: editMode === 'edition',
+                }}
+                pagination={true}
+                paginationPageSize={100}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* PANEL LATERAL */}
         <div

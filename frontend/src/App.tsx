@@ -10,6 +10,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import CreateProjectPage from './pages/CreateProjectPage';
 
 const ProjectPage = lazy(() => import('./pages/ProjectPage'));
+const FormsPage = lazy(() => import('./pages/FormsPage'));
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/new" element={<CreateProjectPage />} />
                 <Route path="/projects/:id" element={<ProjectPage />} />
+                <Route path="/forms" element={<FormsPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

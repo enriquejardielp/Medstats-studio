@@ -20,7 +20,15 @@ const LoginPage: React.FC = () => {
       await login(email, password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Email o contraseña incorrectos');
+      console.error('Login error:', err);
+      const detail = err.response?.data?.detail;
+      if (detail) {
+        setError(detail);
+      } else if (err.message === 'Network Error' || !err.response) {
+        setError('No se pudo conectar con el servidor. Si acaba de desplegarse o estaba en reposo, puede tardar ~40 segundos en arrancar. Reintenta en unos instantes.');
+      } else {
+        setError(err.message || 'Email o contraseña incorrectos');
+      }
     } finally {
       setLoading(false);
     }

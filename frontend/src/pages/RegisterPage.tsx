@@ -22,7 +22,15 @@ const RegisterPage: React.FC = () => {
       setSuccess('Registro exitoso. Redirigiendo al inicio de sesión...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al registrarse');
+      console.error('Registration error:', err);
+      const detail = err.response?.data?.detail;
+      if (detail) {
+        setError(detail);
+      } else if (err.message === 'Network Error' || !err.response) {
+        setError('No se pudo conectar con el servidor. Si acaba de desplegarse o estaba en reposo, puede tardar ~40 segundos en arrancar. Reintenta en unos instantes.');
+      } else {
+        setError(err.message || 'Error al registrarse');
+      }
     } finally {
       setLoading(false);
     }

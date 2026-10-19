@@ -27,7 +27,7 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
           <div
             key={plot.id}
             style={{
-              border: '1px solid #e2e8f0',
+              border: '1px solid #e3ded3',
               borderRadius: '10px',
               overflow: 'hidden',
               backgroundColor: 'white',
@@ -41,16 +41,16 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.75rem 1.15rem',
-                backgroundColor: '#f8fafc',
-                borderBottom: '1px solid #e2e8f0',
+                backgroundColor: '#f8f6f1',
+                borderBottom: '1px solid #e3ded3',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span
                   style={{
-                    backgroundColor: '#eff6ff',
-                    color: '#1d4ed8',
-                    border: '1px solid #bfdbfe',
+                    backgroundColor: '#e7f4f2',
+                    color: '#0a5f58',
+                    border: '1px solid #b6ddd8',
                     padding: '1px 6px',
                     borderRadius: '4px',
                     fontSize: '0.7rem',
@@ -59,7 +59,7 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
                 >
                   Figura {idx + 1}
                 </span>
-                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#10232e' }}>
                   {plot.title}
                 </span>
               </div>
@@ -139,14 +139,14 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
               <div
                 style={{
                   padding: '0.65rem 1.15rem',
-                  backgroundColor: '#f8fafc',
-                  borderTop: '1px solid #e2e8f0',
+                  backgroundColor: '#f8f6f1',
+                  borderTop: '1px solid #e3ded3',
                   fontSize: '0.78rem',
                   color: '#475569',
                   lineHeight: 1.5,
                 }}
               >
-                <strong style={{ color: '#0f172a' }}>Nota de la figura:</strong> {plot.description}
+                <strong style={{ color: '#10232e' }}>Nota de la figura:</strong> {plot.description}
               </div>
             )}
           </div>

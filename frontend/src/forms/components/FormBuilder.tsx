@@ -7,9 +7,6 @@ import {
   Edit2,
   Save,
   Layers,
-  Sparkles,
-  Info,
-  Check,
   X,
   FileCode,
   FolderPlus,
@@ -17,9 +14,8 @@ import {
   BookmarkPlus,
   CheckCircle2,
   GitBranch,
-  HelpCircle,
 } from 'lucide-react';
-import { ClinicalForm, FormField, FieldType, FavoriteSection, ConditionalRule, ConditionOperator } from '../types/clinical';
+import type { ClinicalForm, FormField, FieldType, FavoriteSection, ConditionalRule, ConditionOperator } from '../types/clinical';
 import { normalizeColumnKey } from '../utils/merger';
 import { FavoriteSectionsModal } from './FavoriteSectionsModal';
 import { getConditionDescription } from '../utils/conditional';

@@ -1,4 +1,4 @@
-import { FormField } from '../types/clinical';
+import type { FormField } from '../types/clinical';
 
 /**
  * Calculates formula values based on current form data

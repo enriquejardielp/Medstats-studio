@@ -13,8 +13,8 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
       {/* 1. Especificación del Modelo */}
       <div
         style={{
-          backgroundColor: '#f8fafc',
-          border: '1px solid #e2e8f0',
+          backgroundColor: '#f8f6f1',
+          border: '1px solid #e3ded3',
           borderRadius: '10px',
           padding: '1.1rem',
           display: 'flex',
@@ -23,27 +23,27 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#1e293b', marginBottom: '0.2rem' }}>
-          <Cpu size={16} color="#2563eb" />
+          <Cpu size={16} color="#0d7c72" />
           <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Especificación del Modelo
           </span>
         </div>
 
         <div style={{ fontSize: '0.84rem', color: '#334155' }}>
-          <strong style={{ color: '#0f172a' }}>Método:</strong> {technical.method}
+          <strong style={{ color: '#10232e' }}>Método:</strong> {technical.method}
         </div>
 
         {technical.formula && (
           <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-            <strong style={{ color: '#0f172a' }}>Fórmula R:</strong>{' '}
+            <strong style={{ color: '#10232e' }}>Fórmula R:</strong>{' '}
             <code
               style={{
-                backgroundColor: '#e2e8f0',
+                backgroundColor: '#e3ded3',
                 padding: '2px 6px',
                 borderRadius: '4px',
                 fontSize: '0.78rem',
                 fontFamily: 'ui-monospace, monospace',
-                color: '#0f172a',
+                color: '#10232e',
               }}
             >
               {technical.formula}
@@ -52,7 +52,7 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
         )}
 
         <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-          <strong style={{ color: '#0f172a' }}>Muestra Válida:</strong> N = {metadata.valid_observations}{' '}
+          <strong style={{ color: '#10232e' }}>Muestra Válida:</strong> N = {metadata.valid_observations}{' '}
           {metadata.missing_observations ? `(${metadata.missing_observations} valores perdidos omitidos)` : ''}
         </div>
       </div>
@@ -61,8 +61,8 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
       {(technical.aic !== undefined || technical.bic !== undefined || technical.degrees_of_freedom !== undefined || technical.log_likelihood !== undefined) && (
         <div
           style={{
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            backgroundColor: '#f8f6f1',
+            border: '1px solid #e3ded3',
             borderRadius: '10px',
             padding: '1.1rem',
             display: 'flex',
@@ -79,7 +79,7 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
 
           {technical.degrees_of_freedom !== undefined && (
             <div style={{ fontSize: '0.84rem', color: '#334155' }}>
-              <strong style={{ color: '#0f172a' }}>Grados de libertad (df):</strong>{' '}
+              <strong style={{ color: '#10232e' }}>Grados de libertad (df):</strong>{' '}
               {Array.isArray(technical.degrees_of_freedom) ? technical.degrees_of_freedom.join(', ') : technical.degrees_of_freedom}
             </div>
           )}
@@ -96,7 +96,7 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                <strong style={{ color: '#0f172a' }}>AIC:</strong> {technical.aic.toFixed(2)}
+                <strong style={{ color: '#10232e' }}>AIC:</strong> {technical.aic.toFixed(2)}
               </span>
             )}
 
@@ -111,7 +111,7 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                <strong style={{ color: '#0f172a' }}>BIC:</strong> {technical.bic.toFixed(2)}
+                <strong style={{ color: '#10232e' }}>BIC:</strong> {technical.bic.toFixed(2)}
               </span>
             )}
 
@@ -126,7 +126,7 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                <strong style={{ color: '#0f172a' }}>LogLik:</strong> {technical.log_likelihood.toFixed(2)}
+                <strong style={{ color: '#10232e' }}>LogLik:</strong> {technical.log_likelihood.toFixed(2)}
               </span>
             )}
           </div>
@@ -136,8 +136,8 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
       {/* 3. Dependencias y Entorno R */}
       <div
         style={{
-          backgroundColor: '#f8fafc',
-          border: '1px solid #e2e8f0',
+          backgroundColor: '#f8f6f1',
+          border: '1px solid #e3ded3',
           borderRadius: '10px',
           padding: '1.1rem',
           display: 'flex',
@@ -153,12 +153,12 @@ export const Layer4Technical: React.FC<Props> = ({ technical, metadata }) => {
         </div>
 
         <div style={{ fontSize: '0.84rem', color: '#334155' }}>
-          <strong style={{ color: '#0f172a' }}>Motor Estadístico:</strong> {technical.r_version || 'R 4.3+ Core Engine'}
+          <strong style={{ color: '#10232e' }}>Motor Estadístico:</strong> {technical.r_version || 'R 4.3+ Core Engine'}
         </div>
 
         {technical.packages_used && technical.packages_used.length > 0 && (
           <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-            <strong style={{ color: '#0f172a' }}>Paquetes de R:</strong>
+            <strong style={{ color: '#10232e' }}>Paquetes de R:</strong>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
               {technical.packages_used.map(pkg => (
                 <span

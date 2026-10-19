@@ -1,4 +1,4 @@
-import { FavoriteSection } from '../types/clinical';
+import type { FavoriteSection } from '../types/clinical';
 
 export const DEFAULT_FAVORITE_SECTIONS: FavoriteSection[] = [
   {

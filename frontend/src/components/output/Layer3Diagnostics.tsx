@@ -15,7 +15,7 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
           textAlign: 'center',
           color: '#64748b',
           fontSize: '0.88rem',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#f8f6f1',
           borderRadius: '8px',
           border: '1px dashed #cbd5e1',
         }}
@@ -66,10 +66,10 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
           label: 'Informativo',
           icon: Info,
           iconColor: '#64748b',
-          badgeBg: '#f8fafc',
+          badgeBg: '#f8f6f1',
           badgeText: '#334155',
-          badgeBorder: '#e2e8f0',
-          cardBorder: '#e2e8f0',
+          badgeBorder: '#e3ded3',
+          cardBorder: '#e3ded3',
           indicatorColor: '#64748b',
         };
     }
@@ -138,7 +138,7 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
                   style={{
                     fontWeight: 700,
                     fontSize: '0.9rem',
-                    color: '#0f172a',
+                    color: '#10232e',
                     letterSpacing: '-0.01em',
                   }}
                 >
@@ -178,7 +178,7 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
                 {diag.statistic_name && diag.statistic_value !== undefined && (
                   <span
                     style={{
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: '#efebe3',
                       color: '#1e293b',
                       padding: '2px 8px',
                       borderRadius: '4px',
@@ -194,8 +194,8 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
                 {diag.p_value !== undefined && (
                   <span
                     style={{
-                      backgroundColor: '#eff6ff',
-                      color: '#1d4ed8',
+                      backgroundColor: '#e7f4f2',
+                      color: '#0a5f58',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '0.72rem',
@@ -210,9 +210,9 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
                 {diag.threshold && (
                   <span
                     style={{
-                      backgroundColor: '#f8fafc',
+                      backgroundColor: '#f8f6f1',
                       color: '#64748b',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid #e3ded3',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '0.72rem',
@@ -234,7 +234,7 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
                 paddingLeft: '0.25rem',
               }}
             >
-              <strong style={{ color: '#0f172a' }}>Evaluación: </strong>
+              <strong style={{ color: '#10232e' }}>Evaluación: </strong>
               {diag.finding}
             </div>
 
@@ -244,8 +244,8 @@ export const Layer3Diagnostics: React.FC<Props> = ({ diagnostics }) => {
                 style={{
                   marginTop: '0.25rem',
                   padding: '0.65rem 0.85rem',
-                  backgroundColor: diag.status === 'fail' ? '#fff1f2' : '#f8fafc',
-                  borderLeft: `3px solid ${diag.status === 'fail' ? '#f43f5e' : '#3b82f6'}`,
+                  backgroundColor: diag.status === 'fail' ? '#fff1f2' : '#f8f6f1',
+                  borderLeft: `3px solid ${diag.status === 'fail' ? '#f43f5e' : '#14958a'}`,
                   borderRadius: '0 6px 6px 0',
                   fontSize: '0.78rem',
                   color: diag.status === 'fail' ? '#9f1239' : '#334155',

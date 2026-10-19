@@ -15,7 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { FavoriteSection, FieldType } from '../types/clinical';
+import type { FavoriteSection, FieldType } from '../types/clinical';
 import { normalizeColumnKey } from '../utils/merger';
 
 interface FavoriteSectionsModalProps {

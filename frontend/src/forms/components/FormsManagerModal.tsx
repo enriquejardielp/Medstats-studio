@@ -8,17 +8,13 @@ import {
   Download,
   Upload,
   CheckCircle2,
-  Calendar,
-  Hash,
   Layers,
   Database,
   ArrowRight,
   RotateCcw,
-  AlertCircle,
   FileText,
-  FileCode,
 } from 'lucide-react';
-import { ClinicalForm, TrashItem } from '../types/clinical';
+import type { ClinicalForm, TrashItem } from '../types/clinical';
 import { getRecordsForForm } from '../utils/storage';
 
 interface FormsManagerModalProps {

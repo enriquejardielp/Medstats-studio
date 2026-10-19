@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { ClinicalForm, RecordEntry, MergeReport } from '../types/clinical';
+import type { ClinicalForm, RecordEntry, MergeReport } from '../types/clinical';
 
 export interface ParsedFileResult {
   headers: string[];

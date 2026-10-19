@@ -29,7 +29,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
     switch (type) {
       case 'descriptive':
       case 'table1':
-        return <BarChart3 size={15} color="#2563eb" />;
+        return <BarChart3 size={15} color="#0d7c72" />;
       case 'compare':
       case 'anova':
         return <GitCompare size={15} color="#16a34a" />;
@@ -76,22 +76,22 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
             width: '64px',
             height: '64px',
             borderRadius: '20px',
-            backgroundColor: '#eff6ff',
+            backgroundColor: '#e7f4f2',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '1.25rem',
-            border: '1px solid #dbeafe',
+            border: '1px solid #d3ece8',
           }}
         >
-          <Sparkles size={32} color="#2563eb" />
+          <Sparkles size={32} color="#0d7c72" />
         </div>
 
         <h3
           style={{
             fontSize: '1.25rem',
             fontWeight: 800,
-            color: '#0f172a',
+            color: '#10232e',
             margin: '0 0 0.5rem 0',
             letterSpacing: '-0.02em',
           }}
@@ -116,8 +116,8 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.75rem',
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            backgroundColor: '#f8f6f1',
+            border: '1px solid #e3ded3',
             padding: '0.5rem 1rem',
             borderRadius: '999px',
             fontSize: '0.78rem',
@@ -148,7 +148,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
           position: 'sticky',
           top: '1rem',
           backgroundColor: 'white',
-          border: '1px solid #e2e8f0',
+          border: '1px solid #e3ded3',
           borderRadius: '12px',
           overflow: 'hidden',
           boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.05)',
@@ -161,20 +161,20 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.85rem 1rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e2e8f0',
+            backgroundColor: '#f8f6f1',
+            borderBottom: '1px solid #e3ded3',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FolderTree size={16} color="#2563eb" />
-            <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#0f172a', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            <FolderTree size={16} color="#0d7c72" />
+            <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#10232e', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Índice de Salida
             </span>
             <span
               style={{
-                backgroundColor: '#eff6ff',
-                color: '#1d4ed8',
-                border: '1px solid #bfdbfe',
+                backgroundColor: '#e7f4f2',
+                color: '#0a5f58',
+                border: '1px solid #b6ddd8',
                 fontSize: '0.68rem',
                 fontWeight: 700,
                 padding: '1px 6px',
@@ -230,9 +230,9 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                   gap: '0.65rem',
                   padding: '0.65rem 0.8rem',
                   borderRadius: '8px',
-                  border: isSelected ? '1px solid #bfdbfe' : '1px solid transparent',
-                  backgroundColor: isSelected ? '#eff6ff' : 'transparent',
-                  color: isSelected ? '#1d4ed8' : '#334155',
+                  border: isSelected ? '1px solid #b6ddd8' : '1px solid transparent',
+                  backgroundColor: isSelected ? '#e7f4f2' : 'transparent',
+                  color: isSelected ? '#0a5f58' : '#334155',
                   cursor: 'pointer',
                   textAlign: 'left',
                   marginBottom: '3px',
@@ -241,7 +241,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                   fontSize: '0.82rem',
                 }}
                 onMouseEnter={e => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc';
+                  if (!isSelected) e.currentTarget.style.backgroundColor = '#f8f6f1';
                 }}
                 onMouseLeave={e => {
                   if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
@@ -265,7 +265,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                   <div
                     style={{
                       fontSize: '0.7rem',
-                      color: isSelected ? '#3b82f6' : '#94a3b8',
+                      color: isSelected ? '#14958a' : '#94a3b8',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px',
@@ -288,7 +288,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
 
                 <ChevronRight
                   size={14}
-                  color={isSelected ? '#2563eb' : '#cbd5e1'}
+                  color={isSelected ? '#0d7c72' : '#cbd5e1'}
                   style={{ flexShrink: 0 }}
                 />
               </button>

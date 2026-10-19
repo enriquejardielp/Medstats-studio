@@ -1,4 +1,4 @@
-import { FormField } from '../types/clinical';
+import type { FormField } from '../types/clinical';
 
 export interface ExtractedFieldMatch {
   fieldName: string;

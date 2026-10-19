@@ -17,8 +17,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Suspense fallback={
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontFamily: 'sans-serif' }}>
-            Cargando vista...
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem', color: 'var(--color-text-secondary)', fontSize: '0.875rem', fontWeight: 600 }}>
+            <div className="ms-spinner" />
+            Cargando vista…
           </div>
         }>
           <Routes>

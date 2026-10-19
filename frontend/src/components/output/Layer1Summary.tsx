@@ -53,9 +53,9 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '3px',
-              backgroundColor: '#eff6ff',
-              color: '#1e40af',
-              border: '1px solid #bfdbfe',
+              backgroundColor: '#e7f4f2',
+              color: '#0a5f58',
+              border: '1px solid #b6ddd8',
               padding: '2px 7px',
               borderRadius: '999px',
               fontSize: '0.68rem',
@@ -111,9 +111,9 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            backgroundColor: '#f1f5f9',
+            backgroundColor: '#efebe3',
             color: '#64748b',
-            border: '1px solid #e2e8f0',
+            border: '1px solid #e3ded3',
             padding: '2px 7px',
             borderRadius: '999px',
             fontSize: '0.68rem',
@@ -129,9 +129,9 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
       return (
         <span
           style={{
-            backgroundColor: '#eff6ff',
-            color: '#2563eb',
-            border: '1px solid #bfdbfe',
+            backgroundColor: '#e7f4f2',
+            color: '#0d7c72',
+            border: '1px solid #b6ddd8',
             padding: '2px 6px',
             borderRadius: '999px',
             fontSize: '0.7rem',
@@ -151,9 +151,9 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
       {/* 1. Titular Principal del Hallazgo Clínico */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #e2e8f0',
-          borderLeft: '4px solid #2563eb',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f6f1 100%)',
+          border: '1px solid #e3ded3',
+          borderLeft: '4px solid #0d7c72',
           borderRadius: '10px',
           padding: '1.15rem 1.4rem',
           boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.04)',
@@ -166,8 +166,8 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
-              backgroundColor: '#eff6ff',
-              color: '#1d4ed8',
+              backgroundColor: '#e7f4f2',
+              color: '#0a5f58',
               padding: '2px 8px',
               borderRadius: '4px',
               fontSize: '0.72rem',
@@ -176,7 +176,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
               letterSpacing: '0.06em',
             }}
           >
-            <Sparkles size={13} color="#2563eb" /> Resumen Ejecutivo
+            <Sparkles size={13} color="#0d7c72" /> Resumen Ejecutivo
           </span>
           <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
             Evidencia estadística sintetizada
@@ -187,7 +187,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
           style={{
             fontSize: '1.18rem',
             fontWeight: 700,
-            color: '#0f172a',
+            color: '#10232e',
             lineHeight: 1.4,
             letterSpacing: '-0.02em',
           }}
@@ -213,7 +213,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
                 key={idx}
                 style={{
                   backgroundColor: 'white',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid #e3ded3',
                   borderRadius: '10px',
                   padding: '1rem 1.15rem',
                   display: 'flex',
@@ -227,7 +227,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.05)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.borderColor = '#e3ded3';
                   e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
                 }}
               >
@@ -251,7 +251,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
                     style={{
                       fontSize: '1.45rem',
                       fontWeight: 800,
-                      color: '#0f172a',
+                      color: '#10232e',
                       fontVariantNumeric: 'tabular-nums',
                       letterSpacing: '-0.03em',
                       fontFamily: 'ui-sans-serif, system-ui, sans-serif',
@@ -284,7 +284,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
         <div
           style={{
             backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
+            border: '1px solid #e3ded3',
             borderLeft: '4px solid #6366f1',
             borderRadius: '10px',
             padding: '1.1rem 1.35rem',
@@ -317,9 +317,9 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.35rem',
-                backgroundColor: copiedNarrative ? '#ecfdf5' : '#f8fafc',
+                backgroundColor: copiedNarrative ? '#ecfdf5' : '#f8f6f1',
                 color: copiedNarrative ? '#065f46' : '#475569',
-                border: `1px solid ${copiedNarrative ? '#a7f3d0' : '#e2e8f0'}`,
+                border: `1px solid ${copiedNarrative ? '#a7f3d0' : '#e3ded3'}`,
                 borderRadius: '6px',
                 padding: '3px 9px',
                 fontSize: '0.72rem',

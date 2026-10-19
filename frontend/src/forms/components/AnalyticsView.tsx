@@ -1,18 +1,11 @@
 import { useMemo, useState } from 'react';
 import {
   BarChart3,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
   Copy,
   Check,
-  FileSpreadsheet,
-  PieChart,
   Activity,
-  Layers,
-  Sparkles,
 } from 'lucide-react';
-import { ClinicalForm, RecordEntry, FormField } from '../types/clinical';
+import type { ClinicalForm, RecordEntry } from '../types/clinical';
 import { checkClinicalAlert } from '../utils/calculator';
 
 interface AnalyticsViewProps {

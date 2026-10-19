@@ -6,16 +6,15 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowRight,
-  Database,
   FileText,
   RotateCcw,
 } from 'lucide-react';
-import { ClinicalForm, RecordEntry, MergeReport } from '../types/clinical';
+import type { ClinicalForm, RecordEntry, MergeReport } from '../types/clinical';
 import {
   parseClinicalFile,
-  ParsedFileResult,
+  type ParsedFileResult,
   mergeDatasets,
-  MergeStrategy,
+  type MergeStrategy,
   normalizeColumnKey,
 } from '../utils/merger';
 

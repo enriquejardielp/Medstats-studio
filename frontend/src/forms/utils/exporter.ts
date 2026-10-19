@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { ClinicalForm, RecordEntry } from '../types/clinical';
+import type { ClinicalForm, RecordEntry } from '../types/clinical';
 
 export interface ExportOptions {
   format: 'xlsx' | 'csv' | 'json';

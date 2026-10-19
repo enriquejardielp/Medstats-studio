@@ -36,13 +36,13 @@ export const Layer5ReproducibleCode: React.FC<Props> = ({ code }) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0.65rem 1rem',
-          backgroundColor: '#0f172a',
+          backgroundColor: '#10232e',
           borderBottom: '1px solid #1e293b',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
           <Terminal size={15} color="#38bdf8" />
-          <span style={{ fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.01em' }}>Script Reproducible en R</span>
+          <span style={{ fontWeight: 700, color: '#efebe3', letterSpacing: '-0.01em' }}>Script Reproducible en R</span>
           <span
             style={{
               fontSize: '0.68rem',
@@ -85,7 +85,7 @@ export const Layer5ReproducibleCode: React.FC<Props> = ({ code }) => {
         style={{
           margin: 0,
           padding: '1.25rem',
-          color: '#e2e8f0',
+          color: '#e3ded3',
           fontSize: '0.82rem',
           lineHeight: 1.6,
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',

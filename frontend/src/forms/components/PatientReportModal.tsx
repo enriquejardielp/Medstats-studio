@@ -1,5 +1,5 @@
-import { Printer, X, FileText, User, Calendar, Hash, CheckCircle2 } from 'lucide-react';
-import { ClinicalForm, RecordEntry } from '../types/clinical';
+import { Printer, X, FileText } from 'lucide-react';
+import type { ClinicalForm, RecordEntry } from '../types/clinical';
 import { checkClinicalAlert } from '../utils/calculator';
 
 interface PatientReportModalProps {

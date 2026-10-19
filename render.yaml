@@ -21,6 +21,12 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     plan: free
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: medstats-backend
+          property: host
     routes:
       - type: rewrite
         source: /*

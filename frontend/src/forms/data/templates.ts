@@ -1,4 +1,4 @@
-import { ClinicalForm } from '../types/clinical';
+import type { ClinicalForm } from '../types/clinical';
 
 export const CLINICAL_TEMPLATES: ClinicalForm[] = [
   {

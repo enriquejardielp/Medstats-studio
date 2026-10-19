@@ -1,4 +1,4 @@
-import { ClinicalForm, RecordEntry, FormField, FieldType } from '../types/clinical';
+import type { ClinicalForm, RecordEntry, FormField, FieldType } from '../types/clinical';
 import apiClient from '../../api/client';
 
 export interface ProjectDataSyncPayload {

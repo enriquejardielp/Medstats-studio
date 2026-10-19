@@ -10,7 +10,7 @@ import {
   FolderOpen,
   FileSpreadsheet,
 } from 'lucide-react';
-import { ClinicalForm, RecordEntry } from '../types/clinical';
+import type { ClinicalForm, RecordEntry } from '../types/clinical';
 import {
   createProjectFromForm,
   syncFormRecordsToProject,

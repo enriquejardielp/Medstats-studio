@@ -19,7 +19,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
           textAlign: 'center',
           color: '#64748b',
           fontSize: '0.88rem',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#f8f6f1',
           borderRadius: '8px',
           border: '1px dashed #cbd5e1',
         }}
@@ -99,8 +99,8 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
           justifyContent: 'space-between',
           gap: '0.75rem',
           padding: '0.75rem 1rem',
-          backgroundColor: '#f8fafc',
-          border: '1px solid #e2e8f0',
+          backgroundColor: '#f8f6f1',
+          border: '1px solid #e3ded3',
           borderRadius: '8px',
           fontSize: '0.8rem',
         }}
@@ -127,8 +127,8 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                   style={{
                     padding: '3px 10px',
                     border: 'none',
-                    borderRight: d < 4 ? '1px solid #e2e8f0' : 'none',
-                    background: decimalPrecision === d ? '#2563eb' : 'white',
+                    borderRight: d < 4 ? '1px solid #e3ded3' : 'none',
+                    background: decimalPrecision === d ? '#0d7c72' : 'white',
                     color: decimalPrecision === d ? 'white' : '#334155',
                     cursor: 'pointer',
                     fontWeight: 600,
@@ -149,18 +149,18 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.4rem',
-              backgroundColor: showCI ? '#eff6ff' : 'white',
-              border: `1px solid ${showCI ? '#bfdbfe' : '#cbd5e1'}`,
+              backgroundColor: showCI ? '#e7f4f2' : 'white',
+              border: `1px solid ${showCI ? '#b6ddd8' : '#cbd5e1'}`,
               borderRadius: '6px',
               padding: '4px 10px',
               cursor: 'pointer',
-              color: showCI ? '#1d4ed8' : '#475569',
+              color: showCI ? '#0a5f58' : '#475569',
               fontSize: '0.75rem',
               fontWeight: 600,
               transition: 'all 0.15s ease',
             }}
           >
-            {showCI ? <Eye size={13} color="#2563eb" /> : <EyeOff size={13} color="#94a3b8" />}
+            {showCI ? <Eye size={13} color="#0d7c72" /> : <EyeOff size={13} color="#94a3b8" />}
             <span>{showCI ? 'IC 95% Visible' : 'IC 95% Oculto'}</span>
           </button>
         </div>
@@ -179,7 +179,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
           <div
             key={table.id}
             style={{
-              border: '1px solid #e2e8f0',
+              border: '1px solid #e3ded3',
               borderRadius: '10px',
               backgroundColor: 'white',
               boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.04)',
@@ -194,7 +194,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                 justifyContent: 'space-between',
                 padding: '0.9rem 1.25rem',
                 backgroundColor: '#ffffff',
-                borderBottom: '1px solid #f1f5f9',
+                borderBottom: '1px solid #efebe3',
               }}
             >
               <div>
@@ -203,7 +203,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                     margin: 0,
                     fontSize: '0.95rem',
                     fontWeight: 700,
-                    color: '#0f172a',
+                    color: '#10232e',
                     letterSpacing: '-0.01em',
                   }}
                 >
@@ -272,8 +272,8 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                   borderCollapse: 'collapse',
                   fontSize: '0.84rem',
                   fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
-                  borderTop: '2.5px solid #0f172a',
-                  borderBottom: '2.5px solid #0f172a',
+                  borderTop: '2.5px solid #10232e',
+                  borderBottom: '2.5px solid #10232e',
                 }}
               >
                 <thead>
@@ -285,7 +285,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                           padding: '0.6rem 0.85rem',
                           textAlign: col.align || 'right',
                           fontWeight: 700,
-                          color: '#0f172a',
+                          color: '#10232e',
                           whiteSpace: 'nowrap',
                           fontSize: '0.8rem',
                           letterSpacing: '0.01em',
@@ -301,10 +301,10 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                     <tr
                       key={rowIdx}
                       style={{
-                        borderBottom: rowIdx === table.rows.length - 1 ? 'none' : '1px solid #f1f5f9',
+                        borderBottom: rowIdx === table.rows.length - 1 ? 'none' : '1px solid #efebe3',
                         transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f6f1'}
                       onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       {visibleCols.map(col => {
@@ -318,7 +318,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                             style={{
                               padding: '0.5rem 0.85rem',
                               textAlign: col.align || 'right',
-                              color: isLeft ? '#0f172a' : '#1e293b',
+                              color: isLeft ? '#10232e' : '#1e293b',
                               fontWeight: isLeft ? 600 : 400,
                               fontVariantNumeric: 'tabular-nums',
                               whiteSpace: 'nowrap',
@@ -328,7 +328,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
                             {row.significance && isPVal && (
                               <sup
                                 style={{
-                                  color: '#2563eb',
+                                  color: '#0d7c72',
                                   fontWeight: 700,
                                   marginLeft: '3px',
                                   fontSize: '0.75rem',
@@ -351,8 +351,8 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
               <div
                 style={{
                   padding: '0.65rem 1.25rem',
-                  backgroundColor: '#f8fafc',
-                  borderTop: '1px solid #e2e8f0',
+                  backgroundColor: '#f8f6f1',
+                  borderTop: '1px solid #e3ded3',
                   fontSize: '0.74rem',
                   color: '#64748b',
                   display: 'flex',
@@ -363,7 +363,7 @@ export const Layer2Tables: React.FC<Props> = ({ tables }) => {
               >
                 {table.footnotes.map((fn, idx) => (
                   <span key={idx}>
-                    <strong style={{ color: '#0f172a', marginRight: '3px' }}>{fn.symbol}</strong>
+                    <strong style={{ color: '#10232e', marginRight: '3px' }}>{fn.symbol}</strong>
                     {fn.text}
                   </span>
                 ))}

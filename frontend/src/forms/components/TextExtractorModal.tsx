@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   X,
   Sparkles,
@@ -11,15 +11,14 @@ import {
   Activity,
   Layers,
   Zap,
-  ArrowRight,
   HelpCircle,
   Check,
 } from 'lucide-react';
-import { ClinicalForm, FormField } from '../types/clinical';
+import type { ClinicalForm } from '../types/clinical';
 import {
   extractFieldsFromClinicalText,
   CLINICAL_TEXT_PRESETS,
-  ExtractedFieldMatch,
+  type ExtractedFieldMatch,
 } from '../utils/clinicalTextExtractor';
 
 interface TextExtractorModalProps {

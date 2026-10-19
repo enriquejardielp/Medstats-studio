@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ClinicalForm, RecordEntry, FavoriteSection, TrashItem } from '../types/clinical';
+import type { ClinicalForm, RecordEntry, FavoriteSection, TrashItem } from '../types/clinical';
 import {
   getSavedForms,
   saveForms,
@@ -56,7 +56,7 @@ export default function FormsPage() {
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [isFormsManagerOpen, setIsFormsManagerOpen] = useState(false);
   const [isProjectSyncOpen, setIsProjectSyncOpen] = useState(false);
-  const [, setTrashItems] = useState<TrashItem[]>(() => getTrashItems());
+  const [trashItems, setTrashItems] = useState<TrashItem[]>(() => getTrashItems());
   const [showHelperBanner] = useState(true);
   const [favoriteSections, setFavoriteSections] = useState<FavoriteSection[]>(() =>
     getFavoriteSections()
@@ -493,6 +493,7 @@ export default function FormsPage() {
         isOpen={isTemplatesModalOpen}
         onClose={() => setIsTemplatesModalOpen(false)}
         onSelectTemplate={handleSelectTemplate}
+        activeTemplateId={activeForm.id}
       />
 
       {/* Modal de Gestión de Formularios */}
@@ -506,7 +507,9 @@ export default function FormsPage() {
         onDeleteForm={handleDeleteForm}
         onRestoreFromTrash={handleRestoreFromTrash}
         onImportBackup={handleImportBackup}
-        onCreateNewForm={handleCreateNewForm}
+        onOpenTemplates={() => setIsTemplatesModalOpen(true)}
+        onCreateNew={() => handleCreateNewForm('Nuevo Formulario', 'PAC-')}
+        trashItems={trashItems}
       />
 
       {/* Modal de Sincronización con Proyectos MedStats */}

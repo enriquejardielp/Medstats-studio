@@ -12,7 +12,7 @@ import {
   RefreshCw,
   Sparkles,
 } from 'lucide-react';
-import { ClinicalForm, RecordEntry, FavoriteSection } from '../types/clinical';
+import type { ClinicalForm, RecordEntry, FavoriteSection } from '../types/clinical';
 import {
   projectToClinicalForm,
   syncFormRecordsToProject,

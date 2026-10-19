@@ -11,7 +11,7 @@ import {
   Layers,
   Database,
 } from 'lucide-react';
-import { ClinicalForm, RecordEntry } from '../types/clinical';
+import type { ClinicalForm, RecordEntry } from '../types/clinical';
 import { exportToExcel, exportToCSV, buildDatasetRows, buildCodebookRows } from '../utils/exporter';
 import { ProjectSyncModal } from './ProjectSyncModal';
 

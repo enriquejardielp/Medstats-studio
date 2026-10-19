@@ -1,4 +1,4 @@
-import { ClinicalForm, RecordEntry, FavoriteSection, TrashItem, FormBackup } from '../types/clinical';
+import type { ClinicalForm, RecordEntry, FavoriteSection, TrashItem, FormBackup } from '../types/clinical';
 import { CLINICAL_TEMPLATES } from '../data/templates';
 import { DEFAULT_FAVORITE_SECTIONS } from '../data/favoriteSections';
 import { generateSampleRecords } from './exporter';

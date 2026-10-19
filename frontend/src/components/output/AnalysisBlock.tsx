@@ -53,7 +53,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
     switch (type) {
       case 'descriptive':
       case 'table1':
-        return { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
+        return { bg: '#e7f4f2', text: '#0a5f58', border: '#b6ddd8' };
       case 'compare':
       case 'anova':
         return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' };
@@ -65,7 +65,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
       case 'kaplan-meier':
         return { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' };
       default:
-        return { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1' };
+        return { bg: '#efebe3', text: '#334155', border: '#cbd5e1' };
     }
   };
 
@@ -76,7 +76,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
       id={`analysis-block-${meta.analysis_id}`}
       style={{
         backgroundColor: 'white',
-        border: '1px solid #e2e8f0',
+        border: '1px solid #e3ded3',
         borderRadius: '12px',
         overflow: 'hidden',
         boxShadow: '0 4px 16px -4px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04)',
@@ -93,7 +93,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
-          borderBottom: '1px solid #f1f5f9',
+          borderBottom: '1px solid #efebe3',
           paddingBottom: '1.15rem',
           gap: '1rem',
         }}
@@ -123,10 +123,10 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                backgroundColor: '#f8fafc',
+                backgroundColor: '#f8f6f1',
                 padding: '2px 8px',
                 borderRadius: '6px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #e3ded3',
               }}
             >
               <Clock size={12} color="#94a3b8" /> {createdDate}
@@ -155,7 +155,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               margin: '0 0 0.35rem 0',
               fontSize: '1.25rem',
               fontWeight: 800,
-              color: '#0f172a',
+              color: '#10232e',
               letterSpacing: '-0.02em',
               lineHeight: 1.3,
             }}
@@ -179,7 +179,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
                 <span
                   key={v}
                   style={{
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: '#f8f6f1',
                     color: '#334155',
                     border: '1px solid #cbd5e1',
                     borderRadius: '4px',
@@ -206,7 +206,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               alignItems: 'center',
               gap: '0.35rem',
               backgroundColor: copiedSummary ? '#ecfdf5' : '#ffffff',
-              border: `1px solid ${copiedSummary ? '#86efac' : '#e2e8f0'}`,
+              border: `1px solid ${copiedSummary ? '#86efac' : '#e3ded3'}`,
               color: copiedSummary ? '#166534' : '#475569',
               cursor: 'pointer',
               padding: '6px 10px',
@@ -226,7 +226,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               title="Eliminar este bloque de resultados"
               style={{
                 background: 'transparent',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #e3ded3',
                 color: '#94a3b8',
                 cursor: 'pointer',
                 padding: '6px 8px',
@@ -242,7 +242,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.color = '#94a3b8';
-                e.currentTarget.style.borderColor = '#e2e8f0';
+                e.currentTarget.style.borderColor = '#e3ded3';
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
@@ -262,7 +262,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 3.1 Gráficos Estadísticos Contextuales */}
       {result.plots && result.plots.length > 0 && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e3ded3', borderRadius: '10px', overflow: 'hidden' }}>
           <button
             onClick={() => setOpenPlots(!openPlots)}
             style={{
@@ -271,23 +271,23 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '0.75rem 1rem',
-              background: openPlots ? '#f8fafc' : 'white',
+              background: openPlots ? '#f8f6f1' : 'white',
               border: 'none',
-              borderBottom: openPlots ? '1px solid #e2e8f0' : 'none',
+              borderBottom: openPlots ? '1px solid #e3ded3' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.1s ease',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>
-              <ImageIcon size={16} color="#2563eb" />
+              <ImageIcon size={16} color="#0d7c72" />
               <span>Gráficos Estadísticos Contextuales</span>
               <span
                 style={{
                   fontSize: '0.7rem',
-                  backgroundColor: '#eff6ff',
-                  color: '#2563eb',
-                  border: '1px solid #bfdbfe',
+                  backgroundColor: '#e7f4f2',
+                  color: '#0d7c72',
+                  border: '1px solid #b6ddd8',
                   padding: '1px 7px',
                   borderRadius: '999px',
                   fontWeight: 700,
@@ -308,7 +308,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
       )}
 
       {/* 4. CAPA 2: Resultados Completos (Tablas Detalladas) */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+      <div style={{ border: '1px solid #e3ded3', borderRadius: '10px', overflow: 'hidden' }}>
         <button
           onClick={() => setOpenTables(!openTables)}
           style={{
@@ -317,23 +317,23 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.75rem 1rem',
-            background: openTables ? '#f8fafc' : 'white',
+            background: openTables ? '#f8f6f1' : 'white',
             border: 'none',
-            borderBottom: openTables ? '1px solid #e2e8f0' : 'none',
+            borderBottom: openTables ? '1px solid #e3ded3' : 'none',
             cursor: 'pointer',
             textAlign: 'left',
             transition: 'background-color 0.1s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>
-            <Table size={16} color="#2563eb" />
+            <Table size={16} color="#0d7c72" />
             <span>Tablas Estadísticas Detalladas</span>
             <span
               style={{
                 fontSize: '0.7rem',
-                backgroundColor: '#eff6ff',
-                color: '#2563eb',
-                border: '1px solid #bfdbfe',
+                backgroundColor: '#e7f4f2',
+                color: '#0d7c72',
+                border: '1px solid #b6ddd8',
                 padding: '1px 7px',
                 borderRadius: '999px',
                 fontWeight: 700,
@@ -354,7 +354,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 5. CAPA 3: Diagnósticos y Supuestos */}
       {result.diagnostics && result.diagnostics.length > 0 && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e3ded3', borderRadius: '10px', overflow: 'hidden' }}>
           <button
             onClick={() => setOpenDiagnostics(!openDiagnostics)}
             style={{
@@ -363,9 +363,9 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '0.75rem 1rem',
-              background: openDiagnostics ? '#f8fafc' : 'white',
+              background: openDiagnostics ? '#f8f6f1' : 'white',
               border: 'none',
-              borderBottom: openDiagnostics ? '1px solid #e2e8f0' : 'none',
+              borderBottom: openDiagnostics ? '1px solid #e3ded3' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.1s ease',
@@ -400,7 +400,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
       )}
 
       {/* 6. CAPA 4: Información Técnica y Ajuste */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+      <div style={{ border: '1px solid #e3ded3', borderRadius: '10px', overflow: 'hidden' }}>
         <button
           onClick={() => setOpenTechnical(!openTechnical)}
           style={{
@@ -409,9 +409,9 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.65rem 1rem',
-            background: openTechnical ? '#f8fafc' : 'white',
+            background: openTechnical ? '#f8f6f1' : 'white',
             border: 'none',
-            borderBottom: openTechnical ? '1px solid #e2e8f0' : 'none',
+            borderBottom: openTechnical ? '1px solid #e3ded3' : 'none',
             cursor: 'pointer',
             textAlign: 'left',
             transition: 'background-color 0.1s ease',
@@ -433,7 +433,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
 
       {/* 7. CAPA 5: Código R Reproducible */}
       {result.reproducible_code && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{ border: '1px solid #e3ded3', borderRadius: '10px', overflow: 'hidden' }}>
           <button
             onClick={() => setOpenCode(!openCode)}
             style={{
@@ -442,9 +442,9 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '0.65rem 1rem',
-              background: openCode ? '#f8fafc' : 'white',
+              background: openCode ? '#f8f6f1' : 'white',
               border: 'none',
-              borderBottom: openCode ? '1px solid #e2e8f0' : 'none',
+              borderBottom: openCode ? '1px solid #e3ded3' : 'none',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.1s ease',

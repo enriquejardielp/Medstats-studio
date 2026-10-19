@@ -9,7 +9,7 @@ import {
   BarChart3,
   Layers,
 } from 'lucide-react';
-import { ClinicalForm } from '../types/clinical';
+import type { ClinicalForm } from '../types/clinical';
 
 interface NavbarProps {
   activeTab: 'intake' | 'records' | 'analytics' | 'builder' | 'export' | 'merge';

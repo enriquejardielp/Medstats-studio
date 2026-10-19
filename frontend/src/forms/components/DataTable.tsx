@@ -8,10 +8,9 @@ import {
   Plus,
   X,
   Save,
-  CheckCircle,
   FileText,
 } from 'lucide-react';
-import { ClinicalForm, RecordEntry } from '../types/clinical';
+import type { ClinicalForm, RecordEntry } from '../types/clinical';
 import { exportToExcel, exportToCSV } from '../utils/exporter';
 import { PatientReportModal } from './PatientReportModal';
 

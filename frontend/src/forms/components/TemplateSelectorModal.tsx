@@ -1,12 +1,12 @@
 import { X, Check, Activity, Heart, ShieldAlert, FileText } from 'lucide-react';
-import { ClinicalForm } from '../types/clinical';
+import type { ClinicalForm } from '../types/clinical';
 import { CLINICAL_TEMPLATES } from '../data/templates';
 
 interface TemplateSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectTemplate: (template: ClinicalForm) => void;
-  activeTemplateId: string;
+  activeTemplateId?: string;
 }
 
 export function TemplateSelectorModal({

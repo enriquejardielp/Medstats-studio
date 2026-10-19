@@ -1,101 +1,105 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/authContext';
-import { Home, FolderOpen, BarChart3, LogOut, User, Database, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, LogOut, ClipboardList, Plus } from 'lucide-react';
+import Logo from '../components/brand/Logo';
+import Header from './Header';
+
+const navItems = [
+  { to: '/dashboard', label: 'Panel', icon: LayoutDashboard },
+  { to: '/projects', label: 'Proyectos', icon: FolderOpen },
+  { to: '/forms', label: 'Formularios eCRF', icon: ClipboardList },
+];
 
 const MainLayout: React.FC = () => {
   const { logout, user } = useAuth();
-  const location = useLocation();
-
-  const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: Home },
-    { to: '/projects', label: 'Proyectos', icon: FolderOpen },
-    { to: '/forms', label: 'Formularios eCRF', icon: ClipboardList },
-    { to: '/analysis', label: 'Análisis', icon: BarChart3 },
-  ];
+  const displayName = user?.full_name || user?.email?.split('@')[0] || 'Investigador';
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      {/* Sidebar */}
-      <aside style={{
-        width: '220px',
-        background: 'rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(8px)',
-        borderRight: '1px solid #e2e8f0',
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-      }}>
-        {/* Logo */}
-        <div style={{ padding: '1.25rem', borderBottom: '1px solid #f1f5f9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '2rem', height: '2rem', background: '#0f172a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Database size={18} color="white" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#0f172a', lineHeight: 1.1 }}>MedStats</h1>
-              <p style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Studio</p>
-            </div>
-          </div>
+    <div className="ms-shell">
+      <style>{`
+        .ms-shell { display: flex; height: 100vh; background: var(--color-bg); }
+        .ms-sidebar {
+          width: 248px; flex-shrink: 0; display: flex; flex-direction: column;
+          background: radial-gradient(140% 60% at 0% 0%, #1b3c48 0%, transparent 60%), var(--color-ink);
+          color: rgba(255,255,255,0.72);
+        }
+        .ms-nav-link {
+          position: relative; display: flex; align-items: center; gap: 0.75rem;
+          padding: 0.65rem 0.85rem; border-radius: 10px;
+          font-size: 0.875rem; font-weight: 600; color: rgba(255,255,255,0.62); text-decoration: none;
+        }
+        .ms-nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .ms-nav-link.active { color: #fff; background: rgba(63,193,179,0.14); }
+        .ms-nav-link.active::before {
+          content: ''; position: absolute; left: -0.75rem; top: 50%; transform: translateY(-50%);
+          width: 3px; height: 18px; border-radius: 0 3px 3px 0; background: #3fc1b3;
+        }
+        .ms-nav-link.active svg { color: #3fc1b3; }
+        .ms-new-btn {
+          display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+          padding: 0.65rem; border-radius: 10px; text-decoration: none;
+          font-size: 0.8125rem; font-weight: 700; color: var(--color-ink); background: #3fc1b3;
+        }
+        .ms-new-btn:hover { background: #63d3c7; }
+        .ms-logout { padding: 0.45rem; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: rgba(255,255,255,0.5); display: flex; }
+        .ms-logout:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        @media (max-width: 860px) {
+          .ms-sidebar { width: 72px; }
+          .ms-sidebar .ms-hide-sm { display: none; }
+          .ms-nav-link, .ms-new-btn { justify-content: center; }
+        }
+      `}</style>
+
+      <aside className="ms-sidebar">
+        <div style={{ padding: '1.4rem 1.25rem 1.6rem' }}>
+          <span className="ms-hide-sm"><Logo variant="light" size={34} /></span>
         </div>
 
-        {/* Navegación */}
-        <nav style={{ flex: 1, padding: '1rem 0.5rem' }}>
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = location.pathname.startsWith(item.to);
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.625rem 0.75rem',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? '#0f172a' : '#64748b',
-                  background: isActive ? '#f1f5f9' : 'transparent',
-                  textDecoration: 'none',
-                  marginBottom: '0.125rem',
-                  transition: 'all 0.15s'
-                }}
-              >
-                <Icon size={18} />
-                {item.label}
-                {isActive && <div style={{ marginLeft: 'auto', width: '4px', height: '20px', background: '#3b82f6', borderRadius: '2px' }}></div>}
-              </Link>
-            );
-          })}
+        <div style={{ padding: '0 0.75rem 1.25rem' }}>
+          <NavLink to="/projects/new" className="ms-new-btn" title="Nuevo proyecto">
+            <Plus size={16} strokeWidth={2.5} />
+            <span className="ms-hide-sm">Nuevo proyecto</span>
+          </NavLink>
+        </div>
+
+        <div className="ms-hide-sm" style={{ padding: '0 1.6rem 0.6rem', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+          Espacio de trabajo
+        </div>
+        <nav style={{ flex: 1, padding: '0 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+          {navItems.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} end={to === '/projects'} className="ms-nav-link" title={label}>
+              <Icon size={18} />
+              <span className="ms-hide-sm">{label}</span>
+            </NavLink>
+          ))}
         </nav>
 
-        {/* Perfil */}
-        <div style={{ borderTop: '1px solid #f1f5f9', padding: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: '2rem', height: '2rem', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <User size={14} color="#64748b" />
+        <div style={{ margin: '0.75rem', padding: '0.75rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+            <div style={{
+              width: '2.1rem', height: '2.1rem', borderRadius: '50%', flexShrink: 0,
+              background: 'linear-gradient(135deg, #3fc1b3, #0d7c72)', color: 'var(--color-ink)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.875rem',
+            }}>
+              {displayName[0]?.toUpperCase()}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.75rem', fontWeight: 500, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
-              <p style={{ fontSize: '0.625rem', color: '#94a3b8' }}>Investigador</p>
+            <div className="ms-hide-sm" style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+              <p style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
             </div>
-            <button
-              onClick={logout}
-              style={{ padding: '0.375rem', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
-              title="Cerrar sesión"
-            >
-              <LogOut size={15} />
+            <button onClick={logout} className="ms-logout ms-hide-sm" title="Cerrar sesión" aria-label="Cerrar sesión">
+              <LogOut size={16} />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Contenido principal */}
-      <main style={{ flex: 1, overflow: 'auto', padding: '1.5rem', background: '#fafbfc' }}>
-        <Outlet />
-      </main>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <Header />
+        <main style={{ flex: 1, overflow: 'auto', padding: '1.5rem' }}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

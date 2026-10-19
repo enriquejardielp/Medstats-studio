@@ -33,34 +33,34 @@ class ErrorBoundary extends Component<Props, State> {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '2rem',
-          fontFamily: 'sans-serif',
-          background: '#f8fafc',
-          color: '#0f172a'
+                    background: 'var(--color-bg)',
+          color: 'var(--color-ink)'
         }}>
           <div style={{
             background: 'white',
             padding: '2rem',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            borderRadius: '16px',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-lg)',
             maxWidth: '500px',
             width: '100%',
             textAlign: 'center'
           }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#ef4444', marginBottom: '1rem' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 500, color: 'var(--color-ink)', marginBottom: '1rem' }}>
               Ocurrió un error al cargar la interfaz
             </h2>
-            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
               {this.state.error?.message || 'Error inesperado de renderizado.'}
             </p>
             <button
               onClick={() => window.location.reload()}
               style={{
-                padding: '0.5rem 1rem',
-                background: '#3b82f6',
+                padding: '0.625rem 1.25rem',
+                background: 'var(--color-ink)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
-                fontWeight: 500,
+                borderRadius: '999px',
+                fontWeight: 600,
                 cursor: 'pointer'
               }}
             >

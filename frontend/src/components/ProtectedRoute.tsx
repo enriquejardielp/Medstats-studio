@@ -6,16 +6,9 @@ const ProtectedRoute: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        fontFamily: 'sans-serif',
-        color: '#64748b',
-        background: '#fafbfc'
-      }}>
-        Cargando sesión...
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-text-secondary)', fontSize: '0.875rem', fontWeight: 600 }}>
+        <div className="ms-spinner" />
+        Cargando sesión…
       </div>
     );
   }

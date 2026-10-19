@@ -1,4 +1,4 @@
-import { ConditionalRule } from '../types/clinical';
+import type { ConditionalRule } from '../types/clinical';
 
 /**
  * Evaluates whether a conditional rule is satisfied given current form data

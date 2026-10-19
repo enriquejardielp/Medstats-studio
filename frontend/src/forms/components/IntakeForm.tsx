@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Save,
   CheckCircle2,
@@ -13,9 +13,8 @@ import {
   Hash,
   GitBranch,
   ClipboardPaste,
-  FileText,
 } from 'lucide-react';
-import { ClinicalForm, FormField, RecordEntry } from '../types/clinical';
+import type { ClinicalForm, FormField, RecordEntry } from '../types/clinical';
 import { calculateFieldValue, checkClinicalAlert } from '../utils/calculator';
 import { isConditionMet } from '../utils/conditional';
 import { TextExtractorModal } from './TextExtractorModal';

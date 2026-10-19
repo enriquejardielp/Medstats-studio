@@ -2,7 +2,7 @@ services:
   # Backend: Web Service con Docker (Python + R)
   - type: web
     name: medstats-backend
-    env: docker
+    runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
@@ -16,11 +16,10 @@ services:
   # Frontend: Static Site (React + Vite)
   - type: web
     name: medstats-frontend
-    env: static
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    plan: free
     envVars:
       - key: VITE_API_BASE_URL
         fromService:

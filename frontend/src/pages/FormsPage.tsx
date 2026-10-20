@@ -539,7 +539,7 @@ export default function FormsPage() {
           )}
 
           {/* Vistas Principales del eCRF */}
-          <main style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
             {activeTab === 'intake' && (
               <IntakeForm
                 form={activeForm}
@@ -587,7 +587,7 @@ export default function FormsPage() {
                 onGoToRecords={() => setActiveTab('records')}
               />
             )}
-          </main>
+          </div>
         </>
       )}
 

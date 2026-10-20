@@ -1,33 +1,76 @@
 :root {
-  /* Paleta "clínica editorial": papel cálido, tinta profunda, acento verde azulado */
-  --color-bg: #f5f3ee;
-  --color-bg-deep: #ece8df;
-  --color-surface: #ffffff;
-  --color-ink: #10232e;
-  --color-ink-soft: #1b3442;
-  --color-text-primary: #10232e;
-  --color-text-secondary: #5b6b73;
-  --color-text-tertiary: #8d9a9f;
-  --color-accent: #0d7c72;
-  --color-accent-strong: #0a5f58;
-  --color-accent-soft: #e3f2ef;
-  --color-highlight: #e8775a;
-  --color-highlight-soft: #fbe9e2;
-  --color-action: #0d7c72;
-  --color-action-hover: #0a5f58;
-  --color-border: #e3ded3;
-  --color-border-strong: #d2ccbf;
-  --color-success: #2f8f5b;
-  --color-warning: #c98a1b;
-  --color-error: #c2413a;
+  /* ==========================================================================
+     MedStats Studio — Design Tokens Centralizados
+     ========================================================================== */
+
+  /* 1. Paleta de Colores Global */
+  /* Fondo principal (predominante) */
+  --color-bg: #FFFCF2;
+  --color-bg-deep: #F5EFE6;
+  --color-bg-subtle: #F7F4EB;
+
+  /* Superficies, bordes y divisores */
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F8F6F0;
+  --color-border: #CCC5B9;
+  --color-border-strong: #CCC5B9;
+  --color-border-subtle: #E6E1D8;
+  --color-divider: #CCC5B9;
+
+  /* Texto secundario / elementos neutros */
+  --color-text-secondary: #403D39;
+  --color-text-tertiary: #6E6A63;
+  --color-neutral-muted: #8A847A;
+
+  /* Texto principal / header / sidebar */
+  --color-text-primary: #252422;
+  --color-ink: #252422;
+  --color-ink-soft: #403D39;
+  --color-sidebar-bg: #252422;
+  --color-sidebar-text: #CCC5B9;
+  --color-sidebar-border: #403D39;
+  --color-header-bg: #FFFCF2;
+  --color-header-border: #CCC5B9;
+
+  /* Acento (CTAs, estados activos, focos) */
+  --color-accent: #EB5E28;
+  --color-accent-hover: #D84F1B;
+  --color-accent-strong: #D84F1B;
+  --color-accent-soft: rgba(235, 94, 40, 0.12);
+  --color-accent-glow: rgba(235, 94, 40, 0.25);
+  --color-action: #EB5E28;
+  --color-action-hover: #D84F1B;
+  --color-focus: #EB5E28;
+
+  /* Feedback contextual */
+  --color-success: #2F8F5B;
+  --color-success-soft: #E8F5EE;
+  --color-warning: #C98A1B;
+  --color-warning-soft: #FEF7EA;
+  --color-error: #C2413A;
+  --color-error-soft: #FDEEE9;
+
+  /* 2. Tipografía Unificada */
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* 3. Radios Unificados */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
-  --shadow-sm: 0 1px 2px rgba(16, 35, 46, 0.05);
-  --shadow-md: 0 1px 2px rgba(16, 35, 46, 0.04), 0 8px 24px -12px rgba(16, 35, 46, 0.18);
-  --shadow-lg: 0 2px 4px rgba(16, 35, 46, 0.04), 0 24px 48px -20px rgba(16, 35, 46, 0.28);
-  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --radius-pill: 9999px;
+
+  /* 4. Sombras Unificadas */
+  --shadow-xs: 0 1px 2px rgba(37, 36, 34, 0.04);
+  --shadow-sm: 0 1px 3px rgba(37, 36, 34, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(37, 36, 34, 0.08), 0 2px 4px -1px rgba(37, 36, 34, 0.04);
+  --shadow-lg: 0 12px 28px -6px rgba(37, 36, 34, 0.12), 0 4px 10px -2px rgba(37, 36, 34, 0.06);
+
+  /* 5. Dimensiones Unificadas */
+  --header-height: 3.75rem;
+  --sidebar-width: 248px;
+  --sidebar-width-sm: 72px;
 }

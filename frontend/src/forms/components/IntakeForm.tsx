@@ -271,9 +271,9 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
           <button
             onClick={() => handleSubmit(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 font-medium text-sm shadow-xs transition-colors cursor-pointer"
+            className="ms-btn ms-btn-primary ms-btn-sm"
           >
-            <Save className="w-4 h-4" />
+            <Save size={15} />
             <span>Guardar y Siguiente</span>
           </button>
         </div>
@@ -281,17 +281,18 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
       {/* Success Notification Alert */}
       {savedSuccessMsg && (
-        <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-md flex items-center justify-between text-emerald-800 text-sm">
+        <div className="mt-4 p-3 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-md flex items-center justify-between text-[var(--color-ink)] text-sm">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <CheckCircle2 size={16} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
             <span className="font-medium">{savedSuccessMsg}</span>
           </div>
           <button
             onClick={onGoToRecords}
-            className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1"
+            className="ms-btn ms-btn-sm ms-btn-ghost"
+            style={{ color: 'var(--color-success)' }}
           >
-            Ver en tabla ({records.length} total)
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Ver en tabla ({records.length} total)</span>
+            <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -614,7 +615,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
             <button
               type="button"
               onClick={handleReset}
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 py-1.5 px-2.5 rounded hover:bg-slate-100 transition-colors"
+              className="ms-btn ms-btn-sm ms-btn-ghost"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Restablecer campos</span>
@@ -624,7 +625,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
               <button
                 type="button"
                 onClick={() => handleSubmit(false)}
-                className="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-md transition-colors"
+                className="w-full sm:w-auto ms-btn ms-btn-secondary"
               >
                 Guardar y Mantener
               </button>
@@ -632,7 +633,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
               <button
                 type="button"
                 onClick={() => handleSubmit(true)}
-                className="w-full sm:w-auto px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-md shadow-xs transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:w-auto ms-btn ms-btn-primary"
               >
                 <Save className="w-4 h-4" />
                 <span>Guardar y Siguiente Caso</span>

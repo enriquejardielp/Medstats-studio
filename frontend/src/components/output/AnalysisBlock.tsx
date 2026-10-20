@@ -135,14 +135,14 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
             <span
               style={{
                 fontSize: '0.74rem',
-                color: '#0f766e',
+                color: 'var(--color-text-primary)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                backgroundColor: '#f0fdfa',
+                backgroundColor: 'var(--color-bg-deep)',
                 padding: '2px 8px',
                 borderRadius: '6px',
-                border: '1px solid #ccfbf1',
+                border: '1px solid var(--color-border)',
                 fontWeight: 600,
               }}
             >

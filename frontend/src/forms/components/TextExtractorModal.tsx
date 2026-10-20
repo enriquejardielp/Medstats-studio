@@ -243,7 +243,7 @@ export function TextExtractorModal({
         {/* Modal Header */}
         <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)] text-white flex items-center justify-center shadow-xs">
               <ClipboardPaste className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
@@ -252,7 +252,7 @@ export function TextExtractorModal({
                   Rellenar desde Texto Libre / Informe Clínico
                 </h3>
                 {targetSection ? (
-                  <span className="text-[11px] font-medium bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded">
+                  <span className="ms-badge">
                     Sección: {targetSection}
                   </span>
                 ) : (
@@ -432,7 +432,7 @@ export function TextExtractorModal({
                   {targetSection && (
                     <button
                       onClick={() => setFilterSectionOnly(!filterSectionOnly)}
-                      className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors ml-2 cursor-pointer font-medium"
+                      className="text-xs px-3 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors ml-2 cursor-pointer font-medium"
                     >
                       {filterSectionOnly ? 'Mostrar todo el formulario' : `Filtrar solo «${targetSection}»`}
                     </button>
@@ -572,7 +572,7 @@ export function TextExtractorModal({
         <div className="p-3 sm:p-4 border-t border-slate-200 bg-white flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
+            className="ms-btn ms-btn-secondary ms-btn-sm"
           >
             Cancelar
           </button>
@@ -581,9 +581,9 @@ export function TextExtractorModal({
             <button
               onClick={handleConfirmAndApply}
               disabled={selectedCount === 0}
-              className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md text-xs font-semibold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
+              className="ms-btn ms-btn-primary ms-btn-sm"
             >
-              <Check className="w-4 h-4 stroke-[2.5]" />
+              <Check size={16} />
               <span>Insertar {selectedCount} {selectedCount === 1 ? 'campo' : 'campos'} en el Formulario</span>
             </button>
           </div>

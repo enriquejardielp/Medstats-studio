@@ -88,7 +88,7 @@ const ProjectsPage: React.FC = () => {
           {filtered.map(p => (
             <article key={p.id} className="ms-card ms-card-hover" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', cursor: 'pointer' }} onClick={() => navigate(`/projects/${p.id}`)}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
-                <span style={{ width: 40, height: 40, borderRadius: 11, background: 'var(--color-ink)', color: '#3fc1b3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ width: 40, height: 40, borderRadius: 11, background: 'var(--color-ink)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <FileSpreadsheet size={18} />
                 </span>
                 <button

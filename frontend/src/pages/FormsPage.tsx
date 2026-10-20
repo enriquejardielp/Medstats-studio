@@ -30,7 +30,7 @@ import { AnalyticsView } from '../forms/components/AnalyticsView';
 import { TemplateSelectorModal } from '../forms/components/TemplateSelectorModal';
 import { FormsManagerModal } from '../forms/components/FormsManagerModal';
 import { ProjectSyncModal } from '../forms/components/ProjectSyncModal';
-import { Sparkles, ArrowLeft, Database, Check } from 'lucide-react';
+import { Sparkles, ArrowLeft, Database, Check, ClipboardList, Plus, FileText, FolderKanban } from 'lucide-react';
 import apiClient from '../api/client';
 
 export default function FormsPage() {
@@ -127,13 +127,14 @@ export default function FormsPage() {
 
   // Formulario activo
   const activeForm = useMemo(() => {
-    return forms.find((f) => f.id === activeFormId) || forms[0];
+    if (forms.length === 0) return null;
+    return forms.find((f) => f.id === activeFormId) || forms[0] || null;
   }, [forms, activeFormId]);
 
   // Registros del formulario activo
   const [records, setRecords] = useState<RecordEntry[]>(() => {
     const initialForm = forms.find((f) => f.id === activeFormId) || forms[0];
-    return getRecordsForForm(initialForm);
+    return initialForm ? getRecordsForForm(initialForm) : [];
   });
 
   // Al cambiar formulario activo, recargar sus registros
@@ -142,11 +143,14 @@ export default function FormsPage() {
       const recs = getRecordsForForm(activeForm);
       setRecords(recs);
       setActiveFormId(activeForm.id);
+    } else {
+      setRecords([]);
     }
   }, [activeForm]);
 
   // Guardar nuevo registro
   const handleSaveRecord = (newEntry: RecordEntry, _andNext: boolean) => {
+    if (!activeForm) return;
     const updated = [...records, newEntry];
     setRecords(updated);
     saveRecordsForForm(activeForm.id, updated);
@@ -154,6 +158,7 @@ export default function FormsPage() {
 
   // Actualizar registro existente
   const handleUpdateRecord = (updatedRec: RecordEntry) => {
+    if (!activeForm) return;
     const updated = records.map((r) => (r.id === updatedRec.id ? updatedRec : r));
     setRecords(updated);
     saveRecordsForForm(activeForm.id, updated);
@@ -161,6 +166,7 @@ export default function FormsPage() {
 
   // Eliminar un registro
   const handleDeleteRecord = (id: string) => {
+    if (!activeForm) return;
     const updated = records.filter((r) => r.id !== id);
     setRecords(updated);
     saveRecordsForForm(activeForm.id, updated);
@@ -168,6 +174,7 @@ export default function FormsPage() {
 
   // Eliminar todos los registros
   const handleDeleteAllRecords = () => {
+    if (!activeForm) return;
     setRecords([]);
     saveRecordsForForm(activeForm.id, []);
   };
@@ -183,7 +190,7 @@ export default function FormsPage() {
   };
 
   // Crear nuevo formulario
-  const handleCreateNewForm = (title: string, prefix: string) => {
+  const handleCreateNewForm = (title: string = 'Nuevo Formulario', prefix: string = 'PAC-') => {
     const newForm: ClinicalForm = {
       id: 'form-' + Date.now(),
       title,
@@ -236,6 +243,7 @@ export default function FormsPage() {
 
   // Fusión de datos externos
   const handleApplyMerge = (mergedRecords: RecordEntry[], newFields?: string[]) => {
+    if (!activeForm) return;
     setRecords(mergedRecords);
     saveRecordsForForm(activeForm.id, mergedRecords);
 
@@ -292,6 +300,7 @@ export default function FormsPage() {
       setActiveFormIdState(remainingForms[0].id);
       setRecords(getRecordsForForm(remainingForms[0]));
     } else {
+      setActiveFormIdState('');
       setRecords([]);
     }
   };
@@ -343,7 +352,7 @@ export default function FormsPage() {
 
   // Sincronización rápida con el proyecto vinculado
   const handleQuickSyncWithProject = async () => {
-    if (!linkedProjectId) return;
+    if (!linkedProjectId || !activeForm) return;
     setIsQuickSyncing(true);
     setQuickSyncSuccess(false);
     try {
@@ -359,37 +368,46 @@ export default function FormsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-teal-100 selection:text-teal-900 -m-6 p-0">
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100%', background: 'var(--color-bg)' }}>
       {/* Barra de Proyecto Vinculado */}
       {linkedProject && (
-        <div className="bg-blue-900 text-blue-100 text-xs py-2 px-6 border-b border-blue-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div style={{
+          background: 'var(--color-bg-deep)',
+          color: 'var(--color-ink)',
+          fontSize: '0.8125rem',
+          padding: '0.6rem 1.75rem',
+          borderBottom: '1px solid var(--color-border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button
               onClick={() => navigate(`/projects/${linkedProject.id}`)}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-800 hover:bg-blue-700 text-white rounded-md font-semibold transition-colors cursor-pointer"
+              className="ms-btn ms-btn-sm ms-btn-secondary"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft size={14} />
               <span>Volver a {linkedProject.name}</span>
             </button>
-            <span className="hidden sm:inline text-blue-200">
+            <span style={{ color: 'var(--color-text-secondary)', display: 'none' }} className="sm:inline">
               Estás editando el Cuaderno de Recogida de Datos (eCRF) vinculado al proyecto.
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button
               onClick={handleQuickSyncWithProject}
               disabled={isQuickSyncing}
-              className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md font-bold transition-colors cursor-pointer disabled:opacity-50"
+              className="ms-btn ms-btn-sm ms-btn-primary"
             >
               {quickSyncSuccess ? (
                 <>
-                  <Check className="w-3.5 h-3.5" />
+                  <Check size={14} />
                   <span>¡Datos Sincronizados!</span>
                 </>
               ) : (
                 <>
-                  <Database className="w-3.5 h-3.5" />
+                  <Database size={14} />
                   <span>{isQuickSyncing ? 'Guardando...' : 'Guardar en Proyecto'}</span>
                 </>
               )}
@@ -398,102 +416,187 @@ export default function FormsPage() {
         </div>
       )}
 
-      {/* Navegación Principal eCRF */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        activeForm={activeForm}
-        forms={forms}
-        onSelectForm={(id) => setActiveFormIdState(id)}
-        onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
-        onOpenFormsManager={() => setIsFormsManagerOpen(true)}
-        recordCount={records.length}
-        onOpenProjectSync={() => setIsProjectSyncOpen(true)}
-        currentProjectName={linkedProject?.name}
-      />
-
-      {/* Banner de Productividad Clínica */}
-      {showHelperBanner && activeTab === 'intake' && (
-        <div className="bg-teal-900 text-teal-100 text-xs py-2 px-4 border-b border-teal-800">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-teal-300 shrink-0" />
-              <span>
-                <strong>Flujo Ágil para Ciencias de la Salud:</strong> Rellena caso por caso con validación clínica y fórmulas automáticas (IMC, PAM, Braden). Presiona{' '}
-                <kbd className="px-1 py-0.5 bg-teal-800 border border-teal-700 rounded font-mono text-[10px]">
-                  Ctrl + Enter
-                </kbd>{' '}
-                para guardar el caso y pasar al siguiente.
-              </span>
+      {/* ESTADO INICIAL LIMPIO: Si no hay formularios creados */}
+      {forms.length === 0 || !activeForm ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1.5rem' }}>
+          <div className="ms-card slide-up" style={{ maxWidth: '600px', width: '100%', padding: '3rem 2rem', textAlign: 'center' }}>
+            <div style={{
+              width: '4.25rem',
+              height: '4.25rem',
+              borderRadius: '50%',
+              background: 'var(--color-bg-deep)',
+              border: '1px solid var(--color-border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem',
+              color: 'var(--color-accent)',
+            }}>
+              <ClipboardList size={34} />
             </div>
-            <button
-              onClick={() => setIsProjectSyncOpen(true)}
-              className="text-xs bg-teal-800 hover:bg-teal-700 text-teal-100 px-2.5 py-0.5 rounded-md font-semibold transition-colors shrink-0 cursor-pointer flex items-center gap-1"
-            >
-              <Database className="w-3 h-3 text-teal-300" />
-              <span>Sincronizar con Proyectos</span>
-            </button>
+
+            <div className="ms-eyebrow" style={{ marginBottom: '0.35rem' }}>Cuaderno eCRF</div>
+            <h2 className="ms-page-title" style={{ fontSize: '1.75rem', marginBottom: '0.65rem' }}>
+              Sin formularios clínicos activos
+            </h2>
+
+            <p style={{
+              color: 'var(--color-text-secondary)',
+              fontSize: '0.9375rem',
+              lineHeight: 1.55,
+              maxWidth: '460px',
+              margin: '0 auto 2.25rem',
+            }}>
+              Crea un cuaderno eCRF personalizado con validaciones para tu estudio, o carga una plantilla clínica preconfigurada lista para recolectar datos.
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.85rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleCreateNewForm('Nuevo Formulario Clínico', 'PAC-')}
+                className="ms-btn ms-btn-primary ms-btn-lg"
+              >
+                <Plus size={18} />
+                <span>Crear nuevo formulario</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsTemplatesModalOpen(true)}
+                className="ms-btn ms-btn-secondary ms-btn-lg"
+              >
+                <FileText size={18} />
+                <span>Cargar plantilla clínica</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFormsManagerOpen(true)}
+                className="ms-btn ms-btn-ghost ms-btn-lg"
+              >
+                <FolderKanban size={18} />
+                <span>Gestionar / Importar</span>
+              </button>
+            </div>
           </div>
         </div>
+      ) : (
+        <>
+          {/* Navegación Principal eCRF Integrada */}
+          <Navbar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            activeForm={activeForm}
+            forms={forms}
+            onSelectForm={(id) => setActiveFormIdState(id)}
+            onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
+            onOpenFormsManager={() => setIsFormsManagerOpen(true)}
+            recordCount={records.length}
+            onOpenProjectSync={linkedProject ? () => setIsProjectSyncOpen(true) : undefined}
+            currentProjectName={linkedProject?.name}
+            onCreateNewForm={() => handleCreateNewForm('Nuevo Formulario', 'PAC-')}
+          />
+
+          {/* Banner de Productividad Clínica */}
+          {showHelperBanner && activeTab === 'intake' && (
+            <div style={{
+              background: 'var(--color-bg-subtle, #F7F4EB)',
+              borderBottom: '1px solid var(--color-border)',
+              padding: '0.65rem 1.75rem',
+              fontSize: '0.8125rem',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Sparkles size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                  <span>
+                    <strong style={{ color: 'var(--color-text-primary)' }}>Captura Clínica Eficiente:</strong> Rellena caso por caso con validación en tiempo real y cálculo automático. Presiona{' '}
+                    <kbd style={{
+                      padding: '0.15rem 0.4rem',
+                      background: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '4px',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-primary)',
+                    }}>
+                      Ctrl + Enter
+                    </kbd>{' '}
+                    para guardar el caso y avanzar.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsProjectSyncOpen(true)}
+                  className="ms-btn ms-btn-sm"
+                  style={{ padding: '0.3rem 0.7rem' }}
+                >
+                  <Database size={13} style={{ color: 'var(--color-accent)' }} />
+                  <span>Sincronizar con Proyectos</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Vistas Principales del eCRF */}
+          <main style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
+            {activeTab === 'intake' && (
+              <IntakeForm
+                form={activeForm}
+                records={records}
+                onSaveRecord={handleSaveRecord}
+                onGoToRecords={() => setActiveTab('records')}
+              />
+            )}
+
+            {activeTab === 'records' && (
+              <DataTable
+                form={activeForm}
+                records={records}
+                onUpdateRecord={handleUpdateRecord}
+                onDeleteRecord={handleDeleteRecord}
+                onDeleteAll={handleDeleteAllRecords}
+                onGoToIntake={() => setActiveTab('intake')}
+              />
+            )}
+
+            {activeTab === 'analytics' && (
+              <AnalyticsView form={activeForm} records={records} />
+            )}
+
+            {activeTab === 'builder' && (
+              <FormBuilder
+                form={activeForm}
+                onSaveForm={handleSaveForm}
+                onCreateNewForm={handleCreateNewForm}
+                favoriteSections={favoriteSections}
+                onSaveNewFavoriteSection={handleSaveNewFavoriteSection}
+                onDeleteFavoriteSection={handleDeleteFavoriteSection}
+              />
+            )}
+
+            {activeTab === 'export' && (
+              <ExportView form={activeForm} records={records} />
+            )}
+
+            {activeTab === 'merge' && (
+              <MergeView
+                form={activeForm}
+                currentRecords={records}
+                onApplyMerge={handleApplyMerge}
+                onGoToRecords={() => setActiveTab('records')}
+              />
+            )}
+          </main>
+        </>
       )}
-
-      {/* Vistas Principales */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'intake' && (
-          <IntakeForm
-            form={activeForm}
-            records={records}
-            onSaveRecord={handleSaveRecord}
-            onGoToRecords={() => setActiveTab('records')}
-          />
-        )}
-
-        {activeTab === 'records' && (
-          <DataTable
-            form={activeForm}
-            records={records}
-            onUpdateRecord={handleUpdateRecord}
-            onDeleteRecord={handleDeleteRecord}
-            onDeleteAll={handleDeleteAllRecords}
-            onGoToIntake={() => setActiveTab('intake')}
-          />
-        )}
-
-        {activeTab === 'analytics' && (
-          <AnalyticsView form={activeForm} records={records} />
-        )}
-
-        {activeTab === 'builder' && (
-          <FormBuilder
-            form={activeForm}
-            onSaveForm={handleSaveForm}
-            onCreateNewForm={handleCreateNewForm}
-            favoriteSections={favoriteSections}
-            onSaveNewFavoriteSection={handleSaveNewFavoriteSection}
-            onDeleteFavoriteSection={handleDeleteFavoriteSection}
-          />
-        )}
-
-        {activeTab === 'export' && (
-          <ExportView form={activeForm} records={records} />
-        )}
-
-        {activeTab === 'merge' && (
-          <MergeView
-            form={activeForm}
-            currentRecords={records}
-            onApplyMerge={handleApplyMerge}
-            onGoToRecords={() => setActiveTab('records')}
-          />
-        )}
-      </main>
 
       {/* Modal de Selector de Plantillas Clínicas */}
       <TemplateSelectorModal
         isOpen={isTemplatesModalOpen}
         onClose={() => setIsTemplatesModalOpen(false)}
         onSelectTemplate={handleSelectTemplate}
-        activeTemplateId={activeForm.id}
+        activeTemplateId={activeForm?.id}
       />
 
       {/* Modal de Gestión de Formularios */}
@@ -501,30 +604,32 @@ export default function FormsPage() {
         isOpen={isFormsManagerOpen}
         onClose={() => setIsFormsManagerOpen(false)}
         forms={forms}
-        activeFormId={activeForm.id}
+        activeFormId={activeForm?.id || ''}
         onSelectForm={(id) => setActiveFormIdState(id)}
         onDuplicateForm={handleDuplicateForm}
         onDeleteForm={handleDeleteForm}
         onRestoreFromTrash={handleRestoreFromTrash}
         onImportBackup={handleImportBackup}
         onOpenTemplates={() => setIsTemplatesModalOpen(true)}
-        onCreateNew={() => handleCreateNewForm('Nuevo Formulario', 'PAC-')}
+        onCreateNew={() => handleCreateNewForm('Nuevo Formulario Clínico', 'PAC-')}
         trashItems={trashItems}
       />
 
       {/* Modal de Sincronización con Proyectos MedStats */}
-      <ProjectSyncModal
-        isOpen={isProjectSyncOpen}
-        onClose={() => setIsProjectSyncOpen(false)}
-        form={activeForm}
-        records={records}
-        currentProjectId={linkedProjectId}
-        onSyncComplete={(count) => {
-          if (linkedProject) {
-            setLinkedProject({ ...linkedProject, row_count: count });
-          }
-        }}
-      />
+      {activeForm && (
+        <ProjectSyncModal
+          isOpen={isProjectSyncOpen}
+          onClose={() => setIsProjectSyncOpen(false)}
+          form={activeForm}
+          records={records}
+          currentProjectId={linkedProjectId}
+          onSyncComplete={(count) => {
+            if (linkedProject) {
+              setLinkedProject({ ...linkedProject, row_count: count });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

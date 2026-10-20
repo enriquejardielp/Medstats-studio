@@ -402,7 +402,7 @@ export function FormBuilder({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Diseñador de Formulario Clínico</h1>
-            <span className="text-xs text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-mono">
+            <span className="ms-badge">
               Secciones y Variables
             </span>
           </div>
@@ -415,25 +415,25 @@ export function FormBuilder({
           {/* Main Favorite Sections Button */}
           <button
             onClick={() => setIsFavModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-teal-900 bg-teal-100/80 hover:bg-teal-200/80 border border-teal-300 rounded-md shadow-2xs transition-colors"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
-            <Star className="w-3.5 h-3.5 fill-teal-700 text-teal-700" />
+            <Star size={14} style={{ color: 'var(--color-accent)' }} />
             <span>Biblioteca de Secciones Favoritas ({favoriteSections.length})</span>
           </button>
 
           <button
             onClick={() => setShowNewFormModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 shadow-2xs"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
-            <FolderPlus className="w-3.5 h-3.5 text-slate-500" />
+            <FolderPlus size={14} />
             <span>Nuevo Formulario</span>
           </button>
 
           <button
             onClick={handleSaveAll}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-teal-600 rounded-md hover:bg-teal-700 shadow-xs"
+            className="ms-btn ms-btn-sm ms-btn-primary"
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save size={14} />
             <span>Guardar Estructura</span>
           </button>
         </div>
@@ -1179,7 +1179,7 @@ export function FormBuilder({
                                           : null
                                       )
                                     }
-                                    className="text-[10px] bg-white border border-indigo-200 hover:bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded transition-colors"
+                                    className="text-xs bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md transition-colors font-medium"
                                   >
                                     {opt}
                                   </button>
@@ -1519,7 +1519,7 @@ export function FormBuilder({
                                   onClick={() =>
                                     setSectionRuleDraft((prev) => ({ ...prev, value: opt }))
                                   }
-                                  className="text-[10px] bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded transition-colors"
+                                  className="text-xs bg-slate-50 border border-slate-300 hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md transition-colors font-medium"
                                 >
                                   {opt}
                                 </button>

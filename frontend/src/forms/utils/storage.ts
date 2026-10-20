@@ -1,29 +1,34 @@
 import type { ClinicalForm, RecordEntry, FavoriteSection, TrashItem, FormBackup } from '../types/clinical';
-import { CLINICAL_TEMPLATES } from '../data/templates';
 import { DEFAULT_FAVORITE_SECTIONS } from '../data/favoriteSections';
-import { generateSampleRecords } from './exporter';
 
 const FORMS_KEY = 'cliniform_saved_forms_v1';
 const ACTIVE_FORM_ID_KEY = 'cliniform_active_form_id_v1';
 const RECORDS_PREFIX = 'cliniform_records_';
+
+// IDs de formularios de ejemplo a excluir para garantizar el estado inicial limpio
+const EXAMPLE_TEMPLATE_IDS = new Set([
+  'triaje-urgencias',
+  'estudio-cardiovascular',
+  'valoracion-braden',
+]);
 
 export function getSavedForms(): ClinicalForm[] {
   try {
     const raw = localStorage.getItem(FORMS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      if (Array.isArray(parsed)) {
+        // Filtrar formularios de ejemplo predeterminados
+        const cleanForms = parsed.filter((f) => f && f.id && !EXAMPLE_TEMPLATE_IDS.has(f.id));
+        return cleanForms;
       }
     }
   } catch (e) {
     console.error('Error loading forms from storage:', e);
   }
 
-  // Initial default: copy templates to storage
-  const defaults = [...CLINICAL_TEMPLATES];
-  saveForms(defaults);
-  return defaults;
+  // Estado inicial limpio: no se carga ningún formulario por defecto
+  return [];
 }
 
 export function saveForms(forms: ClinicalForm[]) {
@@ -35,18 +40,20 @@ export function saveForms(forms: ClinicalForm[]) {
 }
 
 export function getActiveFormId(forms: ClinicalForm[]): string {
+  if (!forms || forms.length === 0) return '';
   const saved = localStorage.getItem(ACTIVE_FORM_ID_KEY);
   if (saved && forms.some((f) => f.id === saved)) {
     return saved;
   }
-  return forms[0]?.id || CLINICAL_TEMPLATES[0].id;
+  return forms[0]?.id || '';
 }
 
 export function setActiveFormId(id: string) {
   localStorage.setItem(ACTIVE_FORM_ID_KEY, id);
 }
 
-export function getRecordsForForm(form: ClinicalForm): RecordEntry[] {
+export function getRecordsForForm(form?: ClinicalForm | null): RecordEntry[] {
+  if (!form?.id) return [];
   const key = `${RECORDS_PREFIX}${form.id}`;
   try {
     const raw = localStorage.getItem(key);
@@ -60,17 +67,11 @@ export function getRecordsForForm(form: ClinicalForm): RecordEntry[] {
     console.error('Error loading records for form:', form.id, e);
   }
 
-  // Pre-seed first form with 4 realistic sample records if first time
-  if (form.id === CLINICAL_TEMPLATES[0].id) {
-    const initial = generateSampleRecords(form, 4);
-    saveRecordsForForm(form.id, initial);
-    return initial;
-  }
-
   return [];
 }
 
 export function saveRecordsForForm(formId: string, records: RecordEntry[]) {
+  if (!formId) return;
   const key = `${RECORDS_PREFIX}${formId}`;
   try {
     localStorage.setItem(key, JSON.stringify(records));
@@ -220,6 +221,10 @@ export function duplicateForm(formId: string, cloneRecords: boolean = false): { 
   const allForms = getSavedForms();
   const original = allForms.find((f) => f.id === formId) || allForms[0];
 
+  if (!original) {
+    throw new Error('Formulario original no encontrado');
+  }
+
   const newFormId = 'form-' + Date.now();
   const newForm: ClinicalForm = {
     ...original,
@@ -228,7 +233,7 @@ export function duplicateForm(formId: string, cloneRecords: boolean = false): { 
     codePrefix: original.codePrefix ? `${original.codePrefix}` : 'PAC-',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    fields: original.fields.map((f, i) => ({
+    fields: (original.fields || []).map((f, i) => ({
       ...f,
       id: `f_${Date.now()}_${i}`,
     })),
@@ -256,8 +261,9 @@ export function duplicateForm(formId: string, cloneRecords: boolean = false): { 
 /**
  * Creates a system backup snapshot before major edits
  */
-export function createSystemBackup(reason: string = 'Respaldo manual'): FormBackup {
+export function createSystemBackup(reason: string = 'Respaldo manual'): FormBackup | null {
   const forms = getSavedForms();
+  if (forms.length === 0) return null;
   const activeId = getActiveFormId(forms);
   const activeForm = forms.find((f) => f.id === activeId) || forms[0];
   const records = getRecordsForForm(activeForm);
@@ -281,5 +287,3 @@ export function createSystemBackup(reason: string = 'Respaldo manual'): FormBack
 
   return backup;
 }
-
-

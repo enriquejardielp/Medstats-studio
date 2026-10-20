@@ -60,7 +60,7 @@ export function TemplateSelectorModal({
                 }}
                 className={`p-4 rounded-lg border cursor-pointer transition-all flex items-start justify-between gap-3 ${
                   isCurrent
-                    ? 'border-teal-600 bg-teal-50/40 ring-1 ring-teal-600'
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] ring-1 ring-[var(--color-accent)]'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -81,7 +81,7 @@ export function TemplateSelectorModal({
                       <span>·</span>
                       <span>{tmpl.sections.length} secciones clínicas</span>
                       <span>·</span>
-                      <span className="text-teal-700 font-medium">
+                      <span className="text-[var(--color-accent)] font-medium">
                         Cálculos:{' '}
                         {tmpl.fields
                           .filter((f) => f.type === 'calculated')
@@ -94,12 +94,12 @@ export function TemplateSelectorModal({
 
                 <div className="shrink-0 pt-1">
                   {isCurrent ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 bg-teal-100/70 px-2.5 py-1 rounded">
-                      <Check className="w-3.5 h-3.5" />
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[var(--color-accent)] px-3 py-1.5 rounded-md">
+                      <Check className="w-4 h-4" />
                       Activo
                     </span>
                   ) : (
-                    <button className="text-xs font-medium text-slate-700 bg-white border border-slate-300 px-3 py-1 rounded hover:bg-slate-100">
+                    <button className="ms-btn ms-btn-sm ms-btn-primary">
                       Cargar
                     </button>
                   )}
@@ -109,10 +109,10 @@ export function TemplateSelectorModal({
           })}
         </div>
 
-        <div className="flex justify-end pt-2 border-t border-slate-100">
+        <div className="flex justify-end pt-3 border-t border-slate-200">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
             Cerrar
           </button>

@@ -183,7 +183,7 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Estadísticas y Calidad de Datos</h1>
-            <span className="text-xs text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-mono">
+            <span className="ms-badge">
               Análisis Clínico Automático
             </span>
           </div>
@@ -195,9 +195,9 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
         <button
           onClick={copyTable1}
           disabled={records.length === 0}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold shadow-xs disabled:opacity-40 transition-colors"
+          className="ms-btn ms-btn-primary ms-btn-sm"
         >
-          {copiedTable ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+          {copiedTable ? <Check size={14} /> : <Copy size={14} />}
           <span>{copiedTable ? 'Tabla 1 Copiada' : 'Copiar Tabla 1 para Informe'}</span>
         </button>
       </div>
@@ -230,14 +230,14 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
                 Tasa de Completitud
               </span>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-2xl font-bold font-mono text-teal-700">{metrics.completenessRate}%</span>
+                <span className="text-2xl font-bold font-mono text-[var(--color-accent)]">{metrics.completenessRate}%</span>
                 <span className="text-xs text-slate-500">
                   {metrics.totalFieldsFilled} / {metrics.totalFieldsExpected}
                 </span>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
                 <div
-                  className="bg-teal-600 h-1.5 rounded-full transition-all"
+                  className="bg-[var(--color-accent)] h-1.5 rounded-full transition-all"
                   style={{ width: `${metrics.completenessRate}%` }}
                 ></div>
               </div>

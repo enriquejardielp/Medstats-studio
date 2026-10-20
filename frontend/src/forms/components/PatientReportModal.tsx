@@ -36,9 +36,9 @@ export function PatientReportModal({
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold shadow-2xs transition-colors"
+              className="ms-btn ms-btn-primary ms-btn-sm"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer size={14} />
               <span>Imprimir Ficha (PDF)</span>
             </button>
             <button

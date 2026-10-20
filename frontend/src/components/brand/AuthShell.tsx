@@ -24,8 +24,8 @@ function SurvivalIllustration() {
           <path d="M24 0H0V24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
         </pattern>
         <linearGradient id="ms-band" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#3fc1b3" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#3fc1b3" stopOpacity="0" />
+          <stop offset="0" stopColor="#EB5E28" stopOpacity="0.28" />
+          <stop offset="1" stopColor="#EB5E28" stopOpacity="0" />
         </linearGradient>
       </defs>
       <rect width="480" height="300" fill="url(#ms-grid)" />
@@ -36,16 +36,16 @@ function SurvivalIllustration() {
         </text>
       ))}
       <path d="M40 40H96V58H150V84H210V104H270V136H330V150H392V170H460V260H40Z" fill="url(#ms-band)" />
-      <path className="ms-draw" d="M40 40H96V58H150V84H210V104H270V136H330V150H392V170H460" stroke="#3fc1b3" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-      <path className="ms-draw ms-draw-late" d="M40 40H80V72H128V110H176V140H236V176H300V200H368V214H460" stroke="#e8775a" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
+      <path className="ms-draw" d="M40 40H96V58H150V84H210V104H270V136H330V150H392V170H460" stroke="#EB5E28" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
+      <path className="ms-draw ms-draw-late" d="M40 40H80V72H128V110H176V140H236V176H300V200H368V214H460" stroke="#CCC5B9" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
       {[[150, 84], [270, 136], [392, 170]].map(([x, y]) => (
-        <path key={`${x}`} d={`M${x} ${y - 6}V${y + 6}`} stroke="#3fc1b3" strokeWidth="2" />
+        <path key={`${x}`} d={`M${x} ${y - 6}V${y + 6}`} stroke="#EB5E28" strokeWidth="2" />
       ))}
       <g fontFamily="Manrope, sans-serif" fontSize="12" fontWeight="600">
-        <circle cx="330" cy="40" r="4" fill="#3fc1b3" />
-        <text x="342" y="44" fill="rgba(255,255,255,0.8)">Tratamiento</text>
-        <circle cx="330" cy="62" r="4" fill="#e8775a" />
-        <text x="342" y="66" fill="rgba(255,255,255,0.8)">Control</text>
+        <circle cx="330" cy="40" r="4" fill="#EB5E28" />
+        <text x="342" y="44" fill="rgba(255,255,255,0.9)">Tratamiento</text>
+        <circle cx="330" cy="62" r="4" fill="#CCC5B9" />
+        <text x="342" y="66" fill="rgba(255,255,255,0.9)">Control</text>
       </g>
       <text x="252" y="232" fill="rgba(255,255,255,0.55)" fontSize="12" fontFamily="JetBrains Mono, monospace">log-rank p = 0.003</text>
     </svg>
@@ -59,9 +59,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
         .ms-auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); background: var(--color-bg); }
         .ms-auth-art {
           position: relative; overflow: hidden; color: white;
-          background: radial-gradient(120% 80% at 0% 0%, #1d4552 0%, transparent 60%),
-                      radial-gradient(90% 70% at 100% 100%, #3a2a2a 0%, transparent 55%),
-                      var(--color-ink);
+          background: #252422;
           padding: 2.5rem 3rem; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
         }
         .ms-auth-form { display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; }
@@ -80,7 +78,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
         <Logo variant="light" />
         <div className="slide-up">
           <h2 className="ms-display" style={{ fontSize: 'clamp(2rem, 3.2vw, 2.9rem)', lineHeight: 1.08, maxWidth: '30rem' }}>
-            De la hoja de datos al resultado <em style={{ color: '#3fc1b3' }}>publicable</em>.
+            De la hoja de datos al resultado <em style={{ color: '#EB5E28' }}>publicable</em>.
           </h2>
           <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.65)', maxWidth: '28rem', lineHeight: 1.6 }}>
             Estadística rigurosa, explicada en lenguaje clínico y con código reproducible en R.

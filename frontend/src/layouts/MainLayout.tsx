@@ -1,4 +1,5 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import React from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/authContext';
 import { LayoutDashboard, FolderOpen, LogOut, ClipboardList, Plus } from 'lucide-react';
 import Logo from '../components/brand/Logo';
@@ -12,7 +13,13 @@ const navItems = [
 
 const MainLayout: React.FC = () => {
   const { logout, user } = useAuth();
+  const location = useLocation();
   const displayName = user?.full_name || user?.email?.split('@')[0] || 'Investigador';
+  const isFullBleed =
+    location.pathname === '/forms' ||
+    (location.pathname.startsWith('/projects/') &&
+      location.pathname !== '/projects' &&
+      location.pathname !== '/projects/new');
 
   return (
     <div className="ms-shell">
@@ -20,29 +27,31 @@ const MainLayout: React.FC = () => {
         .ms-shell { display: flex; height: 100vh; background: var(--color-bg); }
         .ms-sidebar {
           width: 248px; flex-shrink: 0; display: flex; flex-direction: column;
-          background: radial-gradient(140% 60% at 0% 0%, #1b3c48 0%, transparent 60%), var(--color-ink);
-          color: rgba(255,255,255,0.72);
+          background: #252422;
+          border-right: 1px solid #403D39;
+          color: #CCC5B9;
         }
         .ms-nav-link {
           position: relative; display: flex; align-items: center; gap: 0.75rem;
-          padding: 0.65rem 0.85rem; border-radius: 10px;
-          font-size: 0.875rem; font-weight: 600; color: rgba(255,255,255,0.62); text-decoration: none;
+          padding: 0.65rem 0.85rem; border-radius: var(--radius-md);
+          font-size: 0.875rem; font-weight: 600; color: #CCC5B9; text-decoration: none;
         }
-        .ms-nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
-        .ms-nav-link.active { color: #fff; background: rgba(63,193,179,0.14); }
+        .ms-nav-link:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); }
+        .ms-nav-link.active { color: #FFFFFF; background: rgba(235,94,40,0.18); }
         .ms-nav-link.active::before {
           content: ''; position: absolute; left: -0.75rem; top: 50%; transform: translateY(-50%);
-          width: 3px; height: 18px; border-radius: 0 3px 3px 0; background: #3fc1b3;
+          width: 3px; height: 18px; border-radius: 0 3px 3px 0; background: #EB5E28;
         }
-        .ms-nav-link.active svg { color: #3fc1b3; }
+        .ms-nav-link.active svg { color: #EB5E28; }
         .ms-new-btn {
           display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-          padding: 0.65rem; border-radius: 10px; text-decoration: none;
-          font-size: 0.8125rem; font-weight: 700; color: var(--color-ink); background: #3fc1b3;
+          padding: 0.65rem; border-radius: var(--radius-md); text-decoration: none;
+          font-size: 0.8125rem; font-weight: 700; color: #FFFFFF; background: #EB5E28;
+          box-shadow: 0 2px 8px -2px rgba(235,94,40,0.5);
         }
-        .ms-new-btn:hover { background: #63d3c7; }
-        .ms-logout { padding: 0.45rem; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: rgba(255,255,255,0.5); display: flex; }
-        .ms-logout:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .ms-new-btn:hover { background: #D84F1B; }
+        .ms-logout { padding: 0.45rem; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #CCC5B9; display: flex; }
+        .ms-logout:hover { background: rgba(255,255,255,0.08); color: #FFFFFF; }
         @media (max-width: 860px) {
           .ms-sidebar { width: 72px; }
           .ms-sidebar .ms-hide-sm { display: none; }
@@ -62,7 +71,7 @@ const MainLayout: React.FC = () => {
           </NavLink>
         </div>
 
-        <div className="ms-hide-sm" style={{ padding: '0 1.6rem 0.6rem', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+        <div className="ms-hide-sm" style={{ padding: '0 1.6rem 0.6rem', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(204, 197, 185, 0.6)' }}>
           Espacio de trabajo
         </div>
         <nav style={{ flex: 1, padding: '0 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -74,18 +83,18 @@ const MainLayout: React.FC = () => {
           ))}
         </nav>
 
-        <div style={{ margin: '0.75rem', padding: '0.75rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ margin: '0.75rem', padding: '0.75rem', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid #403D39' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
             <div style={{
               width: '2.1rem', height: '2.1rem', borderRadius: '50%', flexShrink: 0,
-              background: 'linear-gradient(135deg, #3fc1b3, #0d7c72)', color: 'var(--color-ink)',
+              background: '#EB5E28', color: '#FFFFFF',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.875rem',
             }}>
               {displayName[0]?.toUpperCase()}
             </div>
             <div className="ms-hide-sm" style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-              <p style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
+              <p style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+              <p style={{ fontSize: '0.6875rem', color: '#CCC5B9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
             </div>
             <button onClick={logout} className="ms-logout ms-hide-sm" title="Cerrar sesión" aria-label="Cerrar sesión">
               <LogOut size={16} />
@@ -96,7 +105,7 @@ const MainLayout: React.FC = () => {
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <Header />
-        <main style={{ flex: 1, overflow: 'auto', padding: '1.5rem' }}>
+        <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', padding: isFullBleed ? 0 : '1.5rem', background: 'var(--color-bg)' }}>
           <Outlet />
         </main>
       </div>

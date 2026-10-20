@@ -93,27 +93,27 @@ export function DataTable({
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={onGoToIntake}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 text-white rounded-md text-xs font-medium hover:bg-teal-700 transition-colors shadow-xs"
+            className="ms-btn ms-btn-sm ms-btn-primary"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus size={15} />
             <span>Nuevo Caso</span>
           </button>
 
           <button
             onClick={() => exportToExcel(form, records)}
             disabled={records.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded-md text-xs font-medium hover:bg-emerald-800 transition-colors shadow-xs disabled:opacity-50"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <FileSpreadsheet size={15} />
             <span>Descargar Excel (.xlsx)</span>
           </button>
 
           <button
             onClick={() => exportToCSV(form, records, { csvDelimiter: ';' })}
             disabled={records.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 text-white rounded-md text-xs font-medium hover:bg-slate-800 transition-colors shadow-xs disabled:opacity-50"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download size={15} />
             <span>CSV (;)</span>
           </button>
 
@@ -165,9 +165,9 @@ export function DataTable({
             <p className="text-sm text-slate-500">No se encontraron registros en esta base de datos.</p>
             <button
               onClick={onGoToIntake}
-              className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-md hover:bg-teal-700"
+              className="mt-3 ms-btn ms-btn-primary ms-btn-sm"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus size={14} />
               <span>Registrar primer caso</span>
             </button>
           </div>
@@ -362,15 +362,15 @@ export function DataTable({
             <div className="flex items-center justify-end gap-2 p-3 border-t border-slate-200 bg-slate-50">
               <button
                 onClick={() => setSelectedRecordForEdit(null)}
-                className="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-100"
+                className="ms-btn ms-btn-secondary ms-btn-sm"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="px-4 py-1.5 text-xs font-semibold text-white bg-teal-600 rounded-md hover:bg-teal-700 flex items-center gap-1.5"
+                className="ms-btn ms-btn-primary ms-btn-sm"
               >
-                <Save className="w-3.5 h-3.5" />
+                <Save size={14} />
                 <span>Guardar Cambios</span>
               </button>
             </div>

@@ -152,7 +152,7 @@ export const ProjectSyncModal: React.FC<ProjectSyncModalProps> = ({
         {/* Cabecera */}
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)] flex items-center justify-center text-white shadow-xs">
               <Database className="w-5 h-5" />
             </div>
             <div>
@@ -196,14 +196,14 @@ export const ProjectSyncModal: React.FC<ProjectSyncModalProps> = ({
                     onClose();
                     navigate(`/projects/${successInfo.projectId}`);
                   }}
-                  className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="ms-btn ms-btn-primary ms-btn-sm flex-1"
                 >
                   <span>Abrir Proyecto en MedStats Studio</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight size={14} />
                 </button>
                 <button
                   onClick={onClose}
-                  className="py-2.5 px-4 bg-white border border-emerald-300 text-emerald-800 font-semibold text-xs rounded-xl hover:bg-emerald-100 transition-colors cursor-pointer"
+                  className="ms-btn ms-btn-secondary ms-btn-sm"
                 >
                   Cerrar
                 </button>
@@ -212,18 +212,18 @@ export const ProjectSyncModal: React.FC<ProjectSyncModalProps> = ({
           ) : (
             <>
               {/* Resumen del dataset a volcar */}
-              <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-blue-900 font-medium">
-                  <FileSpreadsheet className="w-4 h-4 text-blue-600 shrink-0" />
+              <div className="p-3.5 bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded-xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-[var(--color-ink)] font-medium">
+                  <FileSpreadsheet size={16} style={{ color: 'var(--color-accent)' }} />
                   <span>
                     Formulario activo: <strong>{form.title}</strong>
                   </span>
                 </div>
-                <div className="flex items-center gap-2 font-mono">
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold">
+                <div className="flex items-center gap-2">
+                  <span className="ms-badge">
                     {records.length} casos
                   </span>
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold">
+                  <span className="ms-badge">
                     {columns.length} variables
                   </span>
                 </div>
@@ -235,7 +235,7 @@ export const ProjectSyncModal: React.FC<ProjectSyncModalProps> = ({
                   onClick={() => setMode('new')}
                   className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     mode === 'new'
-                      ? 'bg-white text-blue-700 shadow-xs'
+                      ? 'bg-white text-[var(--color-accent)] shadow-xs font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -246,7 +246,7 @@ export const ProjectSyncModal: React.FC<ProjectSyncModalProps> = ({
                   onClick={() => setMode('existing')}
                   className={`flex-1 py-2 px-3 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     mode === 'existing'
-                      ? 'bg-white text-blue-700 shadow-xs'
+                      ? 'bg-white text-[var(--color-accent)] shadow-xs font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -334,14 +334,14 @@ export const ProjectSyncModal: React.FC<ProjectSyncModalProps> = ({
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/50 rounded-lg transition-colors cursor-pointer"
+              className="ms-btn ms-btn-sm ms-btn-ghost"
             >
               Cancelar
             </button>
             <button
               onClick={mode === 'new' ? handleCreateNewProject : handleSyncToExisting}
               disabled={isSubmitting || records.length === 0}
-              className="px-5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-xs flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
+              className="ms-btn ms-btn-sm ms-btn-primary"
             >
               {isSubmitting ? (
                 <>

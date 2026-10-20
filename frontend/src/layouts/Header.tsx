@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
@@ -19,17 +20,23 @@ const Header: React.FC = () => {
 
   return (
     <header style={{
-      height: '3.75rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 1.75rem', borderBottom: '1px solid var(--color-border)',
-      background: 'rgba(245, 243, 238, 0.85)', backdropFilter: 'blur(10px)', zIndex: 10,
+      height: 'var(--header-height, 3.75rem)',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 1.75rem',
+      borderBottom: '1px solid var(--color-border)',
+      background: 'var(--color-bg)',
+      zIndex: 10,
     }}>
-      <nav aria-label="Ruta" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
-        <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 600 }}>MedStats</span>
+      <nav aria-label="Ruta" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem' }}>
+        <span style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>MedStats</span>
         {breadcrumbs.map((crumb, i) => {
           const isLast = i === breadcrumbs.length - 1;
           return (
-            <span key={crumb.href} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <ChevronRight size={14} color="var(--color-text-tertiary)" />
+            <span key={crumb.href} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <ChevronRight size={14} color="var(--color-border-strong)" />
               {isLast ? (
                 <span style={{ color: 'var(--color-ink)', fontWeight: 700 }}>{crumb.label}</span>
               ) : (
@@ -39,7 +46,7 @@ const Header: React.FC = () => {
           );
         })}
       </nav>
-      <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-tertiary)', fontWeight: 500, textTransform: 'capitalize' }}>{today}</span>
+      <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', fontWeight: 500, textTransform: 'capitalize' }}>{today}</span>
     </header>
   );
 };

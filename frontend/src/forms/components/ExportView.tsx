@@ -102,7 +102,7 @@ const gridOptions = {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Exportar e Integrar Datos</h1>
-            <span className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-mono">
+            <span className="ms-badge">
               Excel / CSV / AG Grid
             </span>
           </div>
@@ -114,22 +114,22 @@ const gridOptions = {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setIsProjectSyncOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-semibold text-sm rounded-md hover:bg-blue-700 shadow-xs transition-colors cursor-pointer"
+            className="ms-btn ms-btn-secondary"
           >
-            <Database className="w-4 h-4" />
+            <Database size={15} style={{ color: 'var(--color-accent)' }} />
             <span>Volcar a Proyecto MedStats</span>
           </button>
 
           <button
             onClick={handleExport}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white font-semibold text-sm rounded-md hover:bg-emerald-800 shadow-xs transition-colors cursor-pointer"
+            className="ms-btn ms-btn-primary"
           >
             {format === 'xlsx' ? (
-              <FileSpreadsheet className="w-4 h-4" />
+              <FileSpreadsheet size={15} />
             ) : format === 'csv' ? (
-              <Download className="w-4 h-4" />
+              <Download size={15} />
             ) : (
-              <FileJson className="w-4 h-4" />
+              <FileJson size={15} />
             )}
             <span>
               Descargar {records.length} {records.length === 1 ? 'registro' : 'registros'} ({format.toUpperCase()})
@@ -151,11 +151,11 @@ const gridOptions = {
               onClick={() => setFormat('xlsx')}
               className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
                 format === 'xlsx'
-                  ? 'border-emerald-600 bg-emerald-50/40 text-emerald-950'
-                  : 'border-slate-200 hover:bg-slate-50'
+                  ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-ink)]'
+                  : 'border-[var(--color-border)] hover:bg-[var(--color-bg-deep)]'
               }`}
             >
-              <FileSpreadsheet className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+              <FileSpreadsheet className="w-5 h-5 text-[var(--color-accent)] shrink-0 mt-0.5" />
               <div>
                 <div className="text-xs font-bold">Microsoft Excel (.xlsx)</div>
                 <div className="text-[11px] text-slate-600 mt-0.5">
@@ -168,11 +168,11 @@ const gridOptions = {
               onClick={() => setFormat('csv')}
               className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
                 format === 'csv'
-                  ? 'border-emerald-600 bg-emerald-50/40 text-emerald-950'
-                  : 'border-slate-200 hover:bg-slate-50'
+                  ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-ink)]'
+                  : 'border-[var(--color-border)] hover:bg-[var(--color-bg-deep)]'
               }`}
             >
-              <Download className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
+              <Download className="w-5 h-5 text-[var(--color-accent)] shrink-0 mt-0.5" />
               <div>
                 <div className="text-xs font-bold">Texto Delimitado CSV (.csv)</div>
                 <div className="text-[11px] text-slate-600 mt-0.5">
@@ -185,11 +185,11 @@ const gridOptions = {
               onClick={() => setFormat('json')}
               className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
                 format === 'json'
-                  ? 'border-emerald-600 bg-emerald-50/40 text-emerald-950'
-                  : 'border-slate-200 hover:bg-slate-50'
+                  ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-ink)]'
+                  : 'border-[var(--color-border)] hover:bg-[var(--color-bg-deep)]'
               }`}
             >
-              <FileJson className="w-5 h-5 text-indigo-700 shrink-0 mt-0.5" />
+              <FileJson className="w-5 h-5 text-[var(--color-accent)] shrink-0 mt-0.5" />
               <div>
                 <div className="text-xs font-bold">Copia de Seguridad JSON (.json)</div>
                 <div className="text-[11px] text-slate-600 mt-0.5">
@@ -310,9 +310,10 @@ const gridOptions = {
           <div className="pt-3 border-t border-slate-200">
             <button
               onClick={handleExport}
-              className="w-full py-2 bg-emerald-700 text-white text-xs font-semibold rounded-md hover:bg-emerald-800 shadow-xs transition-colors flex items-center justify-center gap-2"
+              className="ms-btn ms-btn-primary"
+              style={{ width: '100%' }}
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download size={15} />
               <span>Generar y Descargar Archivo</span>
             </button>
           </div>
@@ -427,9 +428,9 @@ const gridOptions = {
           </div>
           <button
             onClick={copyToClipboard}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-colors"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
-            {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copiedCode ? <Check size={14} style={{ color: 'var(--color-success)' }} /> : <Copy size={14} />}
             <span>{copiedCode ? 'Copiado al portapapeles' : 'Copiar código'}</span>
           </button>
         </div>

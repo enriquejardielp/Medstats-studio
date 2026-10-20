@@ -86,7 +86,7 @@ const CreateProjectPage: React.FC = () => {
           <span className="ms-label">Archivo de datos</span>
           <label className="ms-dropzone" data-active={!!file}>
             <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-            <span style={{ width: 44, height: 44, borderRadius: 12, background: file ? 'var(--color-accent)' : 'var(--color-ink)', color: file ? '#fff' : '#3fc1b3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ width: 44, height: 44, borderRadius: 12, background: file ? 'var(--color-accent)' : 'var(--color-bg-deep)', color: file ? '#fff' : 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {file ? <FileCheck2 size={20} /> : <UploadCloud size={20} />}
             </span>
             <span style={{ fontWeight: 700, marginTop: '0.75rem' }}>{file ? file.name : 'Arrastra un archivo o haz clic para seleccionarlo'}</span>

@@ -117,7 +117,7 @@ const DashboardPage: React.FC = () => {
           <h2 className="ms-display" style={{ fontSize: '1.35rem', padding: '0.25rem 0.25rem 0.25rem' }}>Accesos rápidos</h2>
           {quickActions.map(({ to, title, text, icon: Icon }) => (
             <Link key={title} to={to} className="ms-card ms-card-hover" style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1.1rem 1.25rem', textDecoration: 'none', color: 'inherit' }}>
-              <span style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--color-ink)', color: '#3fc1b3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--color-ink)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon size={18} />
               </span>
               <span style={{ flex: 1 }}>

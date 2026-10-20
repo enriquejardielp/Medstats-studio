@@ -126,7 +126,7 @@ export function MergeView({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Fusión e Integración de Bases de Datos</h1>
-            <span className="text-xs text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono">
+            <span className="ms-badge">
               Dataset Merger
             </span>
           </div>
@@ -138,9 +138,9 @@ export function MergeView({
         {parsedFile && (
           <button
             onClick={resetMerge}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+            className="ms-btn ms-btn-sm ms-btn-secondary"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw size={15} />
             <span>Cargar otro archivo</span>
           </button>
         )}
@@ -155,20 +155,20 @@ export function MergeView({
 
       {/* Success Report Banner */}
       {mergeReport && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg space-y-3">
+        <div className="p-4 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-lg space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              <h3 className="font-bold text-emerald-950 text-sm">
+              <CheckCircle2 size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
+              <h3 className="font-bold text-[var(--color-ink)] text-sm">
                 ¡Fusión completada con éxito!
               </h3>
             </div>
             <button
               onClick={onGoToRecords}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded text-xs font-semibold hover:bg-emerald-800"
+              className="ms-btn ms-btn-sm ms-btn-primary"
             >
               <span>Ver Base de Datos Actualizada</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight size={14} />
             </button>
           </div>
 
@@ -213,7 +213,7 @@ export function MergeView({
           />
 
           <div className="max-w-md mx-auto space-y-3">
-            <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)] flex items-center justify-center mx-auto">
               <UploadCloud className="w-6 h-6" />
             </div>
 
@@ -228,13 +228,14 @@ export function MergeView({
 
             <label
               htmlFor="merge-file-input"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-md shadow-xs cursor-pointer transition-colors"
+              className="ms-btn ms-btn-primary"
+              style={{ cursor: 'pointer' }}
             >
-              <FileSpreadsheet className="w-4 h-4" />
+              <FileSpreadsheet size={16} />
               <span>Explorar Archivos (.xlsx, .csv)</span>
             </label>
 
-            {loading && <p className="text-xs text-teal-600 animate-pulse">Analizando estructura del archivo...</p>}
+            {loading && <p className="text-xs text-[var(--color-accent)] animate-pulse">Analizando estructura del archivo...</p>}
           </div>
         </div>
       ) : (
@@ -404,9 +405,9 @@ export function MergeView({
           <div className="flex justify-end pt-2">
             <button
               onClick={handleExecuteMerge}
-              className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm rounded-md shadow-xs flex items-center gap-2 transition-colors"
+              className="ms-btn ms-btn-primary ms-btn-lg"
             >
-              <GitMerge className="w-4 h-4" />
+              <GitMerge size={18} />
               <span>Ejecutar Fusión de Datos Ahora</span>
             </button>
           </div>

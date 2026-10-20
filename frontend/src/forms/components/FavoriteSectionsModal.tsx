@@ -204,10 +204,10 @@ export function FavoriteSectionsModal({
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors ${
                     selectedCategory === cat.id
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+                      ? 'bg-[var(--color-accent)] text-white shadow-xs'
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-[var(--color-border)]'
                   }`}
                 >
                   {cat.label}

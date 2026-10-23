@@ -144,7 +144,7 @@ export function DataTable({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por ID de paciente, síntoma, valor..."
-            className="w-full text-xs sm:text-sm pl-9 pr-4 py-1.5 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
+            className="w-full text-xs sm:text-sm pl-9 pr-4 py-1.5 bg-white border border-[var(--color-border)] rounded focus:border-[var(--color-accent)] focus:outline-hidden"
           />
         </div>
 
@@ -159,7 +159,7 @@ export function DataTable({
       </div>
 
       {/* Table Container */}
-      <div className="mt-4 bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+      <div className="mt-4 ms-form-card p-0 overflow-hidden">
         {filteredRecords.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-sm text-slate-500">No se encontraron registros en esta base de datos.</p>
@@ -269,12 +269,12 @@ export function DataTable({
       {/* Quick Edit Record Modal */}
       {selectedRecordForEdit && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg border border-slate-200 shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+          <div className="ms-form-card max-w-2xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-teal-600" />
-                <h3 className="font-bold text-slate-900 text-sm">
-                  Editar Caso: <span className="font-mono text-teal-700">{editCode}</span>
+                <Edit3 className="w-4 h-4 text-[var(--color-accent)]" />
+                <h3 className="font-bold text-[var(--color-ink)] text-sm">
+                  Editar Caso: <span className="font-mono text-[var(--color-accent-strong)]">{editCode}</span>
                 </h3>
               </div>
               <button
@@ -292,7 +292,7 @@ export function DataTable({
                   type="text"
                   value={editCode}
                   onChange={(e) => setEditCode(e.target.value)}
-                  className="w-full text-xs font-mono font-medium border border-slate-300 rounded-md py-1.5 px-2.5 focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-xs font-mono font-medium border border-[var(--color-border)] rounded py-1.5 px-2.5 focus:border-[var(--color-accent)]"
                 />
               </div>
 
@@ -312,7 +312,7 @@ export function DataTable({
                             [f.name]: e.target.value === '' ? '' : Number(e.target.value),
                           }))
                         }
-                        className="w-full text-xs border border-slate-300 rounded-md py-1 px-2.5 focus:ring-2 focus:ring-teal-500"
+                        className="w-full text-xs border border-[var(--color-border)] rounded py-1 px-2.5 focus:border-[var(--color-accent)]"
                       />
                     ) : f.type === 'select' ? (
                       <select
@@ -320,7 +320,7 @@ export function DataTable({
                         onChange={(e) =>
                           setEditData((prev) => ({ ...prev, [f.name]: e.target.value }))
                         }
-                        className="w-full text-xs border border-slate-300 rounded-md py-1 px-2.5"
+                        className="w-full text-xs border border-[var(--color-border)] rounded py-1 px-2.5"
                       >
                         <option value="">-- Seleccionar --</option>
                         {f.options?.map((opt) => (
@@ -338,7 +338,7 @@ export function DataTable({
                             [f.name]: e.target.value === '' ? '' : e.target.value === 'true',
                           }))
                         }
-                        className="w-full text-xs border border-slate-300 rounded-md py-1 px-2.5"
+                        className="w-full text-xs border border-[var(--color-border)] rounded py-1 px-2.5"
                       >
                         <option value="">-- No especificado --</option>
                         <option value="true">Sí / Positivo</option>
@@ -351,7 +351,7 @@ export function DataTable({
                         onChange={(e) =>
                           setEditData((prev) => ({ ...prev, [f.name]: e.target.value }))
                         }
-                        className="w-full text-xs border border-slate-300 rounded-md py-1 px-2.5"
+                        className="w-full text-xs border border-[var(--color-border)] rounded py-1 px-2.5"
                       />
                     )}
                   </div>
@@ -359,7 +359,7 @@ export function DataTable({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 p-3 border-t border-slate-200 bg-slate-50">
+            <div className="flex items-center justify-end gap-2 p-3 border-t border-[var(--color-border)] bg-[var(--color-bg-deep)]">
               <button
                 onClick={() => setSelectedRecordForEdit(null)}
                 className="ms-btn ms-btn-secondary ms-btn-sm"

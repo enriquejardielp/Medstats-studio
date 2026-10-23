@@ -203,7 +203,7 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
       </div>
 
       {records.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center text-slate-500">
+        <div className="ms-form-card p-12 text-center text-slate-500">
           <BarChart3 className="w-8 h-8 text-slate-400 mx-auto mb-2" />
           <h3 className="font-semibold text-slate-800 text-sm">No hay registros suficientes</h3>
           <p className="text-xs text-slate-500 mt-1">
@@ -214,7 +214,7 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
         <>
           {/* Summary Scorecards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs">
+            <div className="ms-form-card p-4">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Muestra Total (N)
               </span>
@@ -225,7 +225,7 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
               <p className="text-[11px] text-slate-500 mt-1">Registros en la cohorte activa</p>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs">
+            <div className="ms-form-card p-4">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Tasa de Completitud
               </span>
@@ -235,15 +235,15 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
                   {metrics.totalFieldsFilled} / {metrics.totalFieldsExpected}
                 </span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div className="w-full bg-slate-100 rounded h-1.5 mt-2 overflow-hidden">
                 <div
-                  className="bg-[var(--color-accent)] h-1.5 rounded-full transition-all"
+                  className="bg-[var(--color-accent)] h-1.5 rounded transition-all"
                   style={{ width: `${metrics.completenessRate}%` }}
                 ></div>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs">
+            <div className="ms-form-card p-4">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Variables Analizadas
               </span>
@@ -254,7 +254,7 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
               <p className="text-[11px] text-slate-500 mt-1">Columnas de datos clínicos</p>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs">
+            <div className="ms-form-card p-4">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Alertas Clínicas Detectadas
               </span>
@@ -267,7 +267,7 @@ export function AnalyticsView({ form, records }: AnalyticsViewProps) {
           </div>
 
           {/* Descriptive Statistics per Variable Table */}
-          <div className="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+          <div className="ms-form-card p-0 overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-teal-700" />

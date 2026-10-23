@@ -350,7 +350,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
       {/* Success Notification Alert */}
       {savedSuccessMsg && (
-        <div className="mb-6 p-4 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-lg flex items-center justify-between text-[var(--color-ink)] text-sm slide-up">
+        <div className="mb-6 p-4 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded flex items-center justify-between text-[var(--color-ink)] text-sm slide-up">
           <div className="flex items-center gap-3">
             <CheckCircle2 size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
             <span className="font-semibold">{savedSuccessMsg}</span>
@@ -368,7 +368,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
       {/* Navegación rápida entre secciones en móvil/pantallas compactas */}
       {groupedSections.length > 1 && (
-        <nav className="lg:hidden mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3 shadow-xs" aria-label="Secciones rápidas">
+        <nav className="lg:hidden mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded p-3 shadow-xs" aria-label="Secciones rápidas">
           <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-tertiary)] mb-2 flex items-center gap-1.5">
             <ListOrdered className="w-3.5 h-3.5 text-[var(--color-accent)]" />
             <span>Navegación de Secciones:</span>
@@ -784,7 +784,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
         <aside className="ms-form-aux">
           {/* Navegación de secciones (si hay múltiples secciones) */}
           {groupedSections.length > 1 && (
-            <div className="ms-card p-5 space-y-3">
+            <div className="ms-form-card space-y-3">
               <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
                   <ListOrdered className="w-4 h-4 text-[var(--color-accent)]" />
@@ -828,7 +828,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
           )}
 
           {/* Tarjeta de Estado de la Base de Datos (Métricas en pares alineados) */}
-          <div className="ms-card p-5 space-y-4">
+          <div className="ms-form-card space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
@@ -867,7 +867,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
           {/* Tarjeta de Cálculos en Tiempo Real (si existen) */}
           {Object.keys(computedValues).length > 0 && (
-            <div className="ms-card p-5 bg-[var(--color-bg-deep)] border-[var(--color-border-strong)] space-y-3">
+            <div className="ms-form-card bg-[var(--color-bg-deep)] border-[var(--color-border-strong)] space-y-3">
               <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-[var(--color-accent)]" />
@@ -882,7 +882,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                 {Object.entries(computedValues).map(([key, val]) => {
                   const fieldDef = form.fields.find((f) => f.name === key);
                   return (
-                    <div key={key} className="bg-[var(--color-surface)] p-3 rounded-md border border-[var(--color-border)]">
+                    <div key={key} className="bg-[var(--color-surface)] p-3 rounded border border-[var(--color-border)]">
                       <div className="text-xs font-medium text-[var(--color-text-secondary)] truncate">
                         {fieldDef?.label || key}
                       </div>
@@ -902,7 +902,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
           )}
 
           {/* Tarjeta de Últimos Registros */}
-          <div className="ms-card p-5 space-y-3">
+          <div className="ms-form-card space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[var(--color-text-secondary)]" />

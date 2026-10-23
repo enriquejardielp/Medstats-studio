@@ -41,36 +41,53 @@ class TypeSelectorHeader {
     this.eGui = document.createElement('div');
     this.eGui.style.display = 'flex';
     this.eGui.style.flexDirection = 'column';
-    this.eGui.style.alignItems = 'center';
+    this.eGui.style.alignItems = 'flex-start';
     this.eGui.style.justifyContent = 'center';
     this.eGui.style.width = '100%';
-    this.eGui.style.padding = '4px';
+    this.eGui.style.padding = '6px 10px';
+    this.eGui.style.gap = '5px';
 
     const nameSpan = document.createElement('span');
-    nameSpan.style.fontSize = '13px';
+    nameSpan.style.fontSize = '14px';
     nameSpan.style.fontWeight = '700';
     nameSpan.style.color = '#252422';
+    nameSpan.style.maxWidth = '100%';
+    nameSpan.style.overflow = 'hidden';
+    nameSpan.style.textOverflow = 'ellipsis';
+    nameSpan.style.whiteSpace = 'nowrap';
+    nameSpan.style.lineHeight = '1.3';
+    nameSpan.style.letterSpacing = '-0.01em';
     nameSpan.textContent = displayName;
+    nameSpan.title = displayName;
 
     const select = document.createElement('select');
-    select.style.fontSize = '11px';
-    select.style.marginTop = '2px';
-    select.style.padding = '2px 6px';
+    select.style.fontSize = '12px';
+    select.style.fontWeight = '600';
+    select.style.padding = '4px 8px';
     select.style.borderRadius = '4px';
     select.style.border = '1px solid #CCC5B9';
-    select.style.background = '#FFFCF2';
+    select.style.background = '#FFFFFF';
     select.style.color = '#252422';
     select.style.cursor = 'pointer';
+    select.style.height = '30px';
+    select.style.width = '100%';
+    select.style.outline = 'none';
+    select.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.04)';
+
+    const typeLabels: Record<string, string> = {
+      numeric: '123 Numérica',
+      categorical: 'ABC Categórica',
+      binary: '0/1 Binaria',
+      date: '📅 Fecha',
+      id: '🔑 ID',
+      text: '📝 Texto',
+    };
 
     const types: ColumnType[] = ['numeric', 'categorical', 'binary', 'date', 'id', 'text'];
     types.forEach(t => {
       const option = document.createElement('option');
       option.value = t;
-      option.text = t === 'numeric' ? 'Numérica' :
-                    t === 'categorical' ? 'Categórica' :
-                    t === 'binary' ? 'Binaria' :
-                    t === 'date' ? 'Fecha' :
-                    t === 'id' ? 'ID' : 'Texto';
+      option.text = typeLabels[t] || t;
       if (t === currentType) option.selected = true;
       select.appendChild(option);
     });
@@ -321,7 +338,7 @@ const ProjectPage: React.FC = () => {
           sortable: true,
           filter: true,
           resizable: true,
-          minWidth: 120,
+          minWidth: 160,
           flex: 1,
           editable: true,
           cellClassRules: {
@@ -1059,11 +1076,12 @@ const ProjectPage: React.FC = () => {
               ref={gridRef}
               rowData={rowData}
               columnDefs={columnDefs}
+              headerHeight={70}
               defaultColDef={{
                 sortable: true,
                 filter: true,
                 resizable: true,
-                minWidth: 100,
+                minWidth: 160,
                 flex: 1,
                 editable: true,
               }}

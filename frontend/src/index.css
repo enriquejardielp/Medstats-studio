@@ -427,7 +427,7 @@ button, a, input, select, textarea {
   --ag-checkbox-checked-color: #EB5E28;
   --ag-checkbox-border-radius: 4px;
   --ag-cell-horizontal-padding: 14px;
-  --ag-header-height: 44px;
+  --ag-header-height: 70px;
   --ag-row-height: 38px;
   --ag-card-background: #FFFFFF;
   --ag-popup-shadow: var(--shadow-lg);
@@ -563,8 +563,8 @@ button, a, input, select, textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-pill);
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 600;
   background: var(--color-bg-deep);
@@ -572,21 +572,29 @@ button, a, input, select, textarea {
   border: 1px solid var(--color-border);
 }
 
-/* Section Cards & Visual hierarchy */
+/* Section Cards & Visual hierarchy (clean rectangular boundary, no chunky rounded box) */
 .ms-form-section {
-  background: var(--color-surface);
+  background: #FFFFFF;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 1.5rem;
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 1.75rem;
   scroll-margin-top: 5.5rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
 @media (min-width: 640px) {
   .ms-form-section {
-    padding: 1.75rem 2rem;
+    padding: 2.25rem 2.5rem;
   }
+}
+
+.ms-form-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 1.5rem;
 }
 
 .ms-form-section-header {
@@ -596,7 +604,7 @@ button, a, input, select, textarea {
   gap: 0.75rem;
   flex-wrap: wrap;
   padding-bottom: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -782,7 +790,7 @@ button, a, input, select, textarea {
   align-items: stretch;
   background: var(--color-bg-deep);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 4px;
   padding: 3px;
   gap: 3px;
   width: 100%;
@@ -801,9 +809,9 @@ button, a, input, select, textarea {
   color: var(--color-text-secondary);
   background: transparent;
   border: none;
-  border-radius: calc(var(--radius-md) - 2px);
+  border-radius: 3px;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 1rem;
   transition: all 0.15s ease;
 }
 
@@ -824,7 +832,7 @@ button, a, input, select, textarea {
   outline-offset: 1px;
 }
 
-/* Specialized: Chip Grid for Multiselect & Radios */
+/* Specialized: Chip Grid for Multiselect & Radios (No pill radius, unclipped text) */
 .ms-form-chip-grid {
   display: flex;
   flex-wrap: wrap;
@@ -835,20 +843,21 @@ button, a, input, select, textarea {
 .ms-form-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.85rem;
-  min-height: 40px;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  min-height: 42px;
   font-family: inherit;
-  font-size: 0.84375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-primary);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  border-radius: 4px;
   cursor: pointer;
-  box-shadow: var(--shadow-xs);
+  box-shadow: none;
   transition: all 0.15s ease;
   user-select: none;
+  text-align: left;
 }
 
 .ms-form-chip:hover {
@@ -885,7 +894,7 @@ button, a, input, select, textarea {
 .ms-form-calculated {
   background: var(--color-bg-deep);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 4px;
   padding: 0.85rem 1.15rem;
   display: flex;
   align-items: center;
@@ -907,14 +916,14 @@ button, a, input, select, textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-accent-strong);
   background: var(--color-accent-soft);
   border: 1px solid rgba(235, 94, 40, 0.25);
-  border-radius: var(--radius-pill);
+  border-radius: 4px;
   padding: 0.2rem 0.55rem;
 }
 
@@ -967,7 +976,7 @@ button, a, input, select, textarea {
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.65rem 0.85rem;
-  border-radius: var(--radius-md);
+  border-radius: 4px;
   font-size: 0.8125rem;
   line-height: 1.4;
   background: #FFFBEB;
@@ -990,7 +999,7 @@ button, a, input, select, textarea {
   gap: 0.65rem;
   width: 100%;
   padding: 0.65rem 0.85rem;
-  border-radius: var(--radius-md);
+  border-radius: 4px;
   font-family: inherit;
   font-size: 0.84375rem;
   font-weight: 500;
@@ -1013,7 +1022,7 @@ button, a, input, select, textarea {
   border-color: var(--color-accent);
   color: var(--color-ink);
   font-weight: 700;
-  box-shadow: var(--shadow-xs);
+  box-shadow: none;
 }
 
 .ms-form-nav-item:focus-visible {
@@ -1025,7 +1034,7 @@ button, a, input, select, textarea {
   font-size: 0.6875rem;
   font-family: var(--font-mono);
   padding: 0.15rem 0.45rem;
-  border-radius: var(--radius-pill);
+  border-radius: 4px;
   background: var(--color-bg-deep);
   color: var(--color-text-secondary);
 }
@@ -1060,7 +1069,7 @@ button, a, input, select, textarea {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--color-border);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
   padding: 0.85rem 1.25rem;
   padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
   margin-top: 2rem;
@@ -1086,7 +1095,7 @@ button, a, input, select, textarea {
   width: 90px;
   height: 6px;
   background: var(--color-bg-deep);
-  border-radius: var(--radius-pill);
+  border-radius: 3px;
   overflow: hidden;
   border: 1px solid var(--color-border);
 }
@@ -1132,11 +1141,11 @@ button, a, input, select, textarea {
 }
 
 .ms-form-builder-panel {
-  background: var(--color-surface);
+  background: #FFFFFF;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 1.5rem;
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 1.75rem;
 }
 
 .ms-form-type-grid {
@@ -1158,7 +1167,7 @@ button, a, input, select, textarea {
   gap: 0.35rem;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 4px;
   background: var(--color-surface);
   cursor: pointer;
   text-align: left;
@@ -1185,7 +1194,7 @@ button, a, input, select, textarea {
 
 .ms-form-accordion {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 4px;
   background: var(--color-surface);
   overflow: hidden;
 }

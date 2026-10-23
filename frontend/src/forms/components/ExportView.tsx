@@ -141,7 +141,7 @@ const gridOptions = {
       {/* Configuration Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Format Selector Card */}
-        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
+        <div className="ms-form-card space-y-4">
           <h2 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
             1. Formato de Archivo
           </h2>
@@ -149,7 +149,7 @@ const gridOptions = {
           <div className="space-y-2">
             <label
               onClick={() => setFormat('xlsx')}
-              className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded border cursor-pointer transition-colors ${
                 format === 'xlsx'
                   ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-ink)]'
                   : 'border-[var(--color-border)] hover:bg-[var(--color-bg-deep)]'
@@ -166,7 +166,7 @@ const gridOptions = {
 
             <label
               onClick={() => setFormat('csv')}
-              className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded border cursor-pointer transition-colors ${
                 format === 'csv'
                   ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-ink)]'
                   : 'border-[var(--color-border)] hover:bg-[var(--color-bg-deep)]'
@@ -183,7 +183,7 @@ const gridOptions = {
 
             <label
               onClick={() => setFormat('json')}
-              className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded border cursor-pointer transition-colors ${
                 format === 'json'
                   ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-ink)]'
                   : 'border-[var(--color-border)] hover:bg-[var(--color-bg-deep)]'
@@ -201,7 +201,7 @@ const gridOptions = {
         </div>
 
         {/* Encoding & Options Card */}
-        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
+        <div className="ms-form-card space-y-4">
           <h2 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
             2. Opciones de Formato
           </h2>
@@ -280,7 +280,7 @@ const gridOptions = {
         </div>
 
         {/* Summary Card */}
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+        <div className="ms-form-card bg-[var(--color-bg-deep)] space-y-3">
           <h2 className="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
             <CheckCircle className="w-3.5 h-3.5 text-teal-600" />
             Resumen de Exportación
@@ -321,12 +321,12 @@ const gridOptions = {
       </div>
 
       {/* Dataset / Codebook Preview */}
-      <div className="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+      <div className="ms-form-card p-0 overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActivePreviewTab('data')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded transition-colors ${
                 activePreviewTab === 'data'
                   ? 'bg-white text-slate-900 shadow-2xs border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
@@ -338,7 +338,7 @@ const gridOptions = {
 
             <button
               onClick={() => setActivePreviewTab('codebook')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded transition-colors ${
                 activePreviewTab === 'codebook'
                   ? 'bg-white text-slate-900 shadow-2xs border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
@@ -418,7 +418,7 @@ const gridOptions = {
       </div>
 
       {/* AG Grid / App Integration Snippet */}
-      <div className="bg-slate-900 text-slate-100 rounded-lg p-5 shadow-xs">
+      <div className="bg-slate-900 text-slate-100 rounded p-5 border border-slate-800">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <Code2 className="w-4 h-4 text-teal-400" />

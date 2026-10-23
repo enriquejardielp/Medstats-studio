@@ -490,7 +490,7 @@ export function FormBuilder({
       </div>
 
       {feedbackMsg && (
-        <div className="p-3.5 bg-[var(--color-success-soft)] border border-[#C5E3D1] text-[var(--color-ink)] text-xs font-semibold rounded-lg flex items-center justify-between slide-up">
+        <div className="p-3.5 bg-[var(--color-success-soft)] border border-[#C5E3D1] text-[var(--color-ink)] text-xs font-semibold rounded flex items-center justify-between slide-up">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
             <span>{feedbackMsg}</span>
@@ -502,7 +502,7 @@ export function FormBuilder({
       )}
 
       {/* Meta configuration card */}
-      <div className="ms-card p-5 space-y-4">
+      <div className="ms-form-card space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
           <FileCode className="w-4 h-4 text-[var(--color-accent)]" />
           Metadatos Generales del Formulario
@@ -547,7 +547,7 @@ export function FormBuilder({
         {/* LEFT PANEL: Sections & Variables Structure Tree */}
         <div className="space-y-5">
           {/* Sections Toolbar & Creation Bar */}
-          <div className="ms-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="ms-form-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-[var(--color-accent)]" />
               <span className="text-xs font-bold text-[var(--color-ink)]">
@@ -599,7 +599,7 @@ export function FormBuilder({
               return (
                 <div
                   key={secName}
-                  className="ms-card overflow-hidden transition-all"
+                  className="ms-form-card p-0 overflow-hidden transition-all"
                 >
                   {/* Section Header Bar */}
                   <div className="p-3.5 bg-[var(--color-bg-deep)] border-b border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -945,7 +945,7 @@ export function FormBuilder({
 
                 {/* Type-Specific Options: Number */}
                 {editingField.type === 'number' && (
-                  <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded-lg">
+                  <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded">
                     <div>
                       <label className="ms-form-label text-[11px] mb-1">Unidad (ej. mmHg, kg)</label>
                       <input
@@ -993,7 +993,7 @@ export function FormBuilder({
 
                 {/* Type-Specific Options: Calculated */}
                 {editingField.type === 'calculated' && (
-                  <div className="p-3 bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 rounded-lg space-y-2.5">
+                  <div className="p-3 bg-[var(--color-accent-soft)] border border-[var(--color-accent)]/30 rounded space-y-2.5">
                     <label className="ms-form-label font-bold text-[var(--color-accent-strong)]">
                       Fórmula de Cálculo Automático
                     </label>
@@ -1048,7 +1048,7 @@ export function FormBuilder({
 
                 {/* Type-Specific Options: Select, Radio, Multiselect */}
                 {['select', 'radio', 'multiselect'].includes(editingField.type) && (
-                  <div className="space-y-1.5 p-3 bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded-lg">
+                  <div className="space-y-1.5 p-3 bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded">
                     <label className="ms-form-label">
                       Opciones de Respuesta (una por línea)
                     </label>
@@ -1154,7 +1154,7 @@ export function FormBuilder({
                     </label>
 
                     {editingField.conditional && (
-                      <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-lg space-y-2.5">
+                      <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded space-y-2.5">
                         <p className="text-[11px] text-indigo-900 leading-tight">
                           Este campo estará oculto en el formulario hasta que se satisfaga la condición indicada.
                         </p>
@@ -1340,7 +1340,7 @@ export function FormBuilder({
       {/* Modal: Rename Section */}
       {renamingSection && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="ms-card max-w-sm w-full p-5 space-y-4 slide-up">
+          <div className="ms-form-card max-w-sm w-full p-5 space-y-4 slide-up">
             <h3 className="font-bold text-sm text-[var(--color-ink)]">Renombrar Sección Clínica</h3>
             <input
               type="text"
@@ -1373,7 +1373,7 @@ export function FormBuilder({
       {/* Modal: Save Section as Favorite */}
       {savingFavSectionModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="ms-card max-w-md w-full p-5 space-y-4 slide-up">
+          <div className="ms-form-card max-w-md w-full p-5 space-y-4 slide-up">
             <div className="flex items-center gap-2 pb-2 border-b border-[var(--color-border)]">
               <BookmarkPlus className="w-5 h-5 text-amber-600" />
               <div>
@@ -1466,7 +1466,7 @@ export function FormBuilder({
       {/* Modal: Create Brand New Empty Form */}
       {showNewFormModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="ms-card max-w-md w-full p-5 space-y-4 slide-up">
+          <div className="ms-form-card max-w-md w-full p-5 space-y-4 slide-up">
             <h3 className="font-bold text-sm text-[var(--color-ink)]">Crear Nuevo Formulario en Blanco</h3>
             <div>
               <label className="ms-form-label mb-1">Nombre del Formulario</label>
@@ -1517,7 +1517,7 @@ export function FormBuilder({
       {/* Modal: Configure Section Condition */}
       {editingSectionCondition && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="ms-card max-w-md w-full p-5 space-y-4 slide-up">
+          <div className="ms-form-card max-w-md w-full p-5 space-y-4 slide-up">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2">
                 <GitBranch className="w-5 h-5 text-indigo-600" />

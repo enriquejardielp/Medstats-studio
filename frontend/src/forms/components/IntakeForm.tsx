@@ -298,62 +298,60 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
   return (
     <div className="ms-form-container">
-      {/* Top Banner & Quick Context */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-[var(--color-border)]">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">{form.title}</h1>
-            <span className="ms-badge">
-              {form.fields.length} variables
-            </span>
-            {form.codePrefix && (
-              <span className="text-xs text-[var(--color-text-secondary)] font-mono bg-[var(--color-bg-deep)] px-2 py-0.5 rounded border border-[var(--color-border)]">
-                Prefijo: {form.codePrefix}
+      {/* A. CABECERA DEL FORMULARIO: Bloque claramente identificable con acciones independientes */}
+      <header className="ms-form-header-block mb-8 pb-6 border-b border-[var(--color-border)]">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+          {/* Título principal, metadatos discretos y descripción legible */}
+          <div className="space-y-2 max-w-3xl">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-ink)] font-display">
+                {form.title}
+              </h1>
+              <span className="ms-form-meta-pill" title="Número total de variables en este cuaderno">
+                {form.fields.length} variables
               </span>
+              {form.codePrefix && (
+                <span className="ms-form-meta-pill font-mono" title="Prefijo asignado a identificadores de caso">
+                  ID: {form.codePrefix}XXX
+                </span>
+              )}
+            </div>
+            {form.description && (
+              <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed max-w-2xl">
+                {form.description}
+              </p>
             )}
           </div>
-          {form.description && (
-            <p className="text-sm text-[var(--color-text-secondary)] mt-1 max-w-2xl">{form.description}</p>
-          )}
-        </div>
 
-        {/* Global actions & keyboard tip */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => handleOpenTextExtractor(null)}
-            className="ms-btn ms-btn-secondary ms-btn-sm"
-            title="Pegar analítica completa, informe o antecedentes para autocompletar el caso"
-          >
-            <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
-            <span>Rellenar desde Texto Libre</span>
-          </button>
+          {/* Acciones globales alineadas en una zona independiente */}
+          <div className="flex items-center gap-3 flex-wrap self-start shrink-0">
+            <button
+              type="button"
+              onClick={() => handleOpenTextExtractor(null)}
+              className="ms-btn ms-btn-secondary ms-btn-sm"
+              title="Pegar analítica completa, informe o antecedentes para autocompletar el caso"
+            >
+              <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
+              <span>Rellenar desde Texto Libre</span>
+            </button>
 
-          <div className="hidden xl:flex items-center text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded-md px-2.5 py-1.5">
-            <kbd className="px-1.5 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[11px] font-mono mr-1 shadow-2xs text-[var(--color-text-primary)]">
-              Ctrl
-            </kbd>
-            +
-            <kbd className="px-1.5 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[11px] font-mono mx-1 shadow-2xs text-[var(--color-text-primary)]">
-              Enter
-            </kbd>
-            <span className="ml-1">guardar y avanzar</span>
+            <button
+              type="button"
+              onClick={() => handleSubmit(true)}
+              className="ms-btn ms-btn-primary ms-btn-sm"
+              title="Guardar caso actual y avanzar al siguiente formulario"
+            >
+              <Save className="w-4 h-4" />
+              <span>Guardar y Siguiente</span>
+            </button>
           </div>
-
-          <button
-            onClick={() => handleSubmit(true)}
-            className="ms-btn ms-btn-primary ms-btn-sm"
-          >
-            <Save size={15} />
-            <span>Guardar y Siguiente</span>
-          </button>
         </div>
-      </div>
+      </header>
 
       {/* Success Notification Alert */}
       {savedSuccessMsg && (
-        <div className="mb-6 p-3.5 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-lg flex items-center justify-between text-[var(--color-ink)] text-sm slide-up">
-          <div className="flex items-center gap-2.5">
+        <div className="mb-6 p-4 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-lg flex items-center justify-between text-[var(--color-ink)] text-sm slide-up">
+          <div className="flex items-center gap-3">
             <CheckCircle2 size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
             <span className="font-semibold">{savedSuccessMsg}</span>
           </div>
@@ -368,12 +366,12 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
         </div>
       )}
 
-      {/* Mobile Horizontal Quick Navigation */}
+      {/* Navegación rápida entre secciones en móvil/pantallas compactas */}
       {groupedSections.length > 1 && (
-        <div className="lg:hidden mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-2.5 shadow-xs">
+        <nav className="lg:hidden mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-3 shadow-xs" aria-label="Secciones rápidas">
           <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-tertiary)] mb-2 flex items-center gap-1.5">
             <ListOrdered className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-            <span>Secciones del Formulario:</span>
+            <span>Navegación de Secciones:</span>
           </div>
           <div className="ms-form-nav-mobile">
             {groupedSections.map(([secTitle]) => {
@@ -397,178 +395,32 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
               );
             })}
           </div>
-        </div>
+        </nav>
       )}
 
-      {/* Main Two-Column Structure: Sticky Sidebar (Left) + Form (Center) */}
+      {/* B. ÁREA DE CAPTURA: Distribución en 2 columnas (Principal ~70-75% / Auxiliar ~25-30%) */}
       <div className="ms-form-layout">
-        {/* Left Sticky Sidebar: Section Index + Existing Auxiliary Panels */}
-        <aside className="ms-form-sidebar space-y-5">
-          {/* Section Index Card */}
-          <div className="ms-card p-4">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--color-border)]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
-                <ListOrdered className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                Índice de Secciones
-              </span>
-              <span className="text-[11px] text-[var(--color-text-secondary)] font-mono">
-                {groupedSections.length} {groupedSections.length === 1 ? 'sección' : 'secciones'}
-              </span>
-            </div>
-
-            <nav className="ms-form-nav" aria-label="Navegación de secciones eCRF">
-              {groupedSections.map(([secTitle, fields]) => {
-                const isActive = activeSection === secTitle;
-                const isCompleted = completedSections.has(secTitle);
-
-                return (
-                  <button
-                    key={secTitle}
-                    type="button"
-                    onClick={() => scrollToSection(secTitle)}
-                    className={`ms-form-nav-item ${isActive ? 'is-active' : ''}`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      {isCompleted ? (
-                        <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
-                      ) : (
-                        <div
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            isActive ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-neutral-muted)]'
-                          }`}
-                        />
-                      )}
-                      <span className="truncate">{secTitle}</span>
-                    </div>
-                    <span className="ms-form-nav-badge shrink-0">{fields.length}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Database Summary Card (Existing Auxiliary Widget) */}
-          <div className="ms-card p-4 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                Estado de la Base de Datos
-              </span>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-text-secondary)]">Casos registrados:</span>
-                <span className="font-bold text-[var(--color-ink)] font-mono text-sm">{records.length}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-text-secondary)]">Variables activas:</span>
-                <span className="font-semibold text-[var(--color-ink)] font-mono">{form.fields.length}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--color-text-secondary)]">Prefijo de caso:</span>
-                <span className="font-mono text-[var(--color-accent)] font-semibold">{form.codePrefix || 'REG-'}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={onGoToRecords}
-              className="mt-2 w-full ms-btn ms-btn-secondary ms-btn-sm"
-            >
-              <span>Abrir tabla completa</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Real-time Formulas Panel (Existing Auxiliary Widget) */}
-          {Object.keys(computedValues).length > 0 && (
-            <div className="ms-card p-4 bg-[var(--color-bg-deep)] border-[var(--color-border-strong)] space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
-                  <Calculator className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                  Cálculos en Tiempo Real
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {Object.entries(computedValues).map(([key, val]) => {
-                  const fieldDef = form.fields.find((f) => f.name === key);
-                  return (
-                    <div key={key} className="bg-[var(--color-surface)] p-2.5 rounded-md border border-[var(--color-border)]">
-                      <div className="text-[11px] font-semibold text-[var(--color-text-secondary)] truncate">
-                        {fieldDef?.label || key}
-                      </div>
-                      <div className="text-base font-bold font-mono text-[var(--color-accent-strong)] flex items-baseline gap-1 mt-0.5">
-                        {val}
-                        {fieldDef?.unit && (
-                          <span className="text-xs font-medium text-[var(--color-text-secondary)]">{fieldDef.unit}</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Records Strip (Existing Auxiliary Widget) */}
-          <div className="ms-card p-4 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[var(--color-text-secondary)]" />
-                Últimos Registros
-              </span>
-            </div>
-
-            {recentRecords.length === 0 ? (
-              <p className="text-xs text-[var(--color-text-secondary)] italic py-2 text-center">
-                Aún no hay casos guardados.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {recentRecords.map((r) => (
-                  <div
-                    key={r.id}
-                    className="p-2 rounded bg-[var(--color-surface)] border border-[var(--color-border)]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-[var(--color-ink)]">{r.recordCode}</span>
-                      <span className="text-[10px] text-[var(--color-text-tertiary)]">
-                        {r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-[var(--color-text-secondary)] truncate mt-0.5">
-                      {Object.entries(r.data)
-                        .slice(0, 2)
-                        .map(([k, v]) => `${k}: ${v}`)
-                        .join(' · ')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* Main Center Form Area (Max-Width ~760px) */}
+        {/* COLUMNA PRINCIPAL: Formulario de captura (~70–75%) */}
         <main className="ms-form-main">
-          {/* Metadata Card: Patient / Case Code */}
-          <div className="ms-form-section">
+          {/* Identificador de Sujeto / Paciente */}
+          <section className="ms-form-section" aria-labelledby="section-case-title">
             <div className="ms-form-section-header">
-              <span className="ms-form-section-title">
+              <h2 id="section-case-title" className="ms-form-section-title">
                 <Hash className="w-4 h-4 text-[var(--color-accent)]" />
-                Identificador de Sujeto / Paciente
+                <span>Identificador de Sujeto / Paciente</span>
+              </h2>
+              <span className="text-xs text-[var(--color-text-secondary)] font-mono">
+                Clave de fila en base de datos
               </span>
-              <span className="text-xs text-[var(--color-text-tertiary)] font-mono">Clave primaria de la fila</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="ms-form-field">
                 <div className="ms-form-label-row">
                   <label htmlFor="input-record-code" className="ms-form-label">
-                    Código de Registro <span className="ms-form-required">*</span>
+                    <span>Código de Registro</span>
+                    <span className="ms-form-required" aria-hidden="true">*</span>
                   </label>
-                  <span className="ms-form-colname font-mono">_code</span>
                 </div>
                 <input
                   id="input-record-code"
@@ -578,20 +430,24 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                   placeholder="Ej. PAC-001 o ID-SUJETO"
                   className={`ms-form-input font-mono font-semibold ${errors._code ? 'has-error' : ''}`}
                 />
-                {errors._code && (
-                  <p className="ms-form-error">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{errors._code}</span>
-                  </p>
-                )}
+                <div className="ms-form-meta-row">
+                  {errors._code ? (
+                    <p className="ms-form-error">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{errors._code}</span>
+                    </p>
+                  ) : (
+                    <span className="ms-form-help">Identificador único del sujeto</span>
+                  )}
+                  <span className="ms-form-colname">col: _code</span>
+                </div>
               </div>
 
               <div className="ms-form-field">
                 <div className="ms-form-label-row">
                   <label htmlFor="input-author" className="ms-form-label">
-                    Profesional / Investigador
+                    <span>Profesional / Investigador</span>
                   </label>
-                  <span className="ms-form-colname font-mono">author</span>
                 </div>
                 <div className="relative">
                   <input
@@ -606,47 +462,55 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                     <User className="w-4 h-4" />
                   </div>
                 </div>
+                <div className="ms-form-meta-row">
+                  <span className="ms-form-help">Responsable de la recogida</span>
+                  <span className="ms-form-colname">col: author</span>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Grouped Clinical Sections */}
+          {/* Secciones Clínicas del Formulario */}
           {groupedSections.map(([sectionTitle, fields], sIdx) => (
             <section
               key={sectionTitle}
               id={`section-card-${sectionTitle.replace(/\s+/g, '-')}`}
               className="ms-form-section"
+              aria-labelledby={`heading-${sectionTitle.replace(/\s+/g, '-')}`}
             >
+              {/* Cabecera de Sección */}
               <div className="ms-form-section-header">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent)]" />
-                  <h2 className="ms-form-section-title">{sectionTitle}</h2>
+                  <h2 id={`heading-${sectionTitle.replace(/\s+/g, '-')}`} className="ms-form-section-title">
+                    {sectionTitle}
+                  </h2>
                   {form.sectionRules?.[sectionTitle] && (
-                    <span className="text-[10px] text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                    <span className="text-[11px] text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono flex items-center gap-1">
                       <GitBranch className="w-3 h-3 text-indigo-600" />
-                      Sección Condicional
+                      Condición Activa
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Acciones de Sección */}
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => handleOpenTextExtractor(sectionTitle)}
-                    className="ms-btn ms-btn-sm ms-btn-secondary"
+                    className="ms-btn ms-btn-secondary ms-btn-sm"
                     title={`Pegar informe o analítica para autocompletar la sección ${sectionTitle}`}
                   >
-                    <ClipboardPaste className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
-                    <span className="hidden sm:inline">Pegar texto aquí</span>
-                    <span className="sm:hidden">Pegar</span>
+                    <ClipboardPaste className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                    <span>Pegar texto en esta sección</span>
                   </button>
                   <span className="text-xs text-[var(--color-text-tertiary)] font-mono">
-                    {fields.length} {fields.length === 1 ? 'var' : 'vars'}
+                    {fields.length} {fields.length === 1 ? 'variable' : 'variables'}
                   </span>
                 </div>
               </div>
 
-              {/* Fields Container (Separation ~24px between fields) */}
+              {/* Contenedor de Campos (separación de 16–24 px entre campos) */}
               <div className="ms-form-section-body">
                 <div className="ms-form-field-grid ms-form-field-grid-2">
                   {fields.map((field, fIdx) => {
@@ -656,21 +520,24 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                     const isConditional = !!field.conditional;
                     const hasError = !!errors[field.name];
 
-                    // Full-width fields: textarea, multiselect, description-heavy, or wide single elements
-                    const isWide =
+                    // Campos largos u observaciones ocupan ancho completo (1 columna)
+                    // Campos breves (número, fecha, boolean, select corto) ocupan 2 columnas en pantallas anchas
+                    const isFullWidth =
                       field.type === 'textarea' ||
                       field.type === 'multiselect' ||
-                      (field.options && field.options.length > 4);
+                      isCalculated ||
+                      (field.options && field.options.length > 3) ||
+                      (field.description && field.description.length > 70);
 
                     return (
                       <div
                         key={field.id}
                         id={`field-${field.name}`}
-                        className={`ms-form-field ${isWide ? 'ms-form-col-span-2' : ''} ${
+                        className={`ms-form-field ${isFullWidth ? 'ms-form-col-span-2' : ''} ${
                           isConditional ? 'border-l-2 border-l-indigo-400 pl-3 py-1' : ''
                         }`}
                       >
-                        {/* Label & Meta Row */}
+                        {/* Etiqueta del campo encima del control */}
                         <div className="ms-form-label-row">
                           <label
                             htmlFor={`field-ctrl-${field.name}`}
@@ -678,7 +545,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                           >
                             <span>{field.label}</span>
                             {field.required && !isCalculated && (
-                              <span className="ms-form-required" title="Campo obligatorio">
+                              <span className="ms-form-required" aria-hidden="true" title="Campo obligatorio">
                                 *
                               </span>
                             )}
@@ -696,16 +563,13 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                               </span>
                             )}
                           </label>
-                          <span className="ms-form-colname" title="Columna BD">
-                            {field.name}
-                          </span>
                         </div>
 
-                        {/* Specialized Field Control Inputs */}
+                        {/* Control de entrada con altura de 44–48 px */}
                         {isCalculated ? (
                           <div className="ms-form-calculated">
                             <div className="space-y-0.5">
-                              <span className="text-xs text-[var(--color-text-secondary)]">Resultado calculado</span>
+                              <span className="text-xs text-[var(--color-text-secondary)]">Resultado automático</span>
                               <div className="ms-form-calculated-value">
                                 <span>
                                   {currentValue !== '' && currentValue !== null && currentValue !== undefined
@@ -719,7 +583,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                                 )}
                               </div>
                             </div>
-                            <span className="text-[10px] font-mono text-[var(--color-accent)] bg-[var(--color-accent-soft)] px-2 py-0.5 rounded border border-[var(--color-accent)]/20">
+                            <span className="text-[10px] font-mono text-[var(--color-accent-strong)] bg-[var(--color-accent-soft)] px-2.5 py-1 rounded border border-[var(--color-accent)]/20">
                               Solo lectura
                             </span>
                           </div>
@@ -880,12 +744,19 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                           </div>
                         )}
 
-                        {/* Description or Clinical Explanation */}
-                        {field.description && (
-                          <p className="ms-form-help">{field.description}</p>
-                        )}
+                        {/* Ayuda y metadato técnico discreto alineados debajo del control */}
+                        <div className="ms-form-meta-row">
+                          {field.description ? (
+                            <p className="ms-form-help">{field.description}</p>
+                          ) : (
+                            <span />
+                          )}
+                          <span className="ms-form-colname" title={`Variable técnica: ${field.name}`}>
+                            col: {field.name}
+                          </span>
+                        </div>
 
-                        {/* Error text */}
+                        {/* Mensaje de error de validación */}
                         {hasError && (
                           <p className="ms-form-error">
                             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
@@ -893,7 +764,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                           </p>
                         )}
 
-                        {/* Clinical Range Warning Alert */}
+                        {/* Alerta de rango clínico */}
                         {alertMsg && (
                           <div className="ms-form-alert">
                             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -908,62 +779,231 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
             </section>
           ))}
         </main>
+
+        {/* C. PANEL AUXILIAR: Información secundaria en tarjetas (~25–30%) */}
+        <aside className="ms-form-aux">
+          {/* Navegación de secciones (si hay múltiples secciones) */}
+          {groupedSections.length > 1 && (
+            <div className="ms-card p-5 space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
+                  <ListOrdered className="w-4 h-4 text-[var(--color-accent)]" />
+                  <span>Índice de Secciones</span>
+                </span>
+                <span className="text-xs text-[var(--color-text-secondary)] font-mono">
+                  {groupedSections.length}
+                </span>
+              </div>
+
+              <nav className="ms-form-nav" aria-label="Navegación de secciones">
+                {groupedSections.map(([secTitle, fields]) => {
+                  const isActive = activeSection === secTitle;
+                  const isCompleted = completedSections.has(secTitle);
+
+                  return (
+                    <button
+                      key={secTitle}
+                      type="button"
+                      onClick={() => scrollToSection(secTitle)}
+                      className={`ms-form-nav-item ${isActive ? 'is-active' : ''}`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {isCompleted ? (
+                          <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
+                        ) : (
+                          <div
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              isActive ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-neutral-muted)]'
+                            }`}
+                          />
+                        )}
+                        <span className="truncate">{secTitle}</span>
+                      </div>
+                      <span className="ms-form-nav-badge shrink-0">{fields.length}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
+
+          {/* Tarjeta de Estado de la Base de Datos (Métricas en pares alineados) */}
+          <div className="ms-card p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
+                <span>Estado de la BD</span>
+              </span>
+              <span className="text-[11px] text-[var(--color-text-secondary)] font-mono">Resumen</span>
+            </div>
+
+            <div className="divide-y divide-[var(--color-border)]">
+              <div className="ms-form-metric-row">
+                <span className="ms-form-metric-label">Casos registrados</span>
+                <span className="ms-form-metric-value text-base">{records.length}</span>
+              </div>
+              <div className="ms-form-metric-row">
+                <span className="ms-form-metric-label">Variables activas</span>
+                <span className="ms-form-metric-value">{form.fields.length}</span>
+              </div>
+              <div className="ms-form-metric-row">
+                <span className="ms-form-metric-label">Prefijo de caso</span>
+                <span className="ms-form-metric-value text-[var(--color-accent)] font-mono">
+                  {form.codePrefix || 'REG-'}
+                </span>
+              </div>
+            </div>
+
+            {/* Acción auxiliar: Abrir tabla completa */}
+            <button
+              type="button"
+              onClick={onGoToRecords}
+              className="w-full ms-btn ms-btn-secondary ms-btn-sm"
+            >
+              <span>Abrir tabla completa</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Tarjeta de Cálculos en Tiempo Real (si existen) */}
+          {Object.keys(computedValues).length > 0 && (
+            <div className="ms-card p-5 bg-[var(--color-bg-deep)] border-[var(--color-border-strong)] space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
+                  <Calculator className="w-4 h-4 text-[var(--color-accent)]" />
+                  <span>Cálculos Activos</span>
+                </span>
+                <span className="text-[10px] text-[var(--color-accent-strong)] bg-[var(--color-accent-soft)] px-1.5 py-0.5 rounded font-mono font-bold">
+                  Auto
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {Object.entries(computedValues).map(([key, val]) => {
+                  const fieldDef = form.fields.find((f) => f.name === key);
+                  return (
+                    <div key={key} className="bg-[var(--color-surface)] p-3 rounded-md border border-[var(--color-border)]">
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] truncate">
+                        {fieldDef?.label || key}
+                      </div>
+                      <div className="text-lg font-bold font-mono text-[var(--color-accent-strong)] flex items-baseline gap-1 mt-0.5">
+                        {val}
+                        {fieldDef?.unit && (
+                          <span className="text-xs font-normal text-[var(--color-text-secondary)]">
+                            {fieldDef.unit}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Tarjeta de Últimos Registros */}
+          <div className="ms-card p-5 space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                <span>Últimos Registros</span>
+              </span>
+              <span className="text-[11px] text-[var(--color-text-secondary)] font-mono">
+                {recentRecords.length} recientes
+              </span>
+            </div>
+
+            {recentRecords.length === 0 ? (
+              <p className="text-xs text-[var(--color-text-secondary)] italic py-3 text-center">
+                Aún no hay casos guardados.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                {recentRecords.map((r) => (
+                  <div
+                    key={r.id}
+                    className="p-2.5 rounded bg-[var(--color-surface)] border border-[var(--color-border)] space-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-[var(--color-ink)]">
+                        {r.recordCode}
+                      </span>
+                      <span className="text-[10px] text-[var(--color-text-tertiary)]">
+                        {r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[var(--color-text-secondary)] truncate">
+                      {Object.entries(r.data)
+                        .slice(0, 2)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(' · ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
 
-      {/* Sticky Bottom Action Bar */}
-      <footer className="ms-form-actionbar" role="region" aria-label="Acciones de guardado de formulario">
+      {/* 5. JERARQUÍA DE ACCIONES: Acciones del registro en barra inferior accesible */}
+      <footer className="ms-form-actionbar" role="region" aria-label="Acciones del registro clínico">
         <div className="ms-form-actionbar-inner">
-          {/* Left: Reset button & Mandatory Progress Counter */}
-          <div className="flex items-center gap-4 flex-wrap">
+          {/* Acción de restablecimiento aislada en la izquierda */}
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleReset}
-              className="ms-btn ms-btn-sm ms-btn-ghost"
+              className="ms-btn ms-btn-ghost ms-btn-sm ms-btn-danger"
               title="Restablecer los valores de este caso"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Restablecer campos</span>
             </button>
-
-            {mandatoryStats.total > 0 && (
-              <div className="ms-form-progress" title="Progreso de campos obligatorios requeridos">
-                <div className="ms-form-progress-bar">
-                  <div
-                    className="ms-form-progress-fill"
-                    style={{ width: `${mandatoryStats.percentage}%` }}
-                  />
-                </div>
-                <span>
-                  <strong>{mandatoryStats.filled}</strong> de {mandatoryStats.total} obligatorios
-                </span>
-              </div>
-            )}
           </div>
 
-          {/* Right: Saving Action Controls */}
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          {/* Progreso de campos obligatorios en el centro con espaciado claro */}
+          {mandatoryStats.total > 0 && (
+            <div className="ms-form-progress" title="Progreso de campos obligatorios requeridos">
+              <div className="ms-form-progress-bar">
+                <div
+                  className="ms-form-progress-fill"
+                  style={{ width: `${mandatoryStats.percentage}%` }}
+                />
+              </div>
+              <span className="ms-form-progress-text">
+                <strong className="text-[var(--color-ink)]">{mandatoryStats.filled}</strong> de {mandatoryStats.total} obligatorios
+              </span>
+            </div>
+          )}
+
+          {/* Acciones principales de guardado en la derecha */}
+          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap justify-end">
             <button
               type="button"
               onClick={() => handleSubmit(false)}
-              className="ms-btn ms-btn-secondary"
+              className="ms-btn ms-btn-secondary ms-btn-md"
             >
-              Guardar y Mantener
+              <span>Guardar y Mantener</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleSubmit(true)}
-              className="ms-btn ms-btn-primary ms-btn-lg"
+              className="ms-btn ms-btn-primary ms-btn-md"
               title="Atajo de teclado: Ctrl + Enter"
             >
               <Save className="w-4 h-4" />
-              <span>Guardar y Siguiente</span>
+              <span>Guardar y Siguiente Caso</span>
+              <kbd className="ms-form-kbd-tip">
+                Ctrl + ↵
+              </kbd>
             </button>
           </div>
         </div>
       </footer>
 
-      {/* Free-Text Clinical Data Extractor Modal */}
+      {/* Modal de extracción de texto libre (Preservado íntegramente) */}
       <TextExtractorModal
         isOpen={isTextExtractorOpen}
         onClose={() => setIsTextExtractorOpen(false)}

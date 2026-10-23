@@ -57,7 +57,7 @@ export default function FormsPage() {
   const [isFormsManagerOpen, setIsFormsManagerOpen] = useState(false);
   const [isProjectSyncOpen, setIsProjectSyncOpen] = useState(false);
   const [trashItems, setTrashItems] = useState<TrashItem[]>(() => getTrashItems());
-  const [showHelperBanner] = useState(true);
+  const [showHelperBanner, setShowHelperBanner] = useState(true);
   const [favoriteSections, setFavoriteSections] = useState<FavoriteSection[]>(() =>
     getFavoriteSections()
   );
@@ -419,64 +419,67 @@ export default function FormsPage() {
       {/* ESTADO INICIAL LIMPIO: Si no hay formularios creados */}
       {forms.length === 0 || !activeForm ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1.5rem' }}>
-          <div className="ms-card slide-up" style={{ maxWidth: '600px', width: '100%', padding: '3rem 2rem', textAlign: 'center' }}>
+          <div className="ms-card slide-up" style={{ maxWidth: '580px', width: '100%', padding: '3.25rem 2.25rem', textAlign: 'center' }}>
             <div style={{
-              width: '4.25rem',
-              height: '4.25rem',
+              width: '4rem',
+              height: '4rem',
               borderRadius: '50%',
-              background: 'var(--color-bg-deep)',
-              border: '1px solid var(--color-border)',
+              background: 'var(--color-accent-soft)',
+              border: '1px solid rgba(235, 94, 40, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1.5rem',
-              color: 'var(--color-accent)',
+              color: 'var(--color-accent-strong)',
             }}>
-              <ClipboardList size={34} />
+              <ClipboardList size={30} />
             </div>
 
-            <div className="ms-eyebrow" style={{ marginBottom: '0.35rem' }}>Cuaderno eCRF</div>
-            <h2 className="ms-page-title" style={{ fontSize: '1.75rem', marginBottom: '0.65rem' }}>
+            <div className="ms-eyebrow" style={{ marginBottom: '0.4rem' }}>Cuaderno eCRF</div>
+            <h2 className="ms-page-title" style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>
               Sin formularios clínicos activos
             </h2>
 
             <p style={{
               color: 'var(--color-text-secondary)',
               fontSize: '0.9375rem',
-              lineHeight: 1.55,
-              maxWidth: '460px',
+              lineHeight: 1.6,
+              maxWidth: '440px',
               margin: '0 auto 2.25rem',
             }}>
-              Crea un cuaderno eCRF personalizado con validaciones para tu estudio, o carga una plantilla clínica preconfigurada lista para recolectar datos.
+              Crea un cuaderno eCRF con validaciones en tiempo real para tu estudio, o carga una plantilla clínica preconfigurada lista para recolectar datos.
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.85rem', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'center' }}>
               <button
                 type="button"
                 onClick={() => handleCreateNewForm('Nuevo Formulario Clínico', 'PAC-')}
                 className="ms-btn ms-btn-primary ms-btn-lg"
+                style={{ width: '100%', maxWidth: '340px' }}
               >
                 <Plus size={18} />
                 <span>Crear nuevo formulario</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setIsTemplatesModalOpen(true)}
-                className="ms-btn ms-btn-secondary ms-btn-lg"
-              >
-                <FileText size={18} />
-                <span>Cargar plantilla clínica</span>
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsTemplatesModalOpen(true)}
+                  className="ms-btn ms-btn-secondary ms-btn-sm"
+                >
+                  <FileText size={15} />
+                  <span>Cargar plantilla clínica</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setIsFormsManagerOpen(true)}
-                className="ms-btn ms-btn-ghost ms-btn-lg"
-              >
-                <FolderKanban size={18} />
-                <span>Gestionar / Importar</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setIsFormsManagerOpen(true)}
+                  className="ms-btn ms-btn-ghost ms-btn-sm"
+                >
+                  <FolderKanban size={15} />
+                  <span>Gestionar / Importar</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -497,7 +500,7 @@ export default function FormsPage() {
             onCreateNewForm={() => handleCreateNewForm('Nuevo Formulario', 'PAC-')}
           />
 
-          {/* Banner de Productividad Clínica */}
+          {/* Banner de Productividad Clínica Descartable */}
           {showHelperBanner && activeTab === 'intake' && (
             <div style={{
               background: 'var(--color-bg-subtle, #F7F4EB)',
@@ -527,12 +530,13 @@ export default function FormsPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsProjectSyncOpen(true)}
-                  className="ms-btn ms-btn-sm"
-                  style={{ padding: '0.3rem 0.7rem' }}
+                  onClick={() => setShowHelperBanner(false)}
+                  className="ms-btn ms-btn-ghost ms-btn-sm"
+                  style={{ padding: '0.2rem 0.5rem', minHeight: 'unset', color: 'var(--color-text-secondary)' }}
+                  title="Cerrar aviso"
+                  aria-label="Cerrar aviso de captura clínica"
                 >
-                  <Database size={13} style={{ color: 'var(--color-accent)' }} />
-                  <span>Sincronizar con Proyectos</span>
+                  ✕
                 </button>
               </div>
             </div>

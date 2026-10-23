@@ -13,6 +13,8 @@ import {
   Hash,
   GitBranch,
   ClipboardPaste,
+  Check,
+  ListOrdered,
 } from 'lucide-react';
 import type { ClinicalForm, FormField, RecordEntry } from '../types/clinical';
 import { calculateFieldValue, checkClinicalAlert } from '../utils/calculator';
@@ -41,6 +43,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isTextExtractorOpen, setIsTextExtractorOpen] = useState(false);
   const [textExtractorSection, setTextExtractorSection] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('');
   const firstInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleOpenTextExtractor = (sectionName: string | null = null) => {
@@ -152,6 +155,59 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
     return Array.from(map.entries()).filter(([_, fields]) => fields.length > 0);
   }, [form, activeFullData]);
 
+  // Keep activeSection valid
+  useEffect(() => {
+    if (groupedSections.length > 0) {
+      if (!activeSection || !groupedSections.some(([title]) => title === activeSection)) {
+        setActiveSection(groupedSections[0][0]);
+      }
+    }
+  }, [groupedSections, activeSection]);
+
+  // Determine completed sections (all required or all fields filled)
+  const completedSections = useMemo(() => {
+    const set = new Set<string>();
+    groupedSections.forEach(([secTitle, fields]) => {
+      if (fields.length === 0) return;
+      const targetFields = fields.filter((f) => f.required && f.type !== 'calculated');
+      const fieldsToCheck = targetFields.length > 0 ? targetFields : fields.filter((f) => f.type !== 'calculated');
+      if (fieldsToCheck.length === 0) return;
+
+      const isCompleted = fieldsToCheck.every((f) => {
+        const val = activeFullData[f.name];
+        return val !== undefined && val !== null && val !== '' && (!Array.isArray(val) || val.length > 0);
+      });
+
+      if (isCompleted) {
+        set.add(secTitle);
+      }
+    });
+    return set;
+  }, [groupedSections, activeFullData]);
+
+  // Mandatory fields progress stats
+  const mandatoryStats = useMemo(() => {
+    const visibleFields = new Set<string>();
+    groupedSections.forEach(([_, fields]) => {
+      fields.forEach((f) => visibleFields.add(f.name));
+    });
+
+    const requiredFields = form.fields.filter(
+      (f) => f.required && f.type !== 'calculated' && visibleFields.has(f.name)
+    );
+
+    const filledCount = requiredFields.filter((f) => {
+      const val = activeFullData[f.name];
+      return val !== undefined && val !== null && val !== '' && (!Array.isArray(val) || val.length > 0);
+    }).length;
+
+    return {
+      total: requiredFields.length,
+      filled: filledCount,
+      percentage: requiredFields.length > 0 ? Math.round((filledCount / requiredFields.length) * 100) : 100,
+    };
+  }, [form.fields, groupedSections, activeFullData]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!recordCode.trim()) {
@@ -227,46 +283,61 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
     }
   };
 
+  const scrollToSection = (secTitle: string) => {
+    setActiveSection(secTitle);
+    const el = document.getElementById(`section-card-${secTitle.replace(/\s+/g, '-')}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // Last 3 recently entered records for quick review
   const recentRecords = useMemo(() => {
     return records.slice(-3).reverse();
   }, [records]);
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6">
+    <div className="ms-form-container">
       {/* Top Banner & Quick Context */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-[var(--color-border)]">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">{form.title}</h1>
-            <span className="text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded font-mono">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">{form.title}</h1>
+            <span className="ms-badge">
               {form.fields.length} variables
             </span>
+            {form.codePrefix && (
+              <span className="text-xs text-[var(--color-text-secondary)] font-mono bg-[var(--color-bg-deep)] px-2 py-0.5 rounded border border-[var(--color-border)]">
+                Prefijo: {form.codePrefix}
+              </span>
+            )}
           </div>
-          <p className="text-sm text-slate-600 mt-0.5">{form.description}</p>
+          {form.description && (
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1 max-w-2xl">{form.description}</p>
+          )}
         </div>
 
         {/* Global actions & keyboard tip */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             type="button"
             onClick={() => handleOpenTextExtractor(null)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white text-teal-800 border border-teal-300 hover:bg-teal-50 rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-            title="Pegar analítica completa, informe de ecocardiograma o antecedentes para autocompletar el caso"
+            className="ms-btn ms-btn-secondary ms-btn-sm"
+            title="Pegar analítica completa, informe o antecedentes para autocompletar el caso"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
             <span>Rellenar desde Texto Libre</span>
           </button>
 
-          <div className="hidden lg:flex items-center text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5">
-            <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[11px] font-mono mr-1 shadow-2xs">
+          <div className="hidden xl:flex items-center text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-deep)] border border-[var(--color-border)] rounded-md px-2.5 py-1.5">
+            <kbd className="px-1.5 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[11px] font-mono mr-1 shadow-2xs text-[var(--color-text-primary)]">
               Ctrl
-            </kbd>{' '}
-            +{' '}
-            <kbd className="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[11px] font-mono mx-1 shadow-2xs">
+            </kbd>
+            +
+            <kbd className="px-1.5 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[11px] font-mono mx-1 shadow-2xs text-[var(--color-text-primary)]">
               Enter
             </kbd>
-            <span>guardar y siguiente</span>
+            <span className="ml-1">guardar y avanzar</span>
           </div>
 
           <button
@@ -281,417 +352,157 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
       {/* Success Notification Alert */}
       {savedSuccessMsg && (
-        <div className="mt-4 p-3 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-md flex items-center justify-between text-[var(--color-ink)] text-sm">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={16} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
-            <span className="font-medium">{savedSuccessMsg}</span>
+        <div className="mb-6 p-3.5 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded-lg flex items-center justify-between text-[var(--color-ink)] text-sm slide-up">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
+            <span className="font-semibold">{savedSuccessMsg}</span>
           </div>
           <button
             onClick={onGoToRecords}
             className="ms-btn ms-btn-sm ms-btn-ghost"
             style={{ color: 'var(--color-success)' }}
           >
-            <span>Ver en tabla ({records.length} total)</span>
+            <span>Ver registros ({records.length})</span>
             <ArrowRight size={14} />
           </button>
         </div>
       )}
 
-      {/* Form Content Grid */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Intake Form Column (3/4) */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Metadata Card: Patient / Case Code */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <span className="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-teal-600" />
-                Identificador de Sujeto / Paciente
-              </span>
-              <span className="text-xs text-slate-500">Clave primaria de la fila en la BD</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Código de Registro <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={recordCode}
-                    onChange={(e) => setRecordCode(e.target.value)}
-                    placeholder="Ej. PAC-001 o ID-SUJETO"
-                    className="w-full text-sm font-mono font-semibold text-slate-900 bg-teal-50/50 border border-slate-300 rounded-md py-1.5 px-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                  />
-                </div>
-                {errors._code && <p className="text-xs text-rose-600 mt-1">{errors._code}</p>}
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Profesional / Investigador</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-                    <User className="w-3.5 h-3.5" />
-                  </div>
-                  <input
-                    type="text"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Nombre o firma del clínico"
-                    className="w-full text-sm text-slate-800 bg-white border border-slate-300 rounded-md py-1.5 pl-8 pr-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                  />
-                </div>
-              </div>
-            </div>
+      {/* Mobile Horizontal Quick Navigation */}
+      {groupedSections.length > 1 && (
+        <div className="lg:hidden mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-2.5 shadow-xs">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-tertiary)] mb-2 flex items-center gap-1.5">
+            <ListOrdered className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+            <span>Secciones del Formulario:</span>
           </div>
+          <div className="ms-form-nav-mobile">
+            {groupedSections.map(([secTitle]) => {
+              const isActive = activeSection === secTitle;
+              const isCompleted = completedSections.has(secTitle);
 
-          {/* Section Navigation Quick Jump Bar */}
-          {groupedSections.length > 1 && (
-            <div className="bg-slate-100/80 border border-slate-200 rounded-md p-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
-                Secciones:
-              </span>
-              {groupedSections.map(([secTitle]) => (
+              return (
                 <button
                   key={secTitle}
                   type="button"
-                  onClick={() => {
-                    const el = document.getElementById(`section-card-${secTitle.replace(/\s+/g, '-')}`);
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white hover:text-teal-800 hover:bg-teal-50 border border-slate-200 rounded whitespace-nowrap shadow-2xs transition-colors"
+                  onClick={() => scrollToSection(secTitle)}
+                  className={`ms-form-chip ${isActive ? 'is-active' : ''}`}
                 >
-                  {secTitle}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Grouped Clinical Sections */}
-          {groupedSections.map(([sectionTitle, fields], sIdx) => (
-            <div
-              key={sectionTitle}
-              id={`section-card-${sectionTitle.replace(/\s+/g, '-')}`}
-              className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs scroll-mt-20"
-            >
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-teal-600"></span>
-                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                    {sectionTitle}
-                  </h2>
-                  {form.sectionRules?.[sectionTitle] && (
-                    <span className="text-[10px] text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded font-mono flex items-center gap-1">
-                      <GitBranch className="w-2.5 h-2.5 text-indigo-600" />
-                      Sección desplegada por condición
-                    </span>
+                  {isCompleted ? (
+                    <Check className="w-3.5 h-3.5 text-[var(--color-success)] shrink-0" />
+                  ) : (
+                    <span className="ms-form-chip-bullet" />
                   )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenTextExtractor(sectionTitle)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-md transition-colors shadow-2xs cursor-pointer"
-                    title={`Pegar informe o analítica para autocompletar la sección ${sectionTitle}`}
-                  >
-                    <ClipboardPaste className="w-3.5 h-3.5 text-teal-700" />
-                    <span>Pegar texto en esta sección</span>
-                  </button>
-                  <span className="text-xs text-slate-500 font-mono hidden sm:inline">
-                    {fields.length} {fields.length === 1 ? 'variable' : 'variables'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-                {fields.map((field, fIdx) => {
-                  const currentValue = activeFullData[field.name] ?? '';
-                  const alertMsg = checkClinicalAlert(field, currentValue);
-                  const isCalculated = field.type === 'calculated';
-                  const isConditional = !!field.conditional;
-                  const hasError = !!errors[field.name];
-
-                  return (
-                    <div
-                      key={field.id}
-                      id={`field-${field.name}`}
-                      className={`space-y-1.5 ${
-                        field.type === 'textarea' || field.type === 'multiselect' ? 'sm:col-span-2' : ''
-                      } ${isCalculated ? 'bg-teal-50/40 p-3 rounded-md border border-teal-200' : ''} ${
-                        isConditional ? 'border-l-2 border-l-indigo-500 pl-2 py-0.5' : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-slate-800 flex items-center gap-1 flex-wrap">
-                          {field.label}
-                          {field.required && !isCalculated && <span className="text-rose-500">*</span>}
-                          {isCalculated && (
-                            <span className="text-[10px] text-teal-700 bg-teal-100/70 font-mono px-1 rounded flex items-center gap-0.5">
-                              <Calculator className="w-2.5 h-2.5" /> Automático
-                            </span>
-                          )}
-                          {isConditional && (
-                            <span className="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-mono px-1 rounded flex items-center gap-0.5" title="Campo dependiente de otra variable">
-                              <GitBranch className="w-2.5 h-2.5 text-indigo-600" /> Condicional
-                            </span>
-                          )}
-                        </label>
-                        <span className="text-[11px] font-mono text-slate-600" title="Columna BD">{field.name}</span>
-                      </div>
-
-                      {/* Field Inputs according to type */}
-                      {isCalculated ? (
-                        <div className="flex items-center justify-between bg-white border border-teal-300 rounded-md py-1.5 px-3">
-                          <span className="text-sm font-bold font-mono text-teal-900">
-                            {currentValue !== '' && currentValue !== null && currentValue !== undefined
-                              ? currentValue
-                              : 'Pendiente de datos'}
-                          </span>
-                          {field.unit && <span className="text-xs font-medium text-teal-700">{field.unit}</span>}
-                        </div>
-                      ) : field.type === 'number' ? (
-                        <div className="relative">
-                          <input
-                            ref={sIdx === 0 && fIdx === 0 ? firstInputRef : undefined}
-                            type="number"
-                            step={field.step || 'any'}
-                            min={field.min}
-                            max={field.max}
-                            value={currentValue}
-                            onChange={(e) =>
-                              handleInputChange(
-                                field.name,
-                                e.target.value === '' ? '' : Number(e.target.value)
-                              )
-                            }
-                            placeholder={field.placeholder || (field.min !== undefined ? `Mín: ${field.min}` : '0')}
-                            className={`w-full text-sm text-slate-900 bg-white border rounded-md py-1.5 px-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden ${
-                              hasError ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300'
-                            }`}
-                          />
-                          {field.unit && (
-                            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-medium text-slate-500 pointer-events-none">
-                              {field.unit}
-                            </span>
-                          )}
-                        </div>
-                      ) : field.type === 'select' ? (
-                        <select
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          className={`w-full text-sm text-slate-900 bg-white border rounded-md py-1.5 px-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden ${
-                            hasError ? 'border-rose-400' : 'border-slate-300'
-                          }`}
-                        >
-                          <option value="">-- Seleccionar --</option>
-                          {field.options?.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      ) : field.type === 'radio' ? (
-                        <div className="space-y-1.5 pt-1">
-                          {field.options?.map((opt) => (
-                            <label
-                              key={opt}
-                              className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900"
-                            >
-                              <input
-                                type="radio"
-                                name={`radio-${field.name}`}
-                                checked={currentValue === opt}
-                                onChange={() => handleInputChange(field.name, opt)}
-                                className="w-3.5 h-3.5 text-teal-600 border-slate-300 focus:ring-teal-500"
-                              />
-                              <span>{opt}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ) : field.type === 'boolean' ? (
-                        <div className="flex items-center gap-4 py-1">
-                          <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                            <input
-                              type="radio"
-                              name={`bool-${field.name}`}
-                              checked={currentValue === true}
-                              onChange={() => handleInputChange(field.name, true)}
-                              className="w-3.5 h-3.5 text-teal-600 border-slate-300"
-                            />
-                            <span>Sí / Positivo</span>
-                          </label>
-                          <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
-                            <input
-                              type="radio"
-                              name={`bool-${field.name}`}
-                              checked={currentValue === false}
-                              onChange={() => handleInputChange(field.name, false)}
-                              className="w-3.5 h-3.5 text-teal-600 border-slate-300"
-                            />
-                            <span>No / Negativo</span>
-                          </label>
-                        </div>
-                      ) : field.type === 'multiselect' ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-md">
-                          {field.options?.map((opt) => {
-                            const selectedList = Array.isArray(currentValue) ? currentValue : [];
-                            const isChecked = selectedList.includes(opt);
-                            return (
-                              <label
-                                key={opt}
-                                className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      handleInputChange(field.name, [...selectedList, opt]);
-                                    } else {
-                                      handleInputChange(
-                                        field.name,
-                                        selectedList.filter((item) => item !== opt)
-                                      );
-                                    }
-                                  }}
-                                  className="w-3.5 h-3.5 text-teal-600 rounded border-slate-300 focus:ring-teal-500"
-                                />
-                                <span>{opt}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      ) : field.type === 'date' ? (
-                        <input
-                          type="date"
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          className="w-full text-sm text-slate-900 bg-white border border-slate-300 rounded-md py-1.5 px-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                        />
-                      ) : field.type === 'textarea' ? (
-                        <textarea
-                          rows={2}
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          placeholder={field.placeholder || 'Observaciones clínicas...'}
-                          className="w-full text-sm text-slate-900 bg-white border border-slate-300 rounded-md py-1.5 px-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden resize-y"
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={currentValue}
-                          onChange={(e) => handleInputChange(field.name, e.target.value)}
-                          placeholder={field.placeholder || ''}
-                          className="w-full text-sm text-slate-900 bg-white border border-slate-300 rounded-md py-1.5 px-3 focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
-                        />
-                      )}
-
-                      {/* Description or formula explanation */}
-                      {field.description && (
-                        <p className="text-[11px] text-slate-500 leading-tight">{field.description}</p>
-                      )}
-
-                      {/* Error text */}
-                      {hasError && <p className="text-xs text-rose-600 font-medium">{errors[field.name]}</p>}
-
-                      {/* Clinical Range Warning Alert */}
-                      {alertMsg && (
-                        <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded">
-                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                          <span>{alertMsg}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {/* Bottom Action Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="ms-btn ms-btn-sm ms-btn-ghost"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Restablecer campos</span>
-            </button>
-
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={() => handleSubmit(false)}
-                className="w-full sm:w-auto ms-btn ms-btn-secondary"
-              >
-                Guardar y Mantener
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSubmit(true)}
-                className="w-full sm:w-auto ms-btn ms-btn-primary"
-              >
-                <Save className="w-4 h-4" />
-                <span>Guardar y Siguiente Caso</span>
-              </button>
-            </div>
+                  <span>{secTitle}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
+      )}
 
-        {/* Right Sidebar: Clinical Status & Recent Records (1/4) */}
-        <div className="space-y-5">
-          {/* Summary / Stats Card */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
-            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-              Estado de la Base de Datos
-            </h3>
+      {/* Main Two-Column Structure: Sticky Sidebar (Left) + Form (Center) */}
+      <div className="ms-form-layout">
+        {/* Left Sticky Sidebar: Section Index + Existing Auxiliary Panels */}
+        <aside className="ms-form-sidebar space-y-5">
+          {/* Section Index Card */}
+          <div className="ms-card p-4">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--color-border)]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
+                <ListOrdered className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                Índice de Secciones
+              </span>
+              <span className="text-[11px] text-[var(--color-text-secondary)] font-mono">
+                {groupedSections.length} {groupedSections.length === 1 ? 'sección' : 'secciones'}
+              </span>
+            </div>
 
-            <div className="mt-3 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">Casos registrados:</span>
-                <span className="font-semibold text-slate-900 font-mono text-sm">{records.length}</span>
+            <nav className="ms-form-nav" aria-label="Navegación de secciones eCRF">
+              {groupedSections.map(([secTitle, fields]) => {
+                const isActive = activeSection === secTitle;
+                const isCompleted = completedSections.has(secTitle);
+
+                return (
+                  <button
+                    key={secTitle}
+                    type="button"
+                    onClick={() => scrollToSection(secTitle)}
+                    className={`ms-form-nav-item ${isActive ? 'is-active' : ''}`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
+                      ) : (
+                        <div
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            isActive ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-neutral-muted)]'
+                          }`}
+                        />
+                      )}
+                      <span className="truncate">{secTitle}</span>
+                    </div>
+                    <span className="ms-form-nav-badge shrink-0">{fields.length}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Database Summary Card (Existing Auxiliary Widget) */}
+          <div className="ms-card p-4 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                Estado de la Base de Datos
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[var(--color-text-secondary)]">Casos registrados:</span>
+                <span className="font-bold text-[var(--color-ink)] font-mono text-sm">{records.length}</span>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">Variables en formulario:</span>
-                <span className="font-semibold text-slate-900 font-mono text-sm">{form.fields.length}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[var(--color-text-secondary)]">Variables activas:</span>
+                <span className="font-semibold text-[var(--color-ink)] font-mono">{form.fields.length}</span>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">Prefijo automático:</span>
-                <span className="font-mono text-teal-700 font-medium">{form.codePrefix || 'REG-'}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[var(--color-text-secondary)]">Prefijo de caso:</span>
+                <span className="font-mono text-[var(--color-accent)] font-semibold">{form.codePrefix || 'REG-'}</span>
               </div>
             </div>
 
             <button
               onClick={onGoToRecords}
-              className="mt-4 w-full py-1.5 px-3 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center gap-1 transition-colors"
+              className="mt-2 w-full ms-btn ms-btn-secondary ms-btn-sm"
             >
               <span>Abrir tabla completa</span>
-              <ChevronRight className="w-3 h-3 text-slate-400" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Quick Real-Time Formulas Active Panel */}
+          {/* Real-time Formulas Panel (Existing Auxiliary Widget) */}
           {Object.keys(computedValues).length > 0 && (
-            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 shadow-xs">
-              <h3 className="text-xs font-semibold text-teal-900 uppercase tracking-wider pb-2 border-b border-teal-200/60 flex items-center gap-1.5">
-                <Calculator className="w-3.5 h-3.5 text-teal-700" />
-                Cálculos en Tiempo Real
-              </h3>
+            <div className="ms-card p-4 bg-[var(--color-bg-deep)] border-[var(--color-border-strong)] space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
+                  <Calculator className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  Cálculos en Tiempo Real
+                </span>
+              </div>
 
-              <div className="mt-3 space-y-2">
+              <div className="space-y-2">
                 {Object.entries(computedValues).map(([key, val]) => {
                   const fieldDef = form.fields.find((f) => f.name === key);
                   return (
-                    <div key={key} className="bg-white p-2.5 rounded border border-teal-200/80">
-                      <div className="text-[11px] font-medium text-slate-600">{fieldDef?.label || key}</div>
-                      <div className="text-base font-bold font-mono text-teal-800 flex items-baseline gap-1 mt-0.5">
+                    <div key={key} className="bg-[var(--color-surface)] p-2.5 rounded-md border border-[var(--color-border)]">
+                      <div className="text-[11px] font-semibold text-[var(--color-text-secondary)] truncate">
+                        {fieldDef?.label || key}
+                      </div>
+                      <div className="text-base font-bold font-mono text-[var(--color-accent-strong)] flex items-baseline gap-1 mt-0.5">
                         {val}
-                        {fieldDef?.unit && <span className="text-xs font-normal text-teal-600">{fieldDef.unit}</span>}
+                        {fieldDef?.unit && (
+                          <span className="text-xs font-medium text-[var(--color-text-secondary)]">{fieldDef.unit}</span>
+                        )}
                       </div>
                     </div>
                   );
@@ -700,29 +511,33 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
             </div>
           )}
 
-          {/* Recent Records Strip */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
-            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
-              Últimos Registros
-            </h3>
+          {/* Recent Records Strip (Existing Auxiliary Widget) */}
+          <div className="ms-card p-4 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-primary)] flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[var(--color-text-secondary)]" />
+                Últimos Registros
+              </span>
+            </div>
 
             {recentRecords.length === 0 ? (
-              <p className="text-xs text-slate-600 italic py-3 text-center">Aún no hay casos guardados.</p>
+              <p className="text-xs text-[var(--color-text-secondary)] italic py-2 text-center">
+                Aún no hay casos guardados.
+              </p>
             ) : (
-              <div className="mt-3 space-y-2">
+              <div className="space-y-2">
                 {recentRecords.map((r) => (
                   <div
                     key={r.id}
-                    className="p-2 rounded bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors"
+                    className="p-2 rounded bg-[var(--color-surface)] border border-[var(--color-border)]"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-semibold text-slate-900">{r.recordCode}</span>
-                      <span className="text-[10px] text-slate-600">
+                      <span className="font-mono text-xs font-bold text-[var(--color-ink)]">{r.recordCode}</span>
+                      <span className="text-[10px] text-[var(--color-text-tertiary)]">
                         {r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-600 truncate mt-0.5">
+                    <div className="text-[11px] text-[var(--color-text-secondary)] truncate mt-0.5">
                       {Object.entries(r.data)
                         .slice(0, 2)
                         .map(([k, v]) => `${k}: ${v}`)
@@ -733,8 +548,420 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
               </div>
             )}
           </div>
-        </div>
+        </aside>
+
+        {/* Main Center Form Area (Max-Width ~760px) */}
+        <main className="ms-form-main">
+          {/* Metadata Card: Patient / Case Code */}
+          <div className="ms-form-section">
+            <div className="ms-form-section-header">
+              <span className="ms-form-section-title">
+                <Hash className="w-4 h-4 text-[var(--color-accent)]" />
+                Identificador de Sujeto / Paciente
+              </span>
+              <span className="text-xs text-[var(--color-text-tertiary)] font-mono">Clave primaria de la fila</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="ms-form-field">
+                <div className="ms-form-label-row">
+                  <label htmlFor="input-record-code" className="ms-form-label">
+                    Código de Registro <span className="ms-form-required">*</span>
+                  </label>
+                  <span className="ms-form-colname font-mono">_code</span>
+                </div>
+                <input
+                  id="input-record-code"
+                  type="text"
+                  value={recordCode}
+                  onChange={(e) => setRecordCode(e.target.value)}
+                  placeholder="Ej. PAC-001 o ID-SUJETO"
+                  className={`ms-form-input font-mono font-semibold ${errors._code ? 'has-error' : ''}`}
+                />
+                {errors._code && (
+                  <p className="ms-form-error">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{errors._code}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="ms-form-field">
+                <div className="ms-form-label-row">
+                  <label htmlFor="input-author" className="ms-form-label">
+                    Profesional / Investigador
+                  </label>
+                  <span className="ms-form-colname font-mono">author</span>
+                </div>
+                <div className="relative">
+                  <input
+                    id="input-author"
+                    type="text"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder="Nombre o firma del clínico"
+                    className="ms-form-input pl-9"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--color-text-tertiary)]">
+                    <User className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Grouped Clinical Sections */}
+          {groupedSections.map(([sectionTitle, fields], sIdx) => (
+            <section
+              key={sectionTitle}
+              id={`section-card-${sectionTitle.replace(/\s+/g, '-')}`}
+              className="ms-form-section"
+            >
+              <div className="ms-form-section-header">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent)]" />
+                  <h2 className="ms-form-section-title">{sectionTitle}</h2>
+                  {form.sectionRules?.[sectionTitle] && (
+                    <span className="text-[10px] text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                      <GitBranch className="w-3 h-3 text-indigo-600" />
+                      Sección Condicional
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenTextExtractor(sectionTitle)}
+                    className="ms-btn ms-btn-sm ms-btn-secondary"
+                    title={`Pegar informe o analítica para autocompletar la sección ${sectionTitle}`}
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
+                    <span className="hidden sm:inline">Pegar texto aquí</span>
+                    <span className="sm:hidden">Pegar</span>
+                  </button>
+                  <span className="text-xs text-[var(--color-text-tertiary)] font-mono">
+                    {fields.length} {fields.length === 1 ? 'var' : 'vars'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Fields Container (Separation ~24px between fields) */}
+              <div className="ms-form-section-body">
+                <div className="ms-form-field-grid ms-form-field-grid-2">
+                  {fields.map((field, fIdx) => {
+                    const currentValue = activeFullData[field.name] ?? '';
+                    const alertMsg = checkClinicalAlert(field, currentValue);
+                    const isCalculated = field.type === 'calculated';
+                    const isConditional = !!field.conditional;
+                    const hasError = !!errors[field.name];
+
+                    // Full-width fields: textarea, multiselect, description-heavy, or wide single elements
+                    const isWide =
+                      field.type === 'textarea' ||
+                      field.type === 'multiselect' ||
+                      (field.options && field.options.length > 4);
+
+                    return (
+                      <div
+                        key={field.id}
+                        id={`field-${field.name}`}
+                        className={`ms-form-field ${isWide ? 'ms-form-col-span-2' : ''} ${
+                          isConditional ? 'border-l-2 border-l-indigo-400 pl-3 py-1' : ''
+                        }`}
+                      >
+                        {/* Label & Meta Row */}
+                        <div className="ms-form-label-row">
+                          <label
+                            htmlFor={`field-ctrl-${field.name}`}
+                            className="ms-form-label"
+                          >
+                            <span>{field.label}</span>
+                            {field.required && !isCalculated && (
+                              <span className="ms-form-required" title="Campo obligatorio">
+                                *
+                              </span>
+                            )}
+                            {isCalculated && (
+                              <span className="ms-form-calculated-badge">
+                                <Calculator className="w-2.5 h-2.5" /> Automático
+                              </span>
+                            )}
+                            {isConditional && (
+                              <span
+                                className="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-mono px-1.5 py-0.5 rounded flex items-center gap-1"
+                                title="Campo dependiente de otra variable"
+                              >
+                                <GitBranch className="w-2.5 h-2.5 text-indigo-600" /> Condicional
+                              </span>
+                            )}
+                          </label>
+                          <span className="ms-form-colname" title="Columna BD">
+                            {field.name}
+                          </span>
+                        </div>
+
+                        {/* Specialized Field Control Inputs */}
+                        {isCalculated ? (
+                          <div className="ms-form-calculated">
+                            <div className="space-y-0.5">
+                              <span className="text-xs text-[var(--color-text-secondary)]">Resultado calculado</span>
+                              <div className="ms-form-calculated-value">
+                                <span>
+                                  {currentValue !== '' && currentValue !== null && currentValue !== undefined
+                                    ? currentValue
+                                    : 'Pendiente de datos'}
+                                </span>
+                                {field.unit && (
+                                  <span className="text-xs font-normal text-[var(--color-text-secondary)]">
+                                    {field.unit}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-mono text-[var(--color-accent)] bg-[var(--color-accent-soft)] px-2 py-0.5 rounded border border-[var(--color-accent)]/20">
+                              Solo lectura
+                            </span>
+                          </div>
+                        ) : field.type === 'number' ? (
+                          <div className="ms-form-input-affix">
+                            <input
+                              ref={sIdx === 0 && fIdx === 0 ? firstInputRef : undefined}
+                              id={`field-ctrl-${field.name}`}
+                              type="number"
+                              step={field.step || 'any'}
+                              min={field.min}
+                              max={field.max}
+                              value={currentValue}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  field.name,
+                                  e.target.value === '' ? '' : Number(e.target.value)
+                                )
+                              }
+                              placeholder={
+                                field.placeholder || (field.min !== undefined ? `Mín: ${field.min}` : '0')
+                              }
+                              className={`ms-form-input font-mono ${hasError ? 'has-error' : ''}`}
+                            />
+                            {field.unit && <span className="ms-form-unit">{field.unit}</span>}
+                          </div>
+                        ) : field.type === 'boolean' ? (
+                          <div
+                            className="ms-form-segmented"
+                            role="radiogroup"
+                            aria-label={field.label}
+                          >
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked={currentValue === true}
+                              onClick={() => handleInputChange(field.name, true)}
+                              className={`ms-form-segmented-btn ${currentValue === true ? 'is-active' : ''}`}
+                            >
+                              <span>Sí / Positivo</span>
+                            </button>
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked={currentValue === false}
+                              onClick={() => handleInputChange(field.name, false)}
+                              className={`ms-form-segmented-btn ${currentValue === false ? 'is-active' : ''}`}
+                            >
+                              <span>No / Negativo</span>
+                            </button>
+                          </div>
+                        ) : field.type === 'radio' ? (
+                          <div
+                            className="ms-form-chip-grid pt-1"
+                            role="radiogroup"
+                            aria-label={field.label}
+                          >
+                            {field.options?.map((opt) => {
+                              const isSelected = currentValue === opt;
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={isSelected}
+                                  onClick={() => handleInputChange(field.name, opt)}
+                                  className={`ms-form-chip ${isSelected ? 'is-active' : ''}`}
+                                >
+                                  {isSelected ? (
+                                    <Check className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
+                                  ) : (
+                                    <span className="ms-form-chip-bullet" />
+                                  )}
+                                  <span>{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : field.type === 'multiselect' ? (
+                          <div
+                            className="ms-form-chip-grid pt-1"
+                            role="group"
+                            aria-label={field.label}
+                          >
+                            {field.options?.map((opt) => {
+                              const selectedList = Array.isArray(currentValue) ? currentValue : [];
+                              const isChecked = selectedList.includes(opt);
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  role="checkbox"
+                                  aria-checked={isChecked}
+                                  onClick={() => {
+                                    if (isChecked) {
+                                      handleInputChange(
+                                        field.name,
+                                        selectedList.filter((item: string) => item !== opt)
+                                      );
+                                    } else {
+                                      handleInputChange(field.name, [...selectedList, opt]);
+                                    }
+                                  }}
+                                  className={`ms-form-chip ${isChecked ? 'is-active' : ''}`}
+                                >
+                                  {isChecked ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
+                                  ) : (
+                                    <span className="ms-form-chip-bullet" />
+                                  )}
+                                  <span>{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : field.type === 'select' ? (
+                          <select
+                            id={`field-ctrl-${field.name}`}
+                            value={currentValue}
+                            onChange={(e) => handleInputChange(field.name, e.target.value)}
+                            className={`ms-form-select ${hasError ? 'has-error' : ''}`}
+                          >
+                            <option value="">-- Seleccionar opción --</option>
+                            {field.options?.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field.type === 'date' ? (
+                          <input
+                            id={`field-ctrl-${field.name}`}
+                            type="date"
+                            value={currentValue}
+                            onChange={(e) => handleInputChange(field.name, e.target.value)}
+                            className={`ms-form-input font-mono ${hasError ? 'has-error' : ''}`}
+                          />
+                        ) : field.type === 'textarea' ? (
+                          <textarea
+                            id={`field-ctrl-${field.name}`}
+                            rows={3}
+                            value={currentValue}
+                            onChange={(e) => handleInputChange(field.name, e.target.value)}
+                            placeholder={field.placeholder || 'Observaciones clínicas...'}
+                            className={`ms-form-textarea ${hasError ? 'has-error' : ''}`}
+                          />
+                        ) : (
+                          <div className="ms-form-input-affix">
+                            <input
+                              id={`field-ctrl-${field.name}`}
+                              type="text"
+                              value={currentValue}
+                              onChange={(e) => handleInputChange(field.name, e.target.value)}
+                              placeholder={field.placeholder || ''}
+                              className={`ms-form-input ${hasError ? 'has-error' : ''}`}
+                            />
+                            {field.unit && <span className="ms-form-unit">{field.unit}</span>}
+                          </div>
+                        )}
+
+                        {/* Description or Clinical Explanation */}
+                        {field.description && (
+                          <p className="ms-form-help">{field.description}</p>
+                        )}
+
+                        {/* Error text */}
+                        {hasError && (
+                          <p className="ms-form-error">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{errors[field.name]}</span>
+                          </p>
+                        )}
+
+                        {/* Clinical Range Warning Alert */}
+                        {alertMsg && (
+                          <div className="ms-form-alert">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                            <span>{alertMsg}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          ))}
+        </main>
       </div>
+
+      {/* Sticky Bottom Action Bar */}
+      <footer className="ms-form-actionbar" role="region" aria-label="Acciones de guardado de formulario">
+        <div className="ms-form-actionbar-inner">
+          {/* Left: Reset button & Mandatory Progress Counter */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="ms-btn ms-btn-sm ms-btn-ghost"
+              title="Restablecer los valores de este caso"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restablecer campos</span>
+            </button>
+
+            {mandatoryStats.total > 0 && (
+              <div className="ms-form-progress" title="Progreso de campos obligatorios requeridos">
+                <div className="ms-form-progress-bar">
+                  <div
+                    className="ms-form-progress-fill"
+                    style={{ width: `${mandatoryStats.percentage}%` }}
+                  />
+                </div>
+                <span>
+                  <strong>{mandatoryStats.filled}</strong> de {mandatoryStats.total} obligatorios
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Saving Action Controls */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={() => handleSubmit(false)}
+              className="ms-btn ms-btn-secondary"
+            >
+              Guardar y Mantener
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSubmit(true)}
+              className="ms-btn ms-btn-primary ms-btn-lg"
+              title="Atajo de teclado: Ctrl + Enter"
+            >
+              <Save className="w-4 h-4" />
+              <span>Guardar y Siguiente</span>
+            </button>
+          </div>
+        </div>
+      </footer>
 
       {/* Free-Text Clinical Data Extractor Modal */}
       <TextExtractorModal

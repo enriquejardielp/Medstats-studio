@@ -490,3 +490,660 @@ button, a, input, select, textarea {
   border: 1px solid #EB5E28 !important;
   color: #C2413A !important;
 }
+
+/* ==========================================================================
+   eCRF CLINICAL FORMS SYSTEM — MEDSTATS STUDIO (ms-form-*)
+   ========================================================================== */
+
+/* Layout */
+.ms-form-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+@media (min-width: 640px) {
+  .ms-form-container {
+    padding: 1.75rem 1.5rem 4rem;
+  }
+}
+
+.ms-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  width: 100%;
+  align-items: flex-start;
+}
+
+@media (min-width: 1024px) {
+  .ms-form-layout {
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+.ms-form-sidebar {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .ms-form-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+}
+
+.ms-form-main {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* 32px between sections */
+}
+
+/* Section Cards & Visual hierarchy */
+.ms-form-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  scroll-margin-top: 5.5rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .ms-form-section {
+    padding: 1.75rem 2rem;
+  }
+}
+
+.ms-form-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ms-form-section-title {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ms-form-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* ~24px between fields */
+}
+
+/* Fields */
+.ms-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.ms-form-field-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .ms-form-field-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ms-form-col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+}
+
+.ms-form-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ms-form-label {
+  font-size: 0.84375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.ms-form-required {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.ms-form-colname {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+/* Inputs & Form Controls with 44-48px target height */
+.ms-form-input,
+.ms-form-select,
+.ms-form-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+  min-height: 46px; /* 44-48px target */
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.ms-form-input::placeholder,
+.ms-form-textarea::placeholder {
+  color: var(--color-neutral-muted);
+}
+
+.ms-form-input:hover,
+.ms-form-select:hover,
+.ms-form-textarea:hover {
+  border-color: var(--color-border-strong);
+}
+
+.ms-form-input:focus,
+.ms-form-select:focus,
+.ms-form-textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+  background: var(--color-surface);
+}
+
+.ms-form-input.has-error,
+.ms-form-select.has-error,
+.ms-form-textarea.has-error {
+  border-color: var(--color-error);
+  background-color: var(--color-error-soft);
+}
+
+.ms-form-input.has-error:focus,
+.ms-form-select.has-error:focus,
+.ms-form-textarea.has-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.ms-form-input:disabled,
+.ms-form-select:disabled,
+.ms-form-textarea:disabled {
+  background: var(--color-bg-deep);
+  color: var(--color-neutral-muted);
+  cursor: not-allowed;
+}
+
+.ms-form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Input with Unit Affix */
+.ms-form-input-affix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ms-form-input-affix .ms-form-input {
+  padding-right: 3.5rem;
+}
+
+.ms-form-unit {
+  position: absolute;
+  right: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-deep);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Specialized: Segmented Control for Booleans */
+.ms-form-segmented {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--color-bg-deep);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 3px;
+  width: 100%;
+  min-height: 46px;
+}
+
+.ms-form-segmented-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.ms-form-segmented-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.ms-form-segmented-btn.is-active {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-border);
+}
+
+.ms-form-segmented-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* Specialized: Chip Grid for Multiselect & Radios */
+.ms-form-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.ms-form-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  min-height: 40px;
+  font-family: inherit;
+  font-size: 0.84375rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.ms-form-chip:hover {
+  background: var(--color-bg-deep);
+  border-color: var(--color-border-strong);
+}
+
+.ms-form-chip.is-active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+
+.ms-form-chip:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.ms-form-chip-bullet {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-neutral-muted);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ms-form-chip.is-active .ms-form-chip-bullet {
+  background: var(--color-accent);
+}
+
+/* Specialized: Calculated Field Card */
+.ms-form-calculated {
+  background: var(--color-bg-deep);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ms-form-calculated-value {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-accent-strong);
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.ms-form-calculated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+  border: 1px solid rgba(235, 94, 40, 0.25);
+  border-radius: var(--radius-pill);
+  padding: 0.2rem 0.55rem;
+}
+
+/* Clinical Warnings & Validation */
+.ms-form-help {
+  font-size: 0.78125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.ms-form-error {
+  font-size: 0.78125rem;
+  font-weight: 600;
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+}
+
+.ms-form-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  background: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  margin-top: 0.25rem;
+}
+
+/* Section Index (Navigation) */
+.ms-form-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ms-form-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.84375rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.ms-form-nav-item:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.ms-form-nav-item.is-active {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+  font-weight: 700;
+  box-shadow: var(--shadow-xs);
+}
+
+.ms-form-nav-item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.ms-form-nav-badge {
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-deep);
+  color: var(--color-text-secondary);
+}
+
+.ms-form-nav-item.is-active .ms-form-nav-badge {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+/* Mobile horizontal quick jump */
+.ms-form-nav-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.ms-form-nav-mobile::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sticky Action Bar at Bottom */
+.ms-form-actionbar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: rgba(255, 252, 242, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+  padding: 0.85rem 1rem;
+  padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+  margin-top: 1.5rem;
+}
+
+.ms-form-actionbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ms-form-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.ms-form-progress-bar {
+  width: 80px;
+  height: 6px;
+  background: var(--color-bg-deep);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.ms-form-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.2s ease;
+}
+
+/* FormBuilder Two-Panel Layout */
+.ms-form-builder-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+  width: 100%;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .ms-form-builder-layout {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 2rem;
+  }
+}
+
+.ms-form-builder-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+}
+
+.ms-form-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (min-width: 640px) {
+  .ms-form-type-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ms-form-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  user-select: none;
+  font-family: inherit;
+}
+
+.ms-form-type-card:hover {
+  background: var(--color-bg-deep);
+  border-color: var(--color-border-strong);
+}
+
+.ms-form-type-card.is-active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
+}
+
+.ms-form-type-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.ms-form-accordion {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.ms-form-accordion-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-bg-deep);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.ms-form-accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.ms-form-accordion-summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+}
+
+.ms-form-accordion-content {
+  padding: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  .ms-form-nav-item,
+  .ms-form-segmented-btn,
+  .ms-form-chip,
+  .ms-form-type-card,
+  .ms-form-actionbar,
+  .ms-form-progress-fill {
+    transition: none !important;
+    animation: none !important;
+  }
+}

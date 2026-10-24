@@ -14,7 +14,7 @@ export interface ExtractedFieldMatch {
 /**
  * Extracts structured clinical field values from unstructured medical text (labs, echo, history, vitals)
  */
-export function extractFieldsFromClinicalText(
+function extractFieldsFromClinicalTextLegacy(
   text: string,
   targetFields: FormField[]
 ): ExtractedFieldMatch[] {
@@ -1274,6 +1274,430 @@ export function extractFieldsFromClinicalText(
   }
 
   return results;
+}
+
+type ClinicalConcept = {
+  id: string;
+  field: RegExp;
+  aliases: string[];
+  kind: 'number' | 'boolean' | 'sex' | 'smoking';
+  unit?: string;
+  min?: number;
+  max?: number;
+};
+
+// Explicit clinical vocabulary. Short abbreviations are only recognized inside
+// a field that clearly represents the corresponding concept (e.g. FC as a field
+// name is safe; searching for FC anywhere in the note is not).
+const clinicalConcepts: ClinicalConcept[] = [
+  { id: 'age', field: /\b(edad|age)\b|\b(?:anos|years) de edad\b|\byears old\b/, aliases: ['edad', 'anos de edad', 'years old', 'age'], kind: 'number', unit: 'años', min: 0, max: 120 },
+  { id: 'sex', field: /\b(sexo|genero|sex)\b/, aliases: ['varon', 'hombre', 'masculino', 'male', 'man', 'mujer', 'femenino', 'hembra', 'female', 'woman'], kind: 'sex' },
+  { id: 'sbp', field: /\b(ta sistolica|tension arterial sistolica|presion arterial sistolica|tas|pas|systolic)\b/, aliases: ['presion arterial', 'tension arterial', 'ta', 'pa', 'tas', 'pas', 'sistolica'], kind: 'number', unit: 'mmHg', min: 40, max: 300 },
+  { id: 'dbp', field: /\b(ta diastolica|tension arterial diastolica|presion arterial diastolica|tad|pad|diastolic)\b/, aliases: ['presion arterial', 'tension arterial', 'ta', 'pa', 'tad', 'pad', 'diastolica'], kind: 'number', unit: 'mmHg', min: 20, max: 200 },
+  { id: 'hr', field: /\b(frecuencia cardiaca|pulso|heart rate|\bfc\b|\bhr\b)\b/, aliases: ['frecuencia cardiaca', 'pulso', 'heart rate', 'fc', 'hr'], kind: 'number', unit: 'lpm', min: 20, max: 300 },
+  { id: 'spo2', field: /\b(saturacion|spo2|sato2|oximetria)\b/, aliases: ['saturacion de oxigeno', 'saturacion o2', 'spo2', 'sato2'], kind: 'number', unit: '%', min: 0, max: 100 },
+  { id: 'temperature', field: /\b(temperatura|temperature|temp)\b/, aliases: ['temperatura', 'temp', 'temperature'], kind: 'number', unit: '°C', min: 25, max: 45 },
+  { id: 'rr', field: /\b(frecuencia respiratoria|respiratory rate|\bfr\b|\brr\b)\b/, aliases: ['frecuencia respiratoria', 'respiratory rate', 'fr', 'rpm'], kind: 'number', unit: 'rpm', min: 3, max: 100 },
+  { id: 'weight', field: /\b(peso|weight)\b/, aliases: ['peso', 'weight'], kind: 'number', unit: 'kg', min: 0.5, max: 500 },
+  { id: 'height', field: /\b(talla|altura|height)\b/, aliases: ['talla', 'altura', 'height'], kind: 'number', unit: 'cm', min: 30, max: 250 },
+  { id: 'bmi', field: /\b(imc|indice de masa corporal|bmi)\b/, aliases: ['imc', 'indice de masa corporal', 'bmi'], kind: 'number', unit: 'kg/m²', min: 5, max: 100 },
+  { id: 'hba1c', field: /\b(hba1c|hemoglobina glicosilada|hemoglobina glucosilada)\b/, aliases: ['hba1c', 'hemoglobina glicosilada', 'hemoglobina glucosilada'], kind: 'number', unit: '%', min: 2, max: 30 },
+  { id: 'creatinine', field: /\b(creatinina|creatinine)\b/, aliases: ['creatinina', 'creatinine', 'creat'], kind: 'number', unit: 'mg/dL', min: 0.05, max: 50 },
+  { id: 'egfr', field: /\b(egfr|fg|filtrado glomerular|tasa de filtracion)\b/, aliases: ['egfr', 'filtrado glomerular', 'tasa de filtracion glomerular', 'fg'], kind: 'number', unit: 'mL/min/1,73 m²', min: 0, max: 250 },
+  { id: 'urea', field: /\b(urea|bun)\b/, aliases: ['urea', 'bun'], kind: 'number', unit: 'mg/dL', min: 0, max: 500 },
+  { id: 'glucose', field: /\b(glucosa|glucemia|glucose)\b/, aliases: ['glucosa', 'glucemia', 'glucose'], kind: 'number', unit: 'mg/dL', min: 0, max: 2000 },
+  { id: 'hemoglobin', field: /\b(hemoglobina|hemoglobin|\bhb\b)\b/, aliases: ['hemoglobina', 'hemoglobin', 'hb'], kind: 'number', unit: 'g/dL', min: 1, max: 30 },
+  { id: 'platelets', field: /\b(plaquetas|platelets|trombocitos)\b/, aliases: ['plaquetas', 'platelets', 'trombocitos'], kind: 'number', unit: '10^3/µL', min: 0, max: 5000000 },
+  { id: 'leukocytes', field: /\b(leucocitos|leukocytes|globulos blancos)\b/, aliases: ['leucocitos', 'leukocytes', 'globulos blancos'], kind: 'number', unit: '10^3/µL', min: 0, max: 5000000 },
+  { id: 'sodium', field: /\b(sodio|natremia|sodium|\bna\b)\b/, aliases: ['sodio', 'natremia', 'sodium', 'na+'], kind: 'number', unit: 'mmol/L', min: 50, max: 250 },
+  { id: 'potassium', field: /\b(potasio|potasemia|potassium|\bk\b)\b/, aliases: ['potasio', 'potasemia', 'potassium', 'k+'], kind: 'number', unit: 'mmol/L', min: 1, max: 15 },
+  { id: 'troponin', field: /\b(troponina|troponin)\b/, aliases: ['troponina', 'troponin'], kind: 'number', unit: 'ng/L', min: 0, max: 1000000 },
+  { id: 'bnp', field: /\b(nt.?probnp|probnp|\bbnp\b|peptido natriuretico)\b/, aliases: ['nt-probnp', 'ntprobnp', 'pro-bnp', 'probnp', 'bnp', 'peptido natriuretico'], kind: 'number', unit: 'pg/mL', min: 0, max: 10000000 },
+  { id: 'crp', field: /\b(pcr|proteina c reactiva|crp)\b/, aliases: ['proteina c reactiva', 'pcr', 'crp'], kind: 'number', unit: 'mg/L', min: 0, max: 100000 },
+  { id: 'ldl', field: /\b(ldl|c ldl)\b/, aliases: ['colesterol ldl', 'c-ldl', 'ldl'], kind: 'number', unit: 'mg/dL', min: 0, max: 2000 },
+  { id: 'hdl', field: /\b(hdl|c hdl)\b/, aliases: ['colesterol hdl', 'c-hdl', 'hdl'], kind: 'number', unit: 'mg/dL', min: 0, max: 1000 },
+  { id: 'cholesterol', field: /\b(colesterol total|colesterol|cholesterol)\b/, aliases: ['colesterol total', 'colesterol', 'cholesterol'], kind: 'number', unit: 'mg/dL', min: 0, max: 3000 },
+  { id: 'triglycerides', field: /\b(trigliceridos|triglycerides)\b/, aliases: ['trigliceridos', 'triglycerides'], kind: 'number', unit: 'mg/dL', min: 0, max: 10000 },
+  { id: 'lvef', field: /\b(fevi|fraccion de eyeccion|lvef)\b/, aliases: ['fraccion de eyeccion', 'fevi', 'lvef'], kind: 'number', unit: '%', min: 0, max: 100 },
+  { id: 'lvidd', field: /\b(dtdvi|diametro telediastolico|lvidd)\b/, aliases: ['diametro telediastolico', 'dtdvi', 'lvidd'], kind: 'number', unit: 'mm', min: 5, max: 150 },
+  { id: 'ava', field: /\b(ava|area valvular aortica)\b/, aliases: ['area valvular aortica', 'ava'], kind: 'number', unit: 'cm²', min: 0, max: 20 },
+  { id: 'vmax', field: /\b(vmax|velocidad maxima|velocidad pico)\b/, aliases: ['velocidad maxima pico', 'velocidad maxima', 'vmax'], kind: 'number', unit: 'm/s', min: 0, max: 20 },
+  { id: 'mean_gradient', field: /\b(gradiente medio|gradiente transaortico|mean gradient)\b/, aliases: ['gradiente medio transaortico', 'gradiente medio', 'mean gradient'], kind: 'number', unit: 'mmHg', min: 0, max: 300 },
+  { id: 'psap', field: /\b(psap|presion sistolica pulmonar)\b/, aliases: ['presion sistolica de la arteria pulmonar', 'presion sistolica pulmonar', 'psap'], kind: 'number', unit: 'mmHg', min: 0, max: 200 },
+  { id: 'hypertension', field: /\b(hta|htn|hipertension|hipertenso|hipertensa|hypertension)\b/, aliases: ['hipertension arterial', 'hipertension', 'hipertenso', 'hipertensa', 'hta', 'htn', 'hypertension'], kind: 'boolean' },
+  { id: 'diabetes', field: /\b(diabetes|diabetico|diabetica|dm|dm1|dm2|diabetes mellitus)\b/, aliases: ['diabetes mellitus', 'diabetes', 'diabetico', 'diabetica', 'dm tipo 1', 'dm tipo 2', 'dm1', 'dm2', 'dm'], kind: 'boolean' },
+  { id: 'dyslipidemia', field: /\b(dislipemia|dislipemico|dislipemica|dislipidemia|dyslipidemia|dlp)\b/, aliases: ['dislipemia', 'dislipemico', 'dislipemica', 'dislipidemia', 'dyslipidemia', 'dlp'], kind: 'boolean' },
+  { id: 'smoking', field: /\b(tabaquismo|fumador|smoking)\b/, aliases: ['tabaquismo', 'fumador', 'fumadora', 'fumador activo', 'exfumador', 'exfumadora', 'smoking'], kind: 'smoking' },
+  { id: 'prior_mi', field: /\b(iam|infarto|infarto de miocardio|myocardial infarction)\b/, aliases: ['infarto agudo de miocardio', 'infarto de miocardio', 'iam', 'myocardial infarction'], kind: 'boolean' },
+  { id: 'revascularization', field: /\b(revascularizacion|angioplastia|actp|pci|bypass)\b/, aliases: ['revascularizacion coronaria', 'revascularizacion', 'angioplastia', 'actp', 'pci', 'bypass'], kind: 'boolean' },
+  { id: 'atrial_fibrillation', field: /\b(fibrilacion auricular|fa|atrial fibrillation)\b/, aliases: ['fibrilacion auricular', 'fa', 'atrial fibrillation'], kind: 'boolean' },
+  { id: 'stroke', field: /\b(ictus|acv|ait|stroke)\b/, aliases: ['accidente cerebrovascular', 'ictus', 'acv', 'ait', 'stroke'], kind: 'boolean' },
+  { id: 'heart_failure', field: /\b(insuficiencia cardiaca|fallo cardiaco|icc|chf)\b/, aliases: ['insuficiencia cardiaca', 'fallo cardiaco', 'icc', 'chf'], kind: 'boolean' },
+  { id: 'ckd', field: /\b(enfermedad renal cronica|insuficiencia renal cronica|erc|irc|ckd)\b/, aliases: ['enfermedad renal cronica', 'insuficiencia renal cronica', 'erc', 'irc', 'ckd'], kind: 'boolean' },
+  { id: 'copd', field: /\b(epoc|e.?p.?o.?c|enfermedad pulmonar obstructiva cronica|copd)\b/, aliases: ['enfermedad pulmonar obstructiva cronica', 'epoc', 'copd'], kind: 'boolean' },
+  { id: 'peripheral_artery', field: /\b(arteriopatia periferica|enfermedad arterial periferica|eap)\b/, aliases: ['arteriopatia periferica', 'enfermedad arterial periferica', 'eap'], kind: 'boolean' },
+];
+
+const normalizeClinicalText = (value: string) => value
+  .replace(/[µμ]/g, 'u')
+  .replace(/[º°]/g, ' ')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[’']/g, ' ')
+  .replace(/[^a-z0-9%+./-]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const clinicalSegments = (text: string) => text
+  .replace(/\r/g, '')
+  .split(/\n|;|(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ])/)
+  .map(value => value.trim())
+  .filter(Boolean);
+
+const getClinicalConcept = (field: FormField) => {
+  const identity = normalizeClinicalText(`${field.name} ${field.label}`);
+  // Order specific concepts first to avoid e.g. HbA1c being read as hemoglobin.
+  return clinicalConcepts.find(concept => concept.field.test(identity));
+};
+
+const parseClinicalNumber = (raw: string, concept: ClinicalConcept): number | null => {
+  let normalized = raw.replace(/\s/g, '');
+  if (normalized.includes(',') && normalized.includes('.')) {
+    const decimal = normalized.lastIndexOf(',') > normalized.lastIndexOf('.') ? ',' : '.';
+    normalized = normalized.replace(/[.,]/g, separator => separator === decimal ? '.' : '');
+  } else if (normalized.includes(',')) {
+    normalized = (concept.id === 'platelets' || concept.id === 'leukocytes') && /^\d{1,3},\d{3}$/.test(normalized)
+      ? normalized.replace(',', '')
+      : normalized.replace(',', '.');
+  } else if (/^\d{1,3}\.\d{3}$/.test(normalized)) {
+    const decimalValue = Number(normalized);
+    const thousandsValue = Number(normalized.replace('.', ''));
+    if (concept.id === 'platelets' || concept.id === 'leukocytes') normalized = String(thousandsValue);
+    else {
+      const decimalIsPlausible = decimalValue >= (concept.min ?? -Infinity) && decimalValue <= (concept.max ?? Infinity);
+      const thousandsIsPlausible = thousandsValue >= (concept.min ?? -Infinity) && thousandsValue <= (concept.max ?? Infinity);
+      if (decimalIsPlausible === thousandsIsPlausible) return null;
+      normalized = String(decimalIsPlausible ? decimalValue : thousandsValue);
+    }
+  }
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+};
+
+const findNumericMention = (segment: string, concept: ClinicalConcept) => {
+  const normalized = normalizeClinicalText(segment);
+  const aliases = [...concept.aliases].sort((a, b) => b.length - a.length);
+  for (const alias of aliases) {
+    const normalizedAlias = normalizeClinicalText(alias);
+    const aliasPattern = new RegExp(`(^|\\b)${escapeRegExp(normalizedAlias).replace(/\\ /g, '\\s+')}(?=\\b|[^a-z0-9])`, 'i');
+    const mention = aliasPattern.exec(normalized);
+    if (!mention) continue;
+    const start = mention.index + mention[1].length + mention[0].length - mention[1].length;
+    const remainder = normalized.slice(start);
+    const valueMatch = remainder.match(/^\s*(?:\([^)]*\)\s*)?(?:[:=]\s*)?(?:estimad[oa]s?\s+)?(?:en\s+|de\s+|es\s+)?(-?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|-?\d+(?:[.,]\d+)?)/i)
+      || remainder.match(/^\s*(?:[^\d\n]{0,28}?)(-?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|-?\d+(?:[.,]\d+)?)/i);
+    if (!valueMatch?.[1]) continue;
+    const value = parseClinicalNumber(valueMatch[1], concept);
+    if (value === null) continue;
+    const afterValue = remainder.slice((valueMatch.index || 0) + valueMatch[0].length);
+    const unit = afterValue.match(/^\s*(%|mmhg|mg\/dl|mg\/l|g\/dl|mmol\/l|mmol\/mol|meq\/l|umol\/l|micromol\/l|ng\/l|ng\/ml|pg\/ml|ml\/min(?:\/1[.,]73\s*m2)?|10\s*3\/(?:ul|ml)|\/ul|\/mm3|cm2|cm|mm|m\/s|kg|g|lb|lpm|bpm|rpm|c|f|m)(?=$|\s|\[|\()/i)?.[1]?.toLowerCase();
+    // Only accept the nearby evidence. Preserve the original segment for review.
+    return { value, snippet: segment, unit };
+  }
+  return null;
+};
+
+const mapCanonicalValue = (field: FormField, canonical: string | boolean | number): any => {
+  if (field.type === 'number') return typeof canonical === 'number' ? canonical : null;
+  if (field.type === 'boolean') {
+    if (typeof canonical === 'boolean') return canonical;
+    return null;
+  }
+  if (field.type === 'select' || field.type === 'radio' || field.type === 'multiselect') {
+    const options = field.options || [];
+    const aliases = typeof canonical === 'boolean'
+      ? (canonical ? ['si', 'sí', 'yes', 'verdadero', 'presente', 'actual'] : ['no', 'ausente', 'falso', 'nunca'])
+      : typeof canonical === 'number' ? [String(canonical)]
+      : canonical === 'Masculino' ? ['masculino', 'varon', 'hombre', 'male', 'man']
+      : canonical === 'Femenino' ? ['femenino', 'mujer', 'hembra', 'female', 'woman']
+      : canonical === 'Exfumador' ? ['exfumador', 'exfumadora', 'previo', 'previa']
+      : canonical === 'Fumador actual' ? ['fumador', 'fumadora', 'actual', 'activo', 'activa']
+      : [String(canonical)];
+    const selected = options.find(option => aliases.some(alias => {
+      const normalizedOption = normalizeClinicalText(option);
+      const normalizedAlias = normalizeClinicalText(alias);
+      return normalizedOption === normalizedAlias || new RegExp(`\\b${escapeRegExp(normalizedAlias)}\\b`, 'i').test(normalizedOption);
+    }));
+    if (!selected) return null;
+    return field.type === 'multiselect' ? [selected] : selected;
+  }
+  if (field.type === 'text' || field.type === 'textarea') return String(canonical);
+  return null;
+};
+
+const extractBooleanMention = (segment: string, concept: ClinicalConcept): { value: boolean | string; snippet: string } | null => {
+  const normalized = normalizeClinicalText(segment);
+  const matchingAlias = concept.aliases
+    .map(alias => normalizeClinicalText(alias))
+    .sort((a, b) => b.length - a.length)
+    .find(alias => new RegExp(`(^|\\b)${escapeRegExp(alias).replace(/\\ /g, '\\s+')}(?=\\b|[^a-z0-9])`, 'i').test(normalized));
+  if (!matchingAlias) return null;
+  // Mentions explicitly referring to a relative are not facts about the patient.
+  const aliasAt = normalized.indexOf(matchingAlias);
+  const before = normalized.slice(Math.max(0, aliasAt - 45), aliasAt);
+  if (/\b(familiar|madre|padre|herman[oa]s?|abuelo|abuela)\b/.test(before)) return null;
+  if (/\b(posible|probable|sospecha|sospechoso|no se descarta|pendiente de confirmar)\b/.test(before)) return null;
+  const after = normalized.slice(aliasAt + matchingAlias.length).trim();
+  if (/^(?:no confirmad[oa]|posible|probable|sospecha de)\b/.test(after)) return null;
+  const explicitStatus = after.match(/^(?:[:=]\s*)?(0|1|si|no(?!\s+controlad[oa])|yes|never|ausente|presente|positivo|positiva|negativo|negativa)\b/);
+  if (concept.kind === 'smoking') {
+    if (/\b(exfumador|exfumadora|fumador previo|fumadora previa)\b/.test(normalized)) return { value: 'Exfumador', snippet: segment };
+    if (explicitStatus && /^(0|no|never|ausente|negativo|negativa)$/.test(explicitStatus[1])) return { value: false, snippet: segment };
+    if (explicitStatus && /^(1|si|yes|presente|positivo|positiva)$/.test(explicitStatus[1])) return { value: 'Fumador actual', snippet: segment };
+    if (/\b(no fumador|no fumadora|nunca fumador|nunca fumadora|niega tabaquismo|sin tabaquismo)\b/.test(normalized)) return { value: false, snippet: segment };
+    if (/\b(fumador activo|fumadora activa|fumador|fumadora|fumando|tabaquismo activo)\b/.test(normalized)) return { value: 'Fumador actual', snippet: segment };
+    return null;
+  }
+  const isNegated = /\b(no|niega|niegan|sin|ausencia de|descarta|descartan|nunca)\b(?:\s+\w+){0,5}\s*$/.test(before);
+  const isNegatedAfter = /^(?:no conocida?|no diagnosticada?|no presenta|no consta|ausente|negativ[oa]|descartad[oa])\b/.test(after);
+  if (explicitStatus) {
+    const status = explicitStatus[1];
+    if (/^(0|no|never|ausente|negativo|negativa)$/.test(status)) return { value: false, snippet: segment };
+    if (/^(1|si|yes|presente|positivo|positiva)$/.test(status)) return { value: true, snippet: segment };
+  }
+  return { value: !(isNegated || isNegatedAfter), snippet: segment };
+};
+
+const convertClinicalUnit = (concept: ClinicalConcept, value: number, sourceUnit?: string, targetUnit?: string) => {
+  const source = sourceUnit?.replace(/\s/g, '').toLowerCase();
+  const target = normalizeClinicalText(targetUnit || concept.unit || '').replace(/\s/g, '');
+  let converted = value;
+  let unit = concept.unit || '';
+
+  if (source) {
+    switch (concept.id) {
+      case 'height':
+        if (source === 'm') converted *= 100;
+        else if (source === 'mm') converted /= 10;
+        else if (source !== 'cm') return null;
+        break;
+      case 'weight':
+        if (source === 'g') converted /= 1000;
+        else if (source === 'lb') converted *= 0.45359237;
+        else if (source !== 'kg') return null;
+        break;
+      case 'temperature':
+        if (source === 'f') converted = (converted - 32) * 5 / 9;
+        else if (source !== 'c') return null;
+        break;
+      case 'glucose':
+        if (source === 'mmol/l') converted *= 18.0182;
+        else if (source !== 'mg/dl') return null;
+        break;
+      case 'creatinine':
+        if (source === 'umol/l' || source === 'micromol/l') converted *= 0.011312;
+        else if (source !== 'mg/dl') return null;
+        break;
+      case 'urea':
+        if (source === 'mmol/l') converted *= 6.006;
+        else if (source !== 'mg/dl') return null;
+        break;
+      case 'cholesterol': case 'ldl': case 'hdl':
+        if (source === 'mmol/l') converted *= 38.67;
+        else if (source !== 'mg/dl') return null;
+        break;
+      case 'triglycerides':
+        if (source === 'mmol/l') converted *= 88.57;
+        else if (source !== 'mg/dl') return null;
+        break;
+      case 'hba1c':
+        if (source === 'mmol/mol') converted = 0.09148 * converted + 2.152;
+        else if (source !== '%') return null;
+        break;
+      case 'troponin':
+        if (source === 'ng/ml') converted *= 1000;
+        else if (source !== 'ng/l' && source !== 'pg/ml') return null;
+        break;
+      case 'bnp':
+        if (source !== 'pg/ml' && source !== 'ng/l') return null;
+        break;
+      case 'sodium': case 'potassium':
+        if (source !== 'mmol/l' && source !== 'meq/l') return null;
+        break;
+      case 'spo2':
+        if (source !== '%') return null;
+        break;
+      case 'lvef':
+        if (source === 'fraction' || (!source && converted <= 1 && converted > 0)) converted *= 100;
+        else if (source && source !== '%' && source !== 'fraction') return null;
+        break;
+      case 'bmi':
+        if (source !== 'kg/m2') return null;
+        break;
+      case 'egfr':
+        if (source !== 'ml/min' && source !== 'ml/min/1,73m2' && source !== 'ml/min/1.73m2') return null;
+        break;
+      case 'hr':
+        if (source !== 'lpm' && source !== 'bpm') return null;
+        break;
+      case 'rr':
+        if (source !== 'rpm') return null;
+        break;
+      case 'lvidd':
+        if (source === 'cm') converted *= 10;
+        else if (source !== 'mm') return null;
+        break;
+      case 'vmax':
+        if (source !== 'm/s') return null;
+        break;
+      case 'ava':
+        if (source !== 'cm2') return null;
+        break;
+      case 'mean_gradient': case 'psap': case 'sbp': case 'dbp':
+        if (source !== 'mmhg') return null;
+        break;
+      case 'hemoglobin':
+        if (source !== 'g/dl') return null;
+        break;
+      case 'platelets': case 'leukocytes':
+        if (source === '/ul' || source === '/mm3') converted /= 1000;
+        else if (!/^103\/(?:ul|ml)$/.test(source)) return null;
+        break;
+      case 'crp':
+        if (source !== 'mg/l') return null;
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (!source && (concept.id === 'platelets' || concept.id === 'leukocytes') && converted > 5000) converted /= 1000;
+
+  if (target && unit) {
+    if (target === normalizeClinicalText(unit).replace(/\s/g, '')) return { value: Number(converted.toFixed(4)), unit: targetUnit || unit };
+    if (concept.id === 'age' && ['a', 'ano', 'anos', 'year', 'years'].includes(target)) return { value: Number(converted.toFixed(4)), unit: targetUnit || unit };
+    if (concept.id === 'glucose' && target === 'mmol/l') converted /= 18.0182;
+    else if (concept.id === 'creatinine' && (target === 'umol/l' || target === 'micromol/l')) converted /= 0.011312;
+    else if (concept.id === 'urea' && target === 'mmol/l') converted /= 6.006;
+    else if (['cholesterol', 'ldl', 'hdl'].includes(concept.id) && target === 'mmol/l') converted /= 38.67;
+    else if (concept.id === 'triglycerides' && target === 'mmol/l') converted /= 88.57;
+    else if (concept.id === 'height' && target === 'm') converted /= 100;
+    else if (concept.id === 'height' && target === 'mm') converted *= 10;
+    else if (concept.id === 'weight' && target === 'g') converted *= 1000;
+    else if (concept.id === 'weight' && target === 'lb') converted *= 2.20462262;
+    else if (concept.id === 'temperature' && target === 'f') converted = converted * 9 / 5 + 32;
+    else if (concept.id === 'hba1c' && target === 'mmol/mol') converted = (converted - 2.152) / 0.09148;
+    else if (concept.id === 'troponin' && target === 'ng/ml') converted /= 1000;
+    else if ((concept.id === 'troponin' && target === 'pg/ml') || (concept.id === 'bnp' && target === 'ng/l')) converted = converted;
+    else if ((concept.id === 'sodium' || concept.id === 'potassium') && target === 'meq/l') converted = converted;
+    else if ((concept.id === 'platelets' || concept.id === 'leukocytes') && (target === '109/l' || target === '10^9/l')) converted = converted;
+    else if (concept.id === 'lvidd' && target === 'cm') converted /= 10;
+    else if (concept.id === 'lvef' && target === 'fraction') converted /= 100;
+    else return null;
+    unit = targetUnit || unit;
+  }
+  return { value: Number(converted.toFixed(4)), unit };
+};
+
+/**
+ * Conservative, fully local clinical extraction. Exact aliases, local context,
+ * value bounds and the target field's actual option list are checked before a
+ * match is returned. Unsupported custom fields keep the existing generic rules.
+ */
+export function extractFieldsFromClinicalText(text: string, targetFields: FormField[]): ExtractedFieldMatch[] {
+  if (!text?.trim() || !targetFields?.length) return [];
+  const segments = clinicalSegments(text);
+  const results: ExtractedFieldMatch[] = [];
+  const recognizedFields = new Set<string>();
+
+  for (const field of targetFields) {
+    if (field.type === 'calculated') continue;
+    const concept = getClinicalConcept(field);
+    if (!concept) continue;
+    recognizedFields.add(field.name);
+
+    let match: { value: any; snippet: string; unit?: string } | null = null;
+    const candidates: Array<{ value: any; snippet: string; unit?: string }> = [];
+    if (concept.id === 'sbp' || concept.id === 'dbp') {
+      segments.forEach(segment => {
+        const normalized = normalizeClinicalText(segment);
+        const bp = normalized.match(/\b(?:presion arterial|tension arterial|ta|pa)\b\s*[:=]?\s*(\d{2,3})\s*[/|\\]\s*(\d{2,3})/i);
+        if (!bp) return;
+        const index = concept.id === 'sbp' ? 1 : 2;
+        const value = Number(bp[index]);
+        if (value >= (concept.min ?? -Infinity) && value <= (concept.max ?? Infinity)) candidates.push({ value, snippet: segment });
+      });
+    }
+
+    if (concept.kind === 'number') {
+      for (const segment of segments) {
+        if (concept.id === 'age') {
+          const normalized = normalizeClinicalText(segment);
+          if (/\b(familiar|madre|padre|herman[oa]s?)\b/.test(normalized)) continue;
+          const ageMatch = normalized.match(/\b(\d{1,3})\s*(?:anos?(?: de edad)?|years? old|a)\b/);
+          if (ageMatch) {
+            const value = Number(ageMatch[1]);
+            if (value >= (concept.min ?? -Infinity) && value <= (concept.max ?? Infinity)) candidates.push({ value, snippet: segment });
+            continue;
+          }
+        }
+        const found = findNumericMention(segment, concept);
+        if (!found) continue;
+        if ((concept.id === 'sbp' || concept.id === 'dbp') && !/\b(?:tas|pas|tad|pad|sistolica|diastolica)\b/i.test(normalizeClinicalText(segment))) continue;
+        candidates.push({ value: found.value, snippet: found.snippet, unit: found.unit });
+      }
+    } else if (concept.kind === 'boolean' || concept.kind === 'smoking') {
+      for (const segment of segments) {
+        const found = extractBooleanMention(segment, concept);
+        if (!found) continue;
+        candidates.push({ value: found.value, snippet: found.snippet });
+      }
+    } else if (concept.kind === 'sex') {
+      for (const segment of segments) {
+        const normalized = normalizeClinicalText(segment);
+        const male = /\b(varon|hombre|masculino|male|man)\b/.test(normalized);
+        const female = /\b(mujer|femenino|hembra|female|woman)\b/.test(normalized);
+        if (male === female) continue;
+        candidates.push({ value: male ? 'Masculino' : 'Femenino', snippet: segment });
+      }
+    }
+
+    const distinctCandidates = new Set(candidates.map(candidate => JSON.stringify(candidate.value)));
+    if (distinctCandidates.size === 1) match = candidates[0];
+
+    if (!match) continue;
+    const converted = concept.kind === 'number'
+      ? convertClinicalUnit(concept, match.value, match.unit, field.unit)
+      : null;
+    if (concept.kind === 'number' && (!converted || converted.value < (concept.min ?? -Infinity) || converted.value > (concept.max ?? Infinity))) continue;
+    const extractedValue = mapCanonicalValue(field, converted?.value ?? match.value);
+    // For configured select/radio fields, never place a value that is not one
+    // of the form's actual choices.
+    if (extractedValue === null || extractedValue === undefined) continue;
+    const display = typeof extractedValue === 'boolean'
+      ? (extractedValue ? 'Sí' : 'No')
+      : typeof extractedValue === 'number'
+        ? `${extractedValue}${converted?.unit ? ` ${converted.unit}` : concept.unit ? ` ${concept.unit}` : ''}`
+        : String(extractedValue);
+    results.push({
+      fieldName: field.name,
+      fieldLabel: field.label,
+      fieldType: field.type,
+      extractedValue,
+      formattedDisplay: display,
+      confidence: concept.kind === 'number' && match.unit ? 'high' : 'medium',
+      rawSnippet: match.snippet,
+      unit: converted?.unit || concept.unit || field.unit,
+    });
+  }
+
+  const genericFields = targetFields.filter(field => !recognizedFields.has(field.name));
+  const genericResults = genericFields.length ? extractFieldsFromClinicalTextLegacy(text, genericFields) : [];
+  const all = [...results, ...genericResults];
+  return all.filter((match, index) => all.findIndex(candidate => candidate.fieldName === match.fieldName) === index);
 }
 
 /**

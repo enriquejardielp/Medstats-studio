@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   Search,
   ChevronRight,
+  HelpCircle,
 } from 'lucide-react';
 import apiClient from '../api/client';
 import type { ColumnType } from '../types';
@@ -107,6 +108,17 @@ interface AnalysisOption {
   description: string;
   requiredTypes: { numeric: number; categorical: number };
   allowMore: boolean;
+}
+
+type AdvisorObjective = 'describe' | 'compare' | 'association' | 'prediction' | 'survival' | 'diagnostic' | 'agreement' | 'paired' | 'sample-size';
+type AdvisorDesign = 'independent' | 'repeated';
+type AdvisorComparison = 'numeric' | 'categorical' | 'both';
+type AdvisorOutcome = 'numeric' | 'binary' | 'count' | 'time';
+
+interface AnalysisRecommendation {
+  analysis: AnalysisOption;
+  reason: string;
+  level: 'recommended' | 'alternative';
 }
 
 const readSavedAnalysisResults = (projectId?: string): AnalysisResult[] => {
@@ -355,6 +367,92 @@ const analysisOptions: AnalysisOption[] = [
   },
 ];
 
+const recommendAnalyses = (
+  objective: AdvisorObjective,
+  design: AdvisorDesign,
+  comparison: AdvisorComparison,
+  outcome: AdvisorOutcome,
+  columnTypes: Record<string, ColumnType>,
+  rows: RowData[],
+): AnalysisRecommendation[] => {
+  const levels = (column: string) => new Set(rows
+    .map(row => row[column])
+    .filter(value => value !== null && value !== undefined && String(value).trim() !== '')
+    .map(value => String(value))).size;
+  const columns = Object.entries(columnTypes);
+  const numeric = columns.filter(([, type]) => type === 'numeric').map(([name]) => name);
+  const categorical = columns.filter(([, type]) => type === 'categorical' || type === 'binary').map(([name]) => name);
+  const binary = categorical.filter(name => levels(name) === 2);
+  const modelableColumns = numeric.length + categorical.length;
+  const categoricalPairs = categorical.length >= 2;
+  const optionById = new Map(analysisOptions.map(option => [option.id, option]));
+  const recommendations: AnalysisRecommendation[] = [];
+  const add = (id: string, reason: string, level: AnalysisRecommendation['level'] = 'recommended') => {
+    const analysis = optionById.get(id);
+    if (analysis && !recommendations.some(item => item.analysis.id === id)) recommendations.push({ analysis, reason, level });
+  };
+
+  switch (objective) {
+    case 'describe':
+      add('descriptive', 'Resume variables numéricas y categóricas, distribuciones y valores ausentes.');
+      add('table1', 'Útil para presentar las características basales, también separadas por grupos.', 'alternative');
+      add('data-quality', 'Comprueba completitud, duplicados y variables sin variación.', 'alternative');
+      break;
+    case 'compare':
+    case 'paired':
+      if (design === 'repeated' || objective === 'paired') {
+        if (comparison !== 'categorical' && numeric.length >= 2) add('paired-comparison', 'Hay al menos dos variables numéricas: el análisis compara medidas emparejadas por fila.');
+        if (comparison !== 'categorical' && numeric.length >= 3) add('friedman', 'Con tres o más mediciones numéricas relacionadas, Friedman es una alternativa por rangos.', 'alternative');
+        if (comparison !== 'numeric' && binary.length >= 2) add('mcnemar', 'Para dos variables binarias medidas en las mismas personas, McNemar evalúa cambios pareados.');
+      } else {
+        const twoLevelGroups = categorical.filter(name => levels(name) === 2);
+        const multiLevelGroups = categorical.filter(name => levels(name) >= 3);
+        if (comparison !== 'categorical' && numeric.length && twoLevelGroups.length) add('compare', 'Hay medidas numéricas y grupos independientes con dos categorías: compara los grupos.');
+        if (comparison !== 'categorical' && numeric.length && multiLevelGroups.length) add('anova', 'Hay medidas numéricas y un factor con tres o más grupos: compara los grupos.', recommendations.length ? 'alternative' : 'recommended');
+        if (comparison !== 'numeric' && categoricalPairs) add('chi-square', 'Para comparar proporciones o asociación entre variables categóricas.', recommendations.length ? 'alternative' : 'recommended');
+      }
+      break;
+    case 'association':
+      if (numeric.length >= 2) add('correlation', 'Hay al menos dos variables numéricas: permite cuantificar la asociación entre ellas.');
+      if (categoricalPairs) add('chi-square', 'Para explorar asociación entre dos variables categóricas.', recommendations.length ? 'alternative' : 'recommended');
+      if (numeric.length >= 2) add('bland-altman', 'Si las dos columnas son métodos que miden lo mismo, evalúa sesgo y límites de acuerdo.', 'alternative');
+      break;
+    case 'prediction':
+      if (outcome === 'numeric' && numeric.length && modelableColumns >= 2) add('linear-regression', 'Con desenlace numérico y predictores disponibles, la regresión lineal estima asociaciones ajustadas.');
+      if (outcome === 'binary' && binary.length && modelableColumns >= 2) add('logistic-regression', 'Con desenlace sí/no, la regresión logística estima asociaciones ajustadas.');
+      if (outcome === 'count' && numeric.length && modelableColumns >= 2) add('count-regression', 'Para un desenlace de recuento entero, compara Poisson y binomial negativa según dispersión.');
+      if (outcome === 'time' && numeric.length && binary.length) {
+        add('kaplan-meier', 'Para tiempo hasta evento con censura, describe la supervivencia y compara grupos.');
+        add('cox-regression', 'Añade covariables para estimar hazard ratios ajustados.', 'alternative');
+      }
+      break;
+    case 'survival':
+      if (numeric.length && binary.length) {
+        add('kaplan-meier', 'Necesita una variable de tiempo y otra que indique si ocurrió el evento; permite comparar curvas.');
+        add('cox-regression', 'Permite estimar hazard ratios ajustados si se añaden covariables.', 'alternative');
+      }
+      break;
+    case 'diagnostic':
+      if (numeric.length && binary.length) {
+        add('roc-curve', 'Hay marcadores numéricos y desenlaces binarios: ROC resume la discriminación a distintos umbrales.');
+        add('diagnostic-accuracy', 'Calcula sensibilidad y especificidad para un umbral clínico previamente definido.', 'alternative');
+      }
+      break;
+    case 'agreement':
+      if (numeric.length >= 2) {
+        add('icc', 'Para varias mediciones numéricas del mismo sujeto, estima fiabilidad entre evaluadores o métodos.');
+        add('bland-altman', 'Para dos métodos continuos que pretenden medir lo mismo, estima sesgo y límites de acuerdo.', 'alternative');
+      }
+      if (categoricalPairs) add('kappa', 'Para dos clasificaciones categóricas de los mismos casos, mide acuerdo más allá del azar.', recommendations.length ? 'alternative' : 'recommended');
+      break;
+    case 'sample-size':
+      add('sample-size', 'Calcula una aproximación de participantes según el desenlace y el diseño que definas.');
+      break;
+  }
+
+  return recommendations.slice(0, 3);
+};
+
 const ProjectPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -387,6 +485,14 @@ const ProjectPage: React.FC = () => {
   const [selectedRoleValues, setSelectedRoleValues] = useState<Record<string, string | string[]>>({});
   const [analysisSearch, setAnalysisSearch] = useState('');
   const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false);
+  const [advisorObjective, setAdvisorObjective] = useState<AdvisorObjective>('compare');
+  const [advisorDesign, setAdvisorDesign] = useState<AdvisorDesign>('independent');
+  const [advisorComparison, setAdvisorComparison] = useState<AdvisorComparison>('both');
+  const [advisorOutcome, setAdvisorOutcome] = useState<AdvisorOutcome>('numeric');
+  const advisorRecommendations = useMemo(
+    () => recommendAnalyses(advisorObjective, advisorDesign, advisorComparison, advisorOutcome, columnTypes, rowData),
+    [advisorObjective, advisorDesign, advisorComparison, advisorOutcome, columnTypes, rowData],
+  );
 
   const [_analysisResult, setAnalysisResult] = useState<any>(null);
   const [, setAnalysisLoading] = useState(false);
@@ -1662,6 +1768,92 @@ const ProjectPage: React.FC = () => {
                       </p>
                     </div>
 
+                    <section
+                      aria-labelledby="analysis-advisor-title"
+                      style={{ background: '#FFFCF8', border: '1px solid #E9D8C8', borderRadius: '14px', padding: '1rem 1.1rem', display: 'grid', gap: '.8rem' }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '.45rem', color: '#813D25', fontSize: '.72rem', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase' }}>
+                          <HelpCircle size={15} /> Guía de elección
+                        </div>
+                        <h3 id="analysis-advisor-title" style={{ margin: '.25rem 0', color: '#29342E', fontSize: '1rem' }}>¿Qué pregunta quieres responder?</h3>
+                        <p style={{ margin: 0, color: '#53615A', fontSize: '.78rem', lineHeight: 1.5 }}>
+                          La guía cruza tu objetivo y diseño con los tipos y categorías detectados en esta base. La recomendación es orientativa; revisa el protocolo y los supuestos antes de interpretar resultados.
+                        </p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '.65rem' }}>
+                        <label style={{ display: 'grid', gap: '.3rem', color: '#34423B', fontSize: '.76rem', fontWeight: 700 }}>
+                          Objetivo
+                          <select value={advisorObjective} onChange={event => setAdvisorObjective(event.target.value as AdvisorObjective)} style={{ width: '100%', padding: '.6rem .7rem', borderRadius: '9px', border: '1px solid #D8C9BA', background: 'white', color: '#29342E' }}>
+                            <option value="describe">Describir la muestra</option>
+                            <option value="compare">Comparar grupos</option>
+                            <option value="paired">Comparar antes y después / medidas repetidas</option>
+                            <option value="association">Explorar una asociación</option>
+                            <option value="prediction">Modelar o ajustar un resultado</option>
+                            <option value="survival">Analizar tiempo hasta un evento</option>
+                            <option value="diagnostic">Evaluar una prueba diagnóstica</option>
+                            <option value="agreement">Medir acuerdo o fiabilidad</option>
+                            <option value="sample-size">Planificar el tamaño muestral</option>
+                          </select>
+                        </label>
+                        {advisorObjective === 'compare' && (
+                          <label style={{ display: 'grid', gap: '.3rem', color: '#34423B', fontSize: '.76rem', fontWeight: 700 }}>
+                            Diseño de comparación
+                            <select value={advisorDesign} onChange={event => setAdvisorDesign(event.target.value as AdvisorDesign)} style={{ width: '100%', padding: '.6rem .7rem', borderRadius: '9px', border: '1px solid #D8C9BA', background: 'white', color: '#29342E' }}>
+                              <option value="independent">Grupos independientes</option>
+                              <option value="repeated">Mismas personas / emparejados</option>
+                            </select>
+                          </label>
+                        )}
+                        {(advisorObjective === 'compare' || advisorObjective === 'paired') && (
+                          <label style={{ display: 'grid', gap: '.3rem', color: '#34423B', fontSize: '.76rem', fontWeight: 700 }}>
+                            ¿Qué tipo de resultado?
+                            <select value={advisorComparison} onChange={event => setAdvisorComparison(event.target.value as AdvisorComparison)} style={{ width: '100%', padding: '.6rem .7rem', borderRadius: '9px', border: '1px solid #D8C9BA', background: 'white', color: '#29342E' }}>
+                              <option value="numeric">Medida numérica</option>
+                              <option value="categorical">Sí/no o proporciones</option>
+                              <option value="both">No lo sé, muéstrame opciones</option>
+                            </select>
+                          </label>
+                        )}
+                        {advisorObjective === 'prediction' && (
+                          <label style={{ display: 'grid', gap: '.3rem', color: '#34423B', fontSize: '.76rem', fontWeight: 700 }}>
+                            Tipo de desenlace
+                            <select value={advisorOutcome} onChange={event => setAdvisorOutcome(event.target.value as AdvisorOutcome)} style={{ width: '100%', padding: '.6rem .7rem', borderRadius: '9px', border: '1px solid #D8C9BA', background: 'white', color: '#29342E' }}>
+                              <option value="numeric">Medida numérica</option>
+                              <option value="binary">Sí / no</option>
+                              <option value="count">Recuento de eventos</option>
+                              <option value="time">Tiempo hasta un evento</option>
+                            </select>
+                          </label>
+                        )}
+                      </div>
+                      {advisorRecommendations.length ? (
+                        <div style={{ display: 'grid', gap: '.5rem' }}>
+                          {advisorRecommendations.map(({ analysis, reason, level }) => (
+                            <div key={analysis.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.8rem', padding: '.65rem .75rem', background: 'white', border: '1px solid #E8E2DB', borderRadius: '10px' }}>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '.45rem', color: '#29342E', fontSize: '.8rem', fontWeight: 750 }}>
+                                  {analysis.label}
+                                  <span style={{ color: level === 'recommended' ? '#813D25' : '#53615A', background: level === 'recommended' ? '#F6E8DD' : '#F2F1EF', borderRadius: '999px', padding: '.12rem .45rem', fontSize: '.65rem' }}>
+                                    {level === 'recommended' ? 'Recomendado' : 'Alternativa'}
+                                  </span>
+                                  {analysis.badge && <small style={{ color: '#68736D', fontSize: '.67rem', fontWeight: 600 }}>{analysis.badge}</small>}
+                                </div>
+                                <p style={{ margin: '.2rem 0 0', color: '#53615A', fontSize: '.72rem', lineHeight: 1.4 }}>{reason}</p>
+                              </div>
+                              <button type="button" onClick={() => openAnalysisModal(analysis)} style={{ flexShrink: 0, border: '1px solid #C58A68', borderRadius: '8px', padding: '.45rem .65rem', background: '#FFF9F4', color: '#713820', cursor: 'pointer', fontSize: '.72rem', fontWeight: 700 }}>
+                                Configurar
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div role="status" style={{ padding: '.65rem .75rem', borderRadius: '9px', background: '#F4F1ED', color: '#4D5751', fontSize: '.76rem', lineHeight: 1.5 }}>
+                          Con la clasificación actual no hay columnas suficientes para proponer un análisis de este objetivo. Revisa el tipo de las columnas en la tabla o explora el catálogo manualmente.
+                        </div>
+                      )}
+                    </section>
+
                     <label className="analysis-catalog-search">
                       <Search size={17} aria-hidden="true" />
                       <input
@@ -2298,52 +2490,4 @@ const ProjectPage: React.FC = () => {
                 <Sparkles size={16} /> Nuevo análisis
               </button>
             </div>
-          </header>
-          <div className="project-results-content">
-            {outputResults.length > 0 ? (
-              <OutputViewer
-                results={outputResults}
-                onDeleteResult={handleDeleteOutputResult}
-                onClearAll={handleClearAllOutputs}
-                initialSelectedId={viewingHistoryId}
-              />
-            ) : (
-              <div className="project-results-empty">
-                <div className="project-results-empty-icon"><BarChart3 size={26} /></div>
-                <h2>Aún no hay resultados</h2>
-                <p>Ejecuta un análisis desde la base de datos y aparecerá aquí para que puedas consultarlo después.</p>
-                <button type="button" className="ms-btn ms-btn-primary" onClick={openNewAnalysis}>
-                  <Sparkles size={16} /> Lanzar un análisis
-                </button>
-              </div>
-            )}
-          </div>
-        </main>
-      )}
-
-      {/* ESTILOS EMBEBIDOS */}
-      <style>{`
-        .numeric-header::after {
-          content: ' [123]';
-          font-size: 0.65rem;
-          color: #53615A;
-          margin-left: 4px;
-          font-weight: 400;
-        }
-        .categorical-header::after {
-          content: ' [Abc]';
-          font-size: 0.65rem;
-          color: #53615A;
-          margin-left: 4px;
-          font-weight: 400;
-        }
-        .ag-cell-invalid {
-          background-color: #fef2f2 !important;
-          border: 1px solid #fca5a5 !important;
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export default ProjectPage;
+        

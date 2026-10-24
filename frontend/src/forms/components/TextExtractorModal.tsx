@@ -207,8 +207,8 @@ export function TextExtractorModal({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
-                Pega una analítica de laboratorio, informe de ecocardiograma, antecedentes o nota de evolución y CliniForm extraerá los valores automáticamente.
+              <p className="text-xs text-slate-600">
+                Pega una analítica, informe o nota clínica. La extracción se hace localmente con reglas y siglas médicas; revisa cada valor y el fragmento que lo respalda antes de insertarlo.
               </p>
             </div>
           </div>
@@ -313,7 +313,7 @@ export function TextExtractorModal({
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
               <div className="text-[11px] text-slate-500 flex items-center gap-1">
                 <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-                <span>Extracción instantánea de edad, sexo, tabaquismo, dislipemia, HTA, analíticas, ecocardiograma y constantes.</span>
+                <span>Los valores dudosos o contradictorios se omiten. Comprueba siempre el dato original antes de guardarlo.</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -491,6 +491,9 @@ export function TextExtractorModal({
                               )}
                             </td>
                             <td className="py-2 px-3 text-[11px] font-mono text-slate-600 max-w-xs truncate">
+                              <span className={`block w-fit mb-1 px-1.5 py-0.5 rounded not-italic font-sans text-[10px] font-semibold ${match.confidence === 'high' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
+                                {match.confidence === 'high' ? 'Unidad reconocida' : 'Revisar coincidencia'}
+                              </span>
                               "{match.rawSnippet}"
                             </td>
                           </tr>

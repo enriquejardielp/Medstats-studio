@@ -1664,7 +1664,65 @@ label.ms-form-label {
   }
 }
 
-/* ---------- FormBuilder (panel doble) — sin cambios ---------- */
+/* ---------- eCRF workspace ---------- */
+
+.ecrf-header {
+  position: relative;
+  z-index: 35;
+  padding: 1.15rem clamp(1rem, 3vw, 2.25rem) 0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.ecrf-header-main, .ecrf-heading, .ecrf-title-row, .ecrf-controls, .ecrf-tabs,
+.ecrf-tab, .ecrf-project { display: flex; align-items: center; }
+.ecrf-header-main { justify-content: space-between; gap: 1rem; flex-wrap: wrap; max-width: 1500px; margin: 0 auto; }
+.ecrf-heading { gap: .85rem; min-width: 0; }
+.ecrf-mark { width: 2.65rem; height: 2.65rem; flex: 0 0 auto; display: grid; place-items: center; color: var(--color-accent-strong); background: var(--color-accent-soft); border: 1px solid color-mix(in srgb, var(--color-accent) 22%, white); border-radius: 14px; }
+.ecrf-heading-copy { min-width: 0; }
+.ecrf-kicker { color: var(--color-text-secondary); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.ecrf-title-row { gap: .55rem; flex-wrap: wrap; margin-top: .1rem; }
+.ecrf-title-row h1 { margin: 0; color: var(--color-ink); font-size: 1.2rem; font-weight: 750; letter-spacing: -.025em; }
+.ecrf-summary { margin-top: .2rem; color: var(--color-text-secondary); font-size: .75rem; }
+.ecrf-project { gap: .3rem; padding: .2rem .55rem; border: 1px solid var(--color-border); border-radius: 999px; color: var(--color-text-secondary); background: var(--color-bg); font-size: .7rem; font-weight: 600; }
+.ecrf-controls { gap: .55rem; flex-wrap: wrap; }
+.ecrf-form-select { display: grid; gap: .15rem; color: var(--color-text-secondary); font-size: .67rem; font-weight: 700; }
+.ecrf-form-select select { min-width: 150px; }
+.ecrf-new { min-height: 2.45rem; }
+.ecrf-more { position: relative; }
+.ecrf-more summary { display: flex; align-items: center; gap: .45rem; min-height: 2.45rem; list-style: none; cursor: pointer; }
+.ecrf-more summary::-webkit-details-marker { display: none; }
+.ecrf-more[open] summary svg:last-child { transform: rotate(180deg); }
+.ecrf-more-menu { position: absolute; z-index: 50; top: calc(100% + .4rem); right: 0; width: 220px; padding: .35rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 12px 28px rgba(22, 30, 39, .14); }
+.ecrf-more-menu button { display: flex; align-items: center; gap: .6rem; width: 100%; padding: .65rem .7rem; color: var(--color-text-primary); background: transparent; border: 0; border-radius: 8px; text-align: left; font: inherit; font-size: .8rem; cursor: pointer; }
+.ecrf-more-menu button:hover { background: var(--color-bg-deep); }
+.ecrf-more-menu button span { margin-left: auto; color: var(--color-text-secondary); }
+.ecrf-tabs { max-width: 1500px; gap: .2rem; margin: .85rem auto 0; overflow-x: auto; scrollbar-width: none; }
+.ecrf-tabs::-webkit-scrollbar { display: none; }
+.ecrf-tab { position: relative; flex: 0 0 auto; gap: .48rem; padding: .7rem .85rem .78rem; color: var(--color-text-secondary); background: transparent; border: 0; border-bottom: 2px solid transparent; font: inherit; font-size: .8rem; font-weight: 650; white-space: nowrap; cursor: pointer; }
+.ecrf-tab:hover { color: var(--color-ink); background: var(--color-bg); }
+.ecrf-tab.is-active { color: var(--color-accent-strong); border-bottom-color: var(--color-accent); }
+.ecrf-tab-count { min-width: 1.35rem; padding: .08rem .35rem; border-radius: 999px; background: var(--color-bg-deep); color: var(--color-text-secondary); text-align: center; font-size: .68rem; font-variant-numeric: tabular-nums; }
+.ecrf-tab.is-active .ecrf-tab-count { color: var(--color-accent-strong); background: var(--color-accent-soft); }
+
+/* Give each eCRF workspace a calmer, more legible surface. */
+.ms-form-container { max-width: 1500px; margin: 0 auto; padding: clamp(1rem, 2.5vw, 2rem); }
+.ms-form-card, .ms-form-builder-panel { border-radius: 14px; box-shadow: 0 2px 10px rgba(22, 30, 39, .035); }
+.ms-form-nav-item { border-radius: 10px; }
+.ms-form-nav-item.is-active { background: var(--color-accent-soft); }
+.ms-form-type-card, .ms-form-accordion { border-radius: 10px; }
+.ms-form-actionbar { border-radius: 16px 16px 0 0; }
+.ecrf-header + div > .ms-form-container { padding-top: 1.5rem; }
+
+@media (max-width: 720px) {
+  .ecrf-header { padding-inline: 1rem; }
+  .ecrf-header-main { align-items: flex-start; }
+  .ecrf-controls { width: 100%; }
+  .ecrf-new { flex: 1; justify-content: center; }
+  .ecrf-tabs { margin-top: .55rem; }
+  .ecrf-tab { padding-inline: .65rem; font-size: .75rem; }
+}
+
+/* ---------- FormBuilder ---------- */
 
 .ms-form-builder-layout {
   display: grid;
@@ -1684,8 +1742,8 @@ label.ms-form-label {
 .ms-form-builder-panel {
   background: #FFFFFF;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
-  box-shadow: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(22, 30, 39, .035);
   padding: 1.75rem;
 }
 

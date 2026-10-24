@@ -99,23 +99,19 @@ export function DataTable({
             <span>Nuevo Caso</span>
           </button>
 
-          <button
-            onClick={() => exportToExcel(form, records)}
-            disabled={records.length === 0}
-            className="ms-btn ms-btn-sm ms-btn-secondary"
-          >
-            <FileSpreadsheet size={15} />
-            <span>Descargar Excel (.xlsx)</span>
-          </button>
-
-          <button
-            onClick={() => exportToCSV(form, records, { csvDelimiter: ';' })}
-            disabled={records.length === 0}
-            className="ms-btn ms-btn-sm ms-btn-secondary"
-          >
-            <Download size={15} />
-            <span>CSV (;)</span>
-          </button>
+          <details className="ecrf-more">
+            <summary className="ms-btn ms-btn-sm ms-btn-secondary" aria-label="Opciones de descarga">
+              <Download size={15} /><span>Descargar</span>
+            </summary>
+            <div className="ecrf-more-menu">
+              <button type="button" onClick={(e) => { exportToExcel(form, records); e.currentTarget.closest('details')?.removeAttribute('open'); }} disabled={records.length === 0}>
+                <FileSpreadsheet size={16} />Excel (.xlsx)
+              </button>
+              <button type="button" onClick={(e) => { exportToCSV(form, records, { csvDelimiter: ';' }); e.currentTarget.closest('details')?.removeAttribute('open'); }} disabled={records.length === 0}>
+                <Download size={16} />CSV (;)
+              </button>
+            </div>
+          </details>
 
           {records.length > 0 && (
             <button

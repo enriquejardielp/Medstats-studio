@@ -446,7 +446,7 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
   /* --------------------------------- Render --------------------------------- */
 
   return (
-    <div className="ms-form-container" ref={containerRef}>
+    <div className="ms-form-container ecrf-screen ecrf-intake" ref={containerRef}>
       {/* Aviso de guardado / autocompletado */}
       {toast && (
         <div className="ms-form-toast" role="status" aria-live="polite">

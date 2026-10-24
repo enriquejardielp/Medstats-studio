@@ -444,7 +444,7 @@ export function FormBuilder({
   ];
 
   return (
-    <div className="ms-form-container space-y-6">
+    <div className="ms-form-container ecrf-screen ecrf-builder space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[var(--color-border)]">
         <div>
@@ -462,23 +462,17 @@ export function FormBuilder({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setIsFavModalOpen(true)}
-            className="ms-btn ms-btn-sm ms-btn-secondary"
-            title="Biblioteca de módulos clínicos reutilizables"
-          >
-            <Star size={14} style={{ color: 'var(--color-accent)' }} />
-            <span>Biblioteca Favoritos ({favoriteSections.length})</span>
-          </button>
-
-          <button
-            onClick={() => setShowNewFormModal(true)}
-            className="ms-btn ms-btn-sm ms-btn-secondary"
-          >
-            <FolderPlus size={14} />
-            <span>Nuevo Formulario</span>
-          </button>
-
+          <details className="ecrf-more">
+            <summary className="ms-btn ms-btn-sm ms-btn-secondary"><span>Herramientas</span><ChevronDown size={14} /></summary>
+            <div className="ecrf-more-menu">
+              <button type="button" onClick={(e) => { setIsFavModalOpen(true); e.currentTarget.closest('details')?.removeAttribute('open'); }}>
+                <Star size={16} />Biblioteca de favoritos <span>{favoriteSections.length}</span>
+              </button>
+              <button type="button" onClick={(e) => { setShowNewFormModal(true); e.currentTarget.closest('details')?.removeAttribute('open'); }}>
+                <FolderPlus size={16} />Crear otro formulario
+              </button>
+            </div>
+          </details>
           <button
             onClick={handleSaveAll}
             className="ms-btn ms-btn-sm ms-btn-primary"

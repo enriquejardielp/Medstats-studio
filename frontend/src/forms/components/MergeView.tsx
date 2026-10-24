@@ -120,7 +120,7 @@ export function MergeView({
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <div className="ecrf-screen ecrf-merge max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
       {/* Header */}
       <div className="pb-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

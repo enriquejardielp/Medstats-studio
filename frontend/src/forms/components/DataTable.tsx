@@ -74,7 +74,7 @@ export function DataTable({
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
+    <div className="ecrf-screen ecrf-records max-w-7xl mx-auto py-6 px-4 sm:px-6">
       {/* Top Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
         <div>

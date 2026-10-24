@@ -2295,3 +2295,99 @@ label.ms-form-label {
   display: flex;
   align-items: center;
 }
+
+/* ---------- eCRF: sistema visual y flujos de trabajo ---------- */
+.ecrf-screen {
+  --ecrf-card-radius: 16px;
+  --ecrf-shadow: 0 5px 20px rgba(37, 36, 34, .045);
+  color: var(--color-text-primary);
+  max-width: 1480px;
+  padding: clamp(1.1rem, 2.5vw, 2.2rem) clamp(1rem, 3vw, 2.5rem) 2.5rem;
+}
+.ecrf-screen h1 { font-size: clamp(1.35rem, 2vw, 1.8rem); line-height: 1.2; font-weight: 750; color: var(--color-ink); }
+.ecrf-screen h2, .ecrf-screen h3 { color: var(--color-ink); }
+.ecrf-screen .ms-form-card,
+.ecrf-screen .ms-form-builder-panel { border-radius: var(--ecrf-card-radius); box-shadow: var(--ecrf-shadow); }
+.ecrf-screen .ms-form-card { padding: 1.25rem; }
+.ecrf-screen input:not([type="checkbox"]):not([type="radio"]),
+.ecrf-screen select, .ecrf-screen textarea { border-radius: 9px; }
+.ecrf-screen .ms-btn { min-height: 2.55rem; border-radius: 9px; }
+.ecrf-screen .ms-btn-sm { min-height: 2.25rem; }
+.ecrf-screen :is(button, input, select, textarea):focus-visible { outline-offset: 2px; }
+
+/* Captura: una tarjeta clara por bloque de información. */
+.ecrf-intake .ms-form-header-block { padding: 0 0 1.25rem; border-bottom: 1px solid var(--color-border); }
+.ecrf-intake .ms-form-title { font-family: var(--font-display); font-size: clamp(1.45rem, 2.2vw, 1.9rem); line-height: 1.15; }
+.ecrf-intake .ms-form-layout { gap: 1.4rem; }
+.ecrf-intake .ms-form-main { gap: 1rem; }
+.ecrf-intake .ms-form-section { border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); box-shadow: var(--ecrf-shadow); padding: 1.25rem; }
+.ecrf-intake .ms-form-section.is-active { border-color: color-mix(in srgb, var(--color-accent) 48%, white); box-shadow: 0 0 0 3px var(--color-accent-soft), var(--ecrf-shadow); }
+.ecrf-intake .ms-form-section-title { font-size: 1rem; }
+.ecrf-intake .ms-form-field { padding: .9rem; border-radius: 12px; background: #fffefa; }
+.ecrf-intake .ms-form-label { font-size: .84rem; }
+.ecrf-intake .ms-form-input, .ecrf-intake .ms-form-select, .ecrf-intake .ms-form-textarea { min-height: 2.8rem; font-size: .9rem; }
+.ecrf-intake .ms-form-aux { gap: 1rem; }
+.ecrf-intake .ms-form-nav-item { min-height: 2.85rem; }
+.ecrf-intake .ms-form-actionbar { margin-inline: calc(-1 * clamp(1rem, 3vw, 2.5rem)); padding-inline: clamp(1rem, 3vw, 2.5rem); }
+
+/* Diseñador: estructura y edición quedan visualmente separadas. */
+.ecrf-builder .ms-form-builder-layout { grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr); gap: 1.25rem; }
+.ecrf-builder .ms-form-builder-layout > div { min-width: 0; }
+.ecrf-builder .ms-form-builder-panel { padding: 1.35rem; }
+.ecrf-builder .ms-form-builder-layout .ms-form-card { border: 1px solid var(--color-border); }
+.ecrf-builder .ms-form-builder-layout > div:last-child { position: sticky; top: 1rem; }
+.ecrf-builder .ms-form-type-grid { gap: .7rem; }
+.ecrf-builder .ms-form-type-card { min-height: 88px; border-radius: 12px; padding: .85rem; }
+.ecrf-builder .ms-form-type-card.is-active { box-shadow: 0 0 0 3px var(--color-accent-soft); }
+.ecrf-builder .ms-form-accordion { border-radius: 12px; }
+.ecrf-builder .ms-form-accordion-summary { padding: .9rem 1rem; }
+
+/* Registros: tabla fácil de recorrer y acciones accesibles. */
+.ecrf-records { width: 100%; }
+.ecrf-records > div:first-child { padding-bottom: 1.1rem; border-color: var(--color-border); }
+.ecrf-records > div:nth-child(2) input { min-height: 2.8rem; border-radius: 10px; padding-block: .65rem; }
+.ecrf-records .ms-form-card { border: 1px solid var(--color-border); }
+.ecrf-records table { font-size: .8rem; }
+.ecrf-records thead { background: #f5f2eb; }
+.ecrf-records th { padding-block: .85rem; color: var(--color-text-secondary); font-size: .7rem; letter-spacing: .04em; text-transform: uppercase; }
+.ecrf-records td { padding-block: .8rem; }
+.ecrf-records tbody tr:nth-child(even) { background: #fffefa; }
+.ecrf-records tbody tr:hover { background: var(--color-accent-soft); }
+
+/* Analítica: indicadores legibles, con tarjetas diferenciadas. */
+.ecrf-analytics > div:first-child { padding-bottom: 1.1rem; border-color: var(--color-border); }
+.ecrf-analytics .grid > .ms-form-card { min-height: 126px; display: flex; flex-direction: column; justify-content: center; padding: 1.25rem; border: 1px solid var(--color-border); }
+.ecrf-analytics .grid > .ms-form-card > span:first-child { font-size: .7rem; letter-spacing: .08em; }
+.ecrf-analytics .grid > .ms-form-card .text-2xl { font-size: 2rem; line-height: 1.1; }
+.ecrf-analytics .ms-form-card { border: 1px solid var(--color-border); }
+.ecrf-analytics table { font-size: .8rem; }
+.ecrf-analytics th { padding-block: .8rem; background: #f5f2eb; color: var(--color-text-secondary); font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Exportación: opciones, resumen y vista previa con una jerarquía consistente. */
+.ecrf-export > div:first-child { padding-bottom: 1.1rem; border-color: var(--color-border); }
+.ecrf-export > .grid { gap: 1rem; align-items: stretch; }
+.ecrf-export > .grid > .ms-form-card { border: 1px solid var(--color-border); padding: 1.25rem; }
+.ecrf-export > .grid > .ms-form-card h2 { font-size: .77rem; letter-spacing: .07em; }
+.ecrf-export > .grid > .ms-form-card label { border-radius: 12px; }
+.ecrf-export .ms-form-card table { font-size: .78rem; }
+.ecrf-export .ms-form-card thead { background: #f5f2eb; }
+.ecrf-export .ms-form-card th { padding-block: .8rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
+.ecrf-export > .bg-slate-900 { border-radius: 16px; }
+
+/* Fusión: área de carga y reglas más distinguibles. */
+.ecrf-merge > div:first-child { padding-bottom: 1.1rem; border-color: var(--color-border); }
+.ecrf-merge .border-dashed { min-height: 250px; display: flex; flex-direction: column; justify-content: center; border-radius: 18px; background: #fffefa; }
+.ecrf-merge .border-dashed:hover { background: var(--color-accent-soft); }
+.ecrf-merge .rounded-lg { border-radius: 14px; }
+.ecrf-merge .shadow-xs { box-shadow: var(--ecrf-shadow); }
+
+@media (max-width: 1023px) {
+  .ecrf-builder .ms-form-builder-layout { grid-template-columns: 1fr; }
+  .ecrf-builder .ms-form-builder-layout > div:last-child { position: static; }
+}
+@media (max-width: 640px) {
+  .ecrf-screen { padding: 1rem .85rem 1.5rem; }
+  .ecrf-intake .ms-form-section { padding: .95rem; }
+  .ecrf-intake .ms-form-field { padding: .75rem; }
+  .ecrf-screen .ms-btn { min-height: 2.7rem; }
+}

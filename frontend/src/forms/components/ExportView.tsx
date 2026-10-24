@@ -96,7 +96,7 @@ const gridOptions = {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <div className="ecrf-screen ecrf-export max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
       {/* Title */}
       <div className="pb-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

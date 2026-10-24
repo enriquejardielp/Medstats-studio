@@ -114,7 +114,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Estadística Descriptiva',
     category: '1. Descriptiva y Basal',
     badge: 'Media, DE, Mediana, IQR',
-    icon: <BarChart3 size={18} color="#587D71" />,
+    icon: <BarChart3 size={18} color="#9C4C2E" />,
     description: 'Resumen numérico y categórico univariado con test de normalidad.',
     requiredTypes: { numeric: 1, categorical: 0 },
     allowMore: true,
@@ -124,7 +124,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Tabla 1 Basal (Lancet / NEJM)',
     category: '1. Descriptiva y Basal',
     badge: 'Características Basales',
-    icon: <Table2 size={18} color="#587D71" />,
+    icon: <Table2 size={18} color="#9C4C2E" />,
     description: 'Demografía y variables basales estratificadas con comparaciones.',
     requiredTypes: { numeric: 1, categorical: 0 },
     allowMore: true,
@@ -134,7 +134,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Comparar 2 Grupos (t / Mann-Whitney)',
     category: '2. Comparación de Grupos',
     badge: 't de Student / Welch / U',
-    icon: <GitCompare size={18} color="#587D71" />,
+    icon: <GitCompare size={18} color="#9C4C2E" />,
     description: 'Diferencia de medias o rangos para muestras independientes o pareadas.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -144,7 +144,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Comparar 3+ Grupos (ANOVA / Kruskal)',
     category: '2. Comparación de Grupos',
     badge: 'ANOVA / Kruskal-Wallis',
-    icon: <Layers size={18} color="#587D71" />,
+    icon: <Layers size={18} color="#9C4C2E" />,
     description: 'Prueba F global, homocedasticidad de Levene y comparaciones post-hoc Tukey.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -154,7 +154,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Correlación Bivariada',
     category: '3. Asociación y Contingencia',
     badge: 'Pearson / Spearman',
-    icon: <TrendingUp size={18} color="#587D71" />,
+    icon: <TrendingUp size={18} color="#9C4C2E" />,
     description: 'Fuerza y dirección de asociación lineal o monótona con IC 95%.',
     requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: false,
@@ -164,7 +164,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Tablas de Contingencia (Chi² / Fisher)',
     category: '3. Asociación y Contingencia',
     badge: 'Odds Ratio / Riesgo Relativo',
-    icon: <Sparkles size={18} color="#587D71" />,
+    icon: <Sparkles size={18} color="#9C4C2E" />,
     description: 'Asociación entre cualitativas, corrección de Yates y corrección de Haldane.',
     requiredTypes: { numeric: 0, categorical: 2 },
     allowMore: false,
@@ -174,7 +174,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Regresión Lineal Múltiple',
     category: '4. Modelos Predictivos',
     badge: 'Ajuste de Covariables',
-    icon: <SlidersHorizontal size={18} color="#587D71" />,
+    icon: <SlidersHorizontal size={18} color="#9C4C2E" />,
     description: 'Estimación de coeficientes beta, R² ajustado y diagnóstico de residuos.',
     requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: true,
@@ -184,7 +184,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Regresión Logística Binaria',
     category: '4. Modelos Predictivos',
     badge: 'Odds Ratios Ajustados',
-    icon: <Activity size={18} color="#587D71" />,
+    icon: <Activity size={18} color="#9C4C2E" />,
     description: 'Modelado de desenlace clínico binario con Hosmer-Lemeshow y Nagelkerke.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: true,
@@ -194,7 +194,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Curva ROC & Biomarcadores',
     category: '5. Medicina Diagnóstica & Supervivencia',
     badge: 'AUC & Índice Youden',
-    icon: <Activity size={18} color="#587D71" />,
+    icon: <Activity size={18} color="#9C4C2E" />,
     description: 'Capacidad diagnóstica, sensibilidad, especificidad y punto de corte.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -204,7 +204,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Supervivencia Kaplan-Meier',
     category: '5. Medicina Diagnóstica & Supervivencia',
     badge: 'Curvas & Log-Rank Test',
-    icon: <Activity size={18} color="#587D71" />,
+    icon: <Activity size={18} color="#9C4C2E" />,
     description: 'Tiempo hasta el evento, medianas de supervivencia y contraste Log-Rank.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -1282,8 +1282,8 @@ const ProjectPage: React.FC = () => {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
-                        <Sparkles size={15} color="#587D71" />
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#466B60', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <Sparkles size={15} color="#9C4C2E" />
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#813D25', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Catálogo de Procedimientos Estadísticos
                         </span>
                       </div>
@@ -1342,7 +1342,7 @@ const ProjectPage: React.FC = () => {
                                   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                                 }}
                                 onMouseEnter={e => {
-                                  e.currentTarget.style.borderColor = 'rgba(88, 125, 113, 0.48)';
+                                  e.currentTarget.style.borderColor = 'rgba(156, 76, 46, 0.48)';
                                   e.currentTarget.style.backgroundColor = '#F5F7F5';
                                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.05)';
                                   e.currentTarget.style.transform = 'translateY(-1px)';
@@ -1378,9 +1378,9 @@ const ProjectPage: React.FC = () => {
                                     {option.badge && (
                                       <span
                                         style={{
-                                          backgroundColor: '#EFF5F1',
-                                          color: '#466B60',
-                                          border: '1px solid #C4D9CE',
+                                          backgroundColor: '#FBF4EE',
+                                          color: '#813D25',
+                                          border: '1px solid #E9C8B3',
                                           fontSize: '0.66rem',
                                           fontWeight: 700,
                                           padding: '1px 6px',
@@ -1488,7 +1488,7 @@ const ProjectPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#53615A', fontSize: '0.85rem' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#29342E', fontWeight: 600 }}>
-                  <span style={{ width: '2rem', height: '2rem', borderRadius: '0.75rem', background: '#587D71', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <span style={{ width: '2rem', height: '2rem', borderRadius: '0.75rem', background: '#9C4C2E', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                     <BarChart3 size={16} />
                   </span>
                   MedStats Analytics
@@ -1496,7 +1496,7 @@ const ProjectPage: React.FC = () => {
                 <span style={{ color: '#53615A' }}>/</span>
                 <span>{project?.name || 'Proyecto Actual'}</span>
                 <span style={{ color: '#53615A' }}>/</span>
-                <span style={{ background: '#EAF1ED', color: '#42655B', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
+                <span style={{ background: '#F4E5D9', color: '#713820', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
                   {project?.filename || 'Dataset activo'}
                 </span>
               </div>
@@ -1517,8 +1517,8 @@ const ProjectPage: React.FC = () => {
                 </div>
 
                 <div style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem', display: 'grid', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#42655B', fontWeight: 700, fontSize: '0.8rem' }}>
-                    <span style={{ width: '0.75rem', height: '0.75rem', borderRadius: '999px', background: '#668F7F' }}></span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#713820', fontWeight: 700, fontSize: '0.8rem' }}>
+                    <span style={{ width: '0.75rem', height: '0.75rem', borderRadius: '999px', background: '#AE6441' }}></span>
                     Selección de variables para {selectedAnalysis.label}
                   </div>
 
@@ -1836,7 +1836,7 @@ const ProjectPage: React.FC = () => {
                       <option value="PSistólica (Pre)">[Num] PSistólica (Pre)</option>
                       <option value="Estadio Tumor">[Ord] Estadio Tumor</option>
                     </select>
-                    <button onClick={addCovariate} style={{ padding: '0.75rem 1rem', borderRadius: '14px', border: 'none', background: '#587D71', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Agregar variable</button>
+                    <button onClick={addCovariate} style={{ padding: '0.75rem 1rem', borderRadius: '14px', border: 'none', background: '#9C4C2E', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Agregar variable</button>
                   </div>
                 </div>
 
@@ -1856,14 +1856,14 @@ const ProjectPage: React.FC = () => {
                 <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div>
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#53615A' }}>Estado del análisis</div>
-                    <button style={{ width: '100%', marginTop: '0.85rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #C4D9CE', background: '#F1F6F2', color: '#42655B', fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}>
+                    <button style={{ width: '100%', marginTop: '0.85rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #E9C8B3', background: '#F1F6F2', color: '#713820', fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}>
                       Listo para ejecutar
                     </button>
                   </div>
 
                   <div style={{ background: '#F5F7F5', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem', color: '#29342E', fontWeight: 700 }}>
-                      <span style={{ width: '1.75rem', height: '1.75rem', borderRadius: '0.75rem', background: '#668F7F', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><BarChart3 size={16} /></span>
+                      <span style={{ width: '1.75rem', height: '1.75rem', borderRadius: '0.75rem', background: '#AE6441', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><BarChart3 size={16} /></span>
                       <span style={{ fontSize: '0.9rem' }}>Test recomendado</span>
                     </div>
                     <div>
@@ -1943,7 +1943,7 @@ const ProjectPage: React.FC = () => {
                       padding: '1rem',
                       borderRadius: '18px',
                       border: 'none',
-                      background: !isSelectionComplete() ? 'rgba(88, 125, 113, 0.48)' : '#587D71',
+                      background: !isSelectionComplete() ? 'rgba(156, 76, 46, 0.48)' : '#9C4C2E',
                       color: 'white',
                       fontWeight: 700,
                       fontSize: '0.95rem',

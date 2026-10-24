@@ -93,35 +93,36 @@ export function FormsManagerModal({
 
   return (
     <div className="ecrf-modal-backdrop fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="ecrf-modal ecrf-modal-manager bg-white rounded-lg border border-slate-200 shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="ecrf-modal ecrf-modal-manager bg-white rounded-lg border border-slate-200 shadow-xl max-w-6xl w-full max-h-[92vh] flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="forms-manager-title">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white">
+        <div className="ecrf-modal-manager-header flex items-center justify-between p-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] text-white flex items-center justify-center shadow-xs">
               <FolderKanban className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-900 text-base">Mis Formularios y Bases de Datos Clínicas</h3>
+                <h3 id="forms-manager-title" className="font-bold text-slate-900 text-base">Mis formularios</h3>
                 <span className="text-xs font-mono text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
                   {forms.length} {forms.length === 1 ? 'formulario' : 'formularios'}
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Cambia entre tus estudios, duplícalos, haz copias de seguridad o recupera formularios anteriores.
+                Cambia de estudio, crea una copia o restaura un formulario.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded transition-colors"
+            aria-label="Cerrar Mis formularios"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Toolbar & Tabs */}
-        <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="ecrf-modal-manager-toolbar p-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('forms')}
@@ -131,7 +132,7 @@ export function FormsManagerModal({
                   : 'bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-deep)] border border-[var(--color-border)]'
               }`}
             >
-              Formularios Activos ({forms.length})
+              Formularios activos ({forms.length})
             </button>
             <button
               onClick={() => setActiveTab('trash')}
@@ -142,7 +143,7 @@ export function FormsManagerModal({
               }`}
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Papelera de Recuperación ({trashItems.length})</span>
+              <span>Papelera ({trashItems.length})</span>
             </button>
           </div>
 
@@ -197,9 +198,9 @@ export function FormsManagerModal({
         )}
 
         {/* Modal Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="ecrf-modal-manager-content flex-1 overflow-y-auto p-4 space-y-3">
           {activeTab === 'forms' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="ecrf-modal-manager-list grid grid-cols-1 md:grid-cols-2 gap-4">
               {forms.map((formItem) => {
                 const isActive = formItem.id === activeFormId;
                 const recordCount = getRecordsForForm(formItem).length;
@@ -207,7 +208,7 @@ export function FormsManagerModal({
                 return (
                   <div
                     key={formItem.id}
-                    className={`p-4 rounded-lg border transition-all flex flex-col justify-between ${
+                    className={`ecrf-modal-form-card p-4 rounded-lg border transition-all flex flex-col justify-between ${
                       isActive
                         ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300 bg-white shadow-2xs'
@@ -259,7 +260,7 @@ export function FormsManagerModal({
                     </div>
 
                     {/* Bottom Action Buttons */}
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                    <div className="ecrf-modal-form-actions flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => onDuplicateForm(formItem.id, false)}
@@ -364,10 +365,10 @@ export function FormsManagerModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+        <div className="ecrf-modal-manager-footer p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-1.5 text-slate-600">
             <Database className="w-3.5 h-3.5 text-teal-600" />
-            <span>Tus datos y formularios están almacenados de forma segura en tu navegador.</span>
+            <span>Tus datos y formularios se guardan en el almacenamiento local de este navegador.</span>
           </div>
           <button
             onClick={onClose}

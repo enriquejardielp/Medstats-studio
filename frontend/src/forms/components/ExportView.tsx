@@ -3,9 +3,6 @@ import {
   FileSpreadsheet,
   Download,
   BookOpen,
-  Code2,
-  Copy,
-  Check,
   CheckCircle,
   FileJson,
   Layers,
@@ -26,7 +23,6 @@ export function ExportView({ form, records }: ExportViewProps) {
   const [csvDelimiter, setCsvDelimiter] = useState<',' | ';'>(';');
   const [booleanFormat, setBooleanFormat] = useState<'1/0' | 'SI/NO' | 'TRUE/FALSE'>('SI/NO');
   const [includeCodebook, setIncludeCodebook] = useState(true);
-  const [copiedCode, setCopiedCode] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState<'data' | 'codebook'>('data');
 
   const previewRows = buildDatasetRows(form, records.slice(0, 10), booleanFormat);
@@ -59,44 +55,8 @@ export function ExportView({ form, records }: ExportViewProps) {
     }
   };
 
-  const agGridSnippet = `// Ejemplo de integración directa en tu app con AG-Grid:
-import { createGrid } from 'ag-grid-community';
-
-// Definición de columnas basada en ${form.title}:
-const columnDefs = [
-  { field: 'id_registro', headerName: 'ID Registro', pinned: 'left', width: 140 },
-  { field: 'fecha_registro', headerName: 'Fecha Captura', width: 160 },
-${form.fields
-  .map(
-    (f) =>
-      `  { field: '${f.name}', headerName: '${f.label}'${
-        f.type === 'number' || f.type === 'calculated' ? ", type: 'numericColumn'" : ''
-      }${f.unit ? `, valueFormatter: p => p.value != null ? \`\${p.value} ${f.unit}\` : ''` : ''} }`
-  )
-  .join(',\n')}
-];
-
-// Opciones de AG Grid:
-const gridOptions = {
-  columnDefs: columnDefs,
-  rowData: /* Cargar desde el archivo Excel/CSV o API */,
-  pagination: true,
-  paginationPageSize: 25,
-  defaultColDef: {
-    sortable: true,
-    filter: true,
-    resizable: true,
-  }
-};`;
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(agGridSnippet);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2500);
-  };
-
   return (
-    <div className="ecrf-screen ecrf-export max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <div className="ecrf-screen ecrf-export max-w-7xl mx-auto py-8 px-5 sm:px-8 space-y-8">
       {/* Title */}
       <div className="pb-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -107,7 +67,7 @@ const gridOptions = {
             </span>
           </div>
           <p className="text-sm text-slate-600 mt-0.5">
-            Descarga la base de datos limpia con nombres de columnas estandarizados para análisis estadístico o tu app con AG-Grid.
+            Configura el formato, revisa los datos y descárgalos o intégralos con un proyecto de MedStats.
           </p>
         </div>
 
@@ -117,7 +77,7 @@ const gridOptions = {
             className="ms-btn ms-btn-secondary"
           >
             <Database size={15} style={{ color: 'var(--color-accent)' }} />
-            <span>Volcar a Proyecto MedStats</span>
+            <span>Integrar con un proyecto</span>
           </button>
 
           <button
@@ -139,7 +99,7 @@ const gridOptions = {
       </div>
 
       {/* Configuration Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="ecrf-export-options grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Format Selector Card */}
         <div className="ms-form-card space-y-4">
           <h2 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
@@ -415,33 +375,6 @@ const gridOptions = {
             </table>
           </div>
         )}
-      </div>
-
-      {/* AG Grid / App Integration Snippet */}
-      <div className="bg-slate-900 text-slate-100 rounded p-5 border border-slate-800">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <Code2 className="w-4 h-4 text-teal-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-teal-300">
-              Integración con tu app de AG Grid (JavaScript / TypeScript)
-            </h3>
-          </div>
-          <button
-            onClick={copyToClipboard}
-            className="ms-btn ms-btn-sm ms-btn-secondary"
-          >
-            {copiedCode ? <Check size={14} style={{ color: 'var(--color-success)' }} /> : <Copy size={14} />}
-            <span>{copiedCode ? 'Copiado al portapapeles' : 'Copiar código'}</span>
-          </button>
-        </div>
-
-        <p className="text-xs text-slate-400 mt-2">
-          Copia estas definiciones de columnas (columnDefs) directamente en tu app para que coincidan al 100% con los datos exportados:
-        </p>
-
-        <pre className="mt-3 p-3 bg-slate-950/80 rounded border border-slate-800 text-[11px] font-mono text-teal-300 overflow-x-auto leading-relaxed max-h-56">
-          {agGridSnippet}
-        </pre>
       </div>
 
       <ProjectSyncModal

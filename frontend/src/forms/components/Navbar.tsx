@@ -24,7 +24,7 @@ const tabs = [
   { id: 'analytics', label: 'Analítica', icon: BarChart3, description: 'Calidad y estadísticas' },
   { id: 'builder', label: 'Diseño', icon: FileSpreadsheet, description: 'Editar el formulario' },
   { id: 'export', label: 'Exportar', icon: FileText, description: 'Exportar datos y variables' },
-  { id: 'merge', label: 'Fusionar', icon: GitMerge, description: 'Importar y combinar datos' },
+  { id: 'merge', label: 'Fusionar', icon: GitMerge, description: 'Importar e integrar otras bases' },
 ] as const;
 
 export function Navbar(props: NavbarProps) {
@@ -46,17 +46,19 @@ export function Navbar(props: NavbarProps) {
           </div>
         </div>
         <div className="ecrf-controls">
-          {forms.length > 1 && activeForm && <label className="ecrf-form-select">
-            <span>Formulario</span>
-            <select value={activeForm.id} onChange={(e) => onSelectForm(e.target.value)} className="ms-select" aria-label="Seleccionar formulario">
+          {activeForm && <label className="ecrf-form-select">
+            <span>Cambiar formulario</span>
+            <select value={activeForm.id} onChange={(e) => onSelectForm(e.target.value)} className="ms-select" aria-label="Seleccionar formulario" disabled={forms.length < 2}>
               {forms.map((f) => <option key={f.id} value={f.id}>{f.title}</option>)}
             </select>
           </label>}
+          <button type="button" onClick={onOpenFormsManager} className="ms-btn ms-btn-secondary ecrf-manage-forms">
+            <FolderKanban size={15} />Mis formularios <span>{forms.length}</span>
+          </button>
           {onCreateNewForm && <button type="button" onClick={onCreateNewForm} className="ms-btn ms-btn-primary ecrf-new"><Plus size={16} />Nuevo formulario</button>}
           <details className="ecrf-more">
             <summary className="ms-btn ms-btn-secondary"><span>Opciones</span><ChevronDown size={14} /></summary>
             <div className="ecrf-more-menu">
-              <button type="button" onClick={(e) => { onOpenFormsManager(); e.currentTarget.closest('details')?.removeAttribute('open'); }}><FolderKanban size={16} />Mis formularios <span>{forms.length}</span></button>
               <button type="button" onClick={(e) => { onOpenTemplatesModal(); e.currentTarget.closest('details')?.removeAttribute('open'); }}><FileText size={16} />Plantillas clínicas</button>
               {onOpenProjectSync && <button type="button" onClick={(e) => { onOpenProjectSync(); e.currentTarget.closest('details')?.removeAttribute('open'); }}><Database size={16} />Vincular proyecto</button>}
             </div>

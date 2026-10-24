@@ -120,7 +120,7 @@ export function MergeView({
   };
 
   return (
-    <div className="ecrf-screen ecrf-merge max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <div className="ecrf-screen ecrf-merge max-w-7xl mx-auto py-8 px-5 sm:px-8 space-y-8">
       {/* Header */}
       <div className="pb-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -261,9 +261,9 @@ export function MergeView({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="ecrf-merge-layout grid grid-cols-1 md:grid-cols-2 gap-7">
             {/* Strategy Selection */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+            <div className="ecrf-merge-card bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
               <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                 <GitMerge className="w-3.5 h-3.5 text-teal-600" />
                 1. Regla de Resolución de Duplicados
@@ -356,7 +356,7 @@ export function MergeView({
             </div>
 
             {/* Column Mapping Preview */}
-            <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
+            <div className="ecrf-merge-card ecrf-merge-mapping bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-3">
               <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-teal-600" />
                 2. Mapeo Automático de Columnas

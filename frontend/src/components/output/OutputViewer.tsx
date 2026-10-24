@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FileSpreadsheet,
   BarChart3,
@@ -18,18 +18,19 @@ interface Props {
   results: AnalysisResult[];
   onDeleteResult: (analysisId: string) => void;
   onClearAll: () => void;
+  initialSelectedId?: string | null;
 }
 
-export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClearAll }) => {
+export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClearAll, initialSelectedId }) => {
   const [selectedId, setSelectedId] = useState<string | null>(
-    results.length > 0 ? results[0].metadata.analysis_id : null
+    initialSelectedId || (results.length > 0 ? results[0].metadata.analysis_id : null)
   );
 
   const getAnalysisIcon = (type: string) => {
     switch (type) {
       case 'descriptive':
       case 'table1':
-        return <BarChart3 size={15} color="#0d7c72" />;
+        return <BarChart3 size={15} color="#9C4C2E" />;
       case 'compare':
       case 'anova':
         return <GitCompare size={15} color="#16a34a" />;
@@ -54,6 +55,14 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
     }
   };
 
+  useEffect(() => {
+    if (!initialSelectedId) return;
+    setSelectedId(initialSelectedId);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`analysis-block-${initialSelectedId}`)?.scrollIntoView({ block: 'start' });
+    });
+  }, [initialSelectedId, results]);
+
   if (!results || results.length === 0) {
     return (
       <div
@@ -76,15 +85,15 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
             width: '64px',
             height: '64px',
             borderRadius: '20px',
-            backgroundColor: '#e7f4f2',
+            backgroundColor: '#F4E5D9',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '1.25rem',
-            border: '1px solid #d3ece8',
+            border: '1px solid #EAD4C4',
           }}
         >
-          <Sparkles size={32} color="#0d7c72" />
+          <Sparkles size={32} color="#9C4C2E" />
         </div>
 
         <h3
@@ -134,6 +143,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
 
   return (
     <div
+      className="analysis-output-viewer"
       style={{
         display: 'grid',
         gridTemplateColumns: '270px 1fr',
@@ -166,15 +176,15 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FolderTree size={16} color="#0d7c72" />
+            <FolderTree size={16} color="#9C4C2E" />
             <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#10232e', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Índice de Salida
             </span>
             <span
               style={{
-                backgroundColor: '#e7f4f2',
-                color: '#0a5f58',
-                border: '1px solid #b6ddd8',
+                backgroundColor: '#F4E5D9',
+                color: '#713820',
+                border: '1px solid #D9B6A0',
                 fontSize: '0.68rem',
                 fontWeight: 700,
                 padding: '1px 6px',
@@ -230,9 +240,9 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                   gap: '0.65rem',
                   padding: '0.65rem 0.8rem',
                   borderRadius: '8px',
-                  border: isSelected ? '1px solid #b6ddd8' : '1px solid transparent',
-                  backgroundColor: isSelected ? '#e7f4f2' : 'transparent',
-                  color: isSelected ? '#0a5f58' : '#334155',
+                  border: isSelected ? '1px solid #D9B6A0' : '1px solid transparent',
+                  backgroundColor: isSelected ? '#F4E5D9' : 'transparent',
+                  color: isSelected ? '#713820' : '#334155',
                   cursor: 'pointer',
                   textAlign: 'left',
                   marginBottom: '3px',
@@ -265,7 +275,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                   <div
                     style={{
                       fontSize: '0.7rem',
-                      color: isSelected ? '#14958a' : '#94a3b8',
+                      color: isSelected ? '#8A4D31' : '#94a3b8',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px',
@@ -288,7 +298,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
 
                 <ChevronRight
                   size={14}
-                  color={isSelected ? '#0d7c72' : '#cbd5e1'}
+                  color={isSelected ? '#9C4C2E' : '#cbd5e1'}
                   style={{ flexShrink: 0 }}
                 />
               </button>

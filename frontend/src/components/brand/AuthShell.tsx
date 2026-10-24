@@ -32,17 +32,17 @@ function SurvivalIllustration() {
         aria-label="Gráfica ilustrativa con datos simulados: la curva del grupo tratamiento se mantiene por encima de la del grupo control durante 48 meses."
       >
         {/* Líneas guía horizontales */}
-        <g stroke="rgba(255,252,242,0.08)" strokeWidth="1">
+        <g stroke="rgba(255,252,242,0.15)" strokeWidth="1">
           <line x1="52" x2="452" y1="16" y2="16" />
           <line x1="52" x2="452" y1="88" y2="88" />
           <line x1="52" x2="452" y1="160" y2="160" />
         </g>
 
         {/* Ejes */}
-        <path d="M52 16V232H452" stroke="rgba(255,252,242,0.35)" strokeWidth="1.5" fill="none" />
+        <path d="M52 16V232H452" stroke="rgba(255,252,242,0.58)" strokeWidth="1.5" fill="none" />
 
         {/* Marcas y títulos de ejes */}
-        <g fill="rgba(255,252,242,0.5)" fontSize="11" fontFamily="JetBrains Mono, monospace">
+        <g fill="rgba(255,252,242,0.78)" fontSize="11" fontFamily="JetBrains Mono, monospace">
           {[['1.0', 16], ['0.8', 88], ['0.6', 160], ['0.4', 232]].map(([label, y]) => (
             <text key={label} x="44" y={Number(y) + 4} textAnchor="end">{label}</text>
           ))}
@@ -50,7 +50,7 @@ function SurvivalIllustration() {
             <text key={m} x={52 + i * 100} y="250" textAnchor="middle">{m}</text>
           ))}
         </g>
-        <g fill="rgba(255,252,242,0.5)" fontSize="11" fontFamily="Manrope, sans-serif" fontWeight="600">
+        <g fill="rgba(255,252,242,0.78)" fontSize="11" fontFamily="Manrope, sans-serif" fontWeight="600">
           <text x="252" y="272" textAnchor="middle">Meses desde la inclusión</text>
           <text transform="translate(12 124) rotate(-90)" textAnchor="middle">Probabilidad</text>
         </g>
@@ -63,7 +63,7 @@ function SurvivalIllustration() {
         />
         <path
           className="ms-band"
-          fill="rgba(235,94,40,0.2)"
+          fill="rgba(241,140,101,0.2)"
           d="M52.0 16.0 L93.7 16.0 L93.7 23.1 L127.0 23.1 L127.0 31.1 L168.7 31.1 L168.7 43.0 L210.3 43.0 L210.3 55.1 L252.0 55.1 L252.0 67.3 L293.7 67.3 L293.7 79.6 L343.7 79.6 L343.7 88.3 L393.7 88.3 L393.7 97.1 L452.0 97.1 L452.0 102.4 L452.0 145.6 L452.0 136.5 L393.7 136.5 L393.7 123.7 L343.7 123.7 L343.7 110.8 L293.7 110.8 L293.7 94.3 L252.0 94.3 L252.0 77.7 L210.3 77.7 L210.3 61.0 L168.7 61.0 L168.7 44.1 L127.0 44.1 L127.0 30.5 L93.7 30.5 L93.7 16.0 L52.0 16.0 Z"
         />
 
@@ -71,7 +71,7 @@ function SurvivalIllustration() {
         <path
           className="ms-draw ms-draw-late"
           pathLength={1}
-          stroke="#CCC5B9"
+          stroke="#D0C5B7"
           strokeWidth="2.5"
           fill="none"
           strokeLinejoin="round"
@@ -80,7 +80,7 @@ function SurvivalIllustration() {
         <path
           className="ms-draw"
           pathLength={1}
-          stroke="#EB5E28"
+          stroke="#F18C65"
           strokeWidth="2.75"
           fill="none"
           strokeLinejoin="round"
@@ -88,12 +88,12 @@ function SurvivalIllustration() {
         />
 
         {/* Marcas de censura */}
-        <g className="ms-band" stroke="#EB5E28" strokeWidth="2">
+        <g className="ms-band" stroke="#F18C65" strokeWidth="2">
           {[[143.7, 37.6], [235.3, 66.4], [327.0, 95.2], [418.7, 116.8]].map(([x, y]) => (
             <path key={`a${x}`} d={`M${x} ${y - 6}V${y + 6}`} />
           ))}
         </g>
-        <g className="ms-band ms-band-late" stroke="#CCC5B9" strokeWidth="2">
+        <g className="ms-band ms-band-late" stroke="#D0C5B7" strokeWidth="2">
           {[[110.3, 37.6], [185.3, 84.4], [277.0, 134.8], [368.7, 174.4]].map(([x, y]) => (
             <path key={`b${x}`} d={`M${x} ${y - 6}V${y + 6}`} />
           ))}

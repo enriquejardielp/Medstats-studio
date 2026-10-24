@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
 import {
@@ -21,6 +21,7 @@ import {
   Sparkles,
   SlidersHorizontal,
   Search,
+  ChevronRight,
 } from 'lucide-react';
 import apiClient from '../api/client';
 import type { ColumnType } from '../types';
@@ -107,6 +108,19 @@ interface AnalysisOption {
   requiredTypes: { numeric: number; categorical: number };
   allowMore: boolean;
 }
+
+const readSavedAnalysisResults = (projectId?: string): AnalysisResult[] => {
+  if (!projectId || typeof window === 'undefined') return [];
+  try {
+    const stored = window.sessionStorage.getItem(`medstats:analysis-results:${projectId}`);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is AnalysisResult => Boolean(item?.metadata?.analysis_id && item?.summary))
+      : [];
+  } catch {
+    return [];
+  }
+};
 
 const analysisOptions: AnalysisOption[] = [
   {
@@ -214,6 +228,8 @@ const analysisOptions: AnalysisOption[] = [
 const ProjectPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isResultsWorkspace = searchParams.get('view') === 'results';
   const gridRef = useRef<AgGridReact>(null);
 
   const [project, setProject] = useState<ProjectInfo | null>(null);
@@ -229,7 +245,11 @@ const ProjectPage: React.FC = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'results' | 'history'>('config');
-  const [outputResults, setOutputResults] = useState<AnalysisResult[]>([]);
+  const [resultsForProject, setResultsForProject] = useState(() => ({
+    projectId: id || '',
+    items: readSavedAnalysisResults(id),
+  }));
+  const outputResults = resultsForProject.projectId === (id || '') ? resultsForProject.items : [];
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisOption | null>(null);
@@ -248,8 +268,28 @@ const ProjectPage: React.FC = () => {
     { id: 'cov-1', name: 'Edad (Pacientes)', type: 'Numérica', status: 'Verificada' },
     { id: 'cov-2', name: 'Género (Biomarcador)', type: 'Categoría', status: 'Verificada' },
   ]);
-  const [history, setHistory] = useState<any[]>([]);
   const [viewingHistoryId, setViewingHistoryId] = useState<string | null>(null);
+
+  const updateOutputResults = useCallback((update: (current: AnalysisResult[]) => AnalysisResult[]) => {
+    if (!id) return;
+    setResultsForProject(previous => {
+      const current = previous.projectId === id ? previous.items : readSavedAnalysisResults(id);
+      return { projectId: id, items: update(current) };
+    });
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    if (resultsForProject.projectId !== id) {
+      setResultsForProject({ projectId: id, items: readSavedAnalysisResults(id) });
+      return;
+    }
+    try {
+      window.sessionStorage.setItem(`medstats:analysis-results:${id}`, JSON.stringify(resultsForProject.items));
+    } catch {
+      // La vista sigue funcionando aunque el navegador no permita almacenamiento de sesión.
+    }
+  }, [id, resultsForProject]);
 
   const arrayBasedTests = ['shapiro', 'compare', 'correlation', 'chi-square', 'z-test', 'kolmogorov-smirnov'];
 
@@ -362,15 +402,26 @@ const ProjectPage: React.FC = () => {
   };
 
   const togglePanel = () => {
+    if (!panelOpen) setActiveTab('config');
     setPanelOpen(!panelOpen);
   };
 
   const handleDeleteOutputResult = (analysisId: string) => {
-    setOutputResults(prev => prev.filter(r => r.metadata.analysis_id !== analysisId));
+    updateOutputResults(prev => prev.filter(r => r.metadata.analysis_id !== analysisId));
+    if (viewingHistoryId === analysisId) setViewingHistoryId(null);
   };
 
   const handleClearAllOutputs = () => {
-    setOutputResults([]);
+    updateOutputResults(() => []);
+    setViewingHistoryId(null);
+  };
+
+  const returnToProjectData = () => setSearchParams({}, { replace: true });
+
+  const openNewAnalysis = () => {
+    setPanelOpen(true);
+    setActiveTab('config');
+    returnToProjectData();
   };
 
   const resetAnalysisModalState = () => {
@@ -753,21 +804,13 @@ const ProjectPage: React.FC = () => {
         });
 
         const structuredResult: AnalysisResult = response.data;
-        setOutputResults(prev => [structuredResult, ...prev]);
+        updateOutputResults(prev => [structuredResult, ...prev]);
         setAnalysisResult(structuredResult);
         setActiveTab('results');
-        if (!panelOpen) setPanelOpen(true);
-
-        const entry = {
-          id: structuredResult.metadata.analysis_id,
-          timestamp: new Date(),
-          testName: test,
-          variables: currentSelectedVars,
-          pValue: structuredResult.summary.key_metrics.find(m => m.p_value !== undefined)?.p_value ?? null,
-          result: structuredResult,
-        };
-        setHistory(prev => [entry, ...prev]);
+        setPanelOpen(false);
+        setIsPanelExpanded(false);
         setViewingHistoryId(null);
+        setSearchParams({ view: 'results' });
         return;
       }
 
@@ -885,15 +928,6 @@ const ProjectPage: React.FC = () => {
       const result = response.data;
       setAnalysisResult(result);
 
-      const entry = {
-        id: Date.now().toString(),
-        timestamp: new Date(),
-        testName: test,
-        variables: currentSelectedVars,
-        pValue: result.p_valor ?? null,
-        result,
-      };
-      setHistory(prev => [entry, ...prev]);
       setViewingHistoryId(null);
     } catch (err: any) {
       const detail = err.response?.data?.detail;
@@ -911,7 +945,19 @@ const ProjectPage: React.FC = () => {
   const viewHistoryEntry = (entry: any) => {
     setAnalysisResult(entry.result);
     setViewingHistoryId(entry.id);
+    setActiveTab('results');
+    setPanelOpen(false);
+    setSearchParams({ view: 'results' });
   };
+
+  const resultHistory = outputResults.map(result => ({
+    id: result.metadata.analysis_id,
+    timestamp: result.metadata.created_at,
+    testName: result.metadata.analysis_type,
+    variables: result.metadata.variables_used || [],
+    pValue: result.summary.key_metrics.find(metric => metric.p_value !== undefined)?.p_value ?? null,
+    result,
+  }));
 
   if (loading) {
     return (
@@ -988,6 +1034,14 @@ const ProjectPage: React.FC = () => {
 
         {/* CONTROLES Y ACCIONES */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {outputResults.length > 0 && (
+            <button
+              onClick={() => setSearchParams({ view: 'results' })}
+              className="ms-btn ms-btn-sm ms-btn-secondary project-open-results"
+            >
+              <FileText size={15} /> Resultados <span>{outputResults.length}</span>
+            </button>
+          )}
           <button
             onClick={handleSave}
             disabled={saving}
@@ -1406,13 +1460,13 @@ const ProjectPage: React.FC = () => {
                   </div>
                 ) : (
                   <div>
-                    {history.length === 0 ? (
+                    {resultHistory.length === 0 ? (
                       <div style={{ textAlign: 'center', color: '#53615A', padding: '2rem 1rem' }}>
                         <History size={32} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
                         <p>No hay análisis previos en esta sesión.</p>
                       </div>
                     ) : (
-                      history.map(entry => (
+                      resultHistory.map(entry => (
                         <div
                           key={entry.id}
                           onClick={() => viewHistoryEntry(entry)}
@@ -1957,6 +2011,47 @@ const ProjectPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {isResultsWorkspace && (
+        <main className="project-results-workspace" aria-label="Resultados del proyecto">
+          <header className="project-results-header">
+            <div className="project-results-heading">
+              <button type="button" className="ms-btn ms-btn-secondary project-results-back" onClick={returnToProjectData}>
+                <ArrowLeft size={16} /> Volver a los datos
+              </button>
+              <div>
+                <div className="project-results-breadcrumb">{project?.name || 'Proyecto'} <ChevronRight size={14} /> Resultados</div>
+                <h1>Resultados estadísticos</h1>
+                <p>{outputResults.length} {outputResults.length === 1 ? 'análisis guardado' : 'análisis guardados'} en esta sesión</p>
+              </div>
+            </div>
+            <div className="project-results-actions">
+              <button type="button" className="ms-btn ms-btn-primary" onClick={openNewAnalysis}>
+                <Sparkles size={16} /> Nuevo análisis
+              </button>
+            </div>
+          </header>
+          <div className="project-results-content">
+            {outputResults.length > 0 ? (
+              <OutputViewer
+                results={outputResults}
+                onDeleteResult={handleDeleteOutputResult}
+                onClearAll={handleClearAllOutputs}
+                initialSelectedId={viewingHistoryId}
+              />
+            ) : (
+              <div className="project-results-empty">
+                <div className="project-results-empty-icon"><BarChart3 size={26} /></div>
+                <h2>Aún no hay resultados</h2>
+                <p>Ejecuta un análisis desde la base de datos y aparecerá aquí para que puedas consultarlo después.</p>
+                <button type="button" className="ms-btn ms-btn-primary" onClick={openNewAnalysis}>
+                  <Sparkles size={16} /> Lanzar un análisis
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
       )}
 
       {/* ESTILOS EMBEBIDOS */}

@@ -2811,6 +2811,72 @@ label.ms-form-label {
 .ms-auth-project-notice > svg { color: #8B4A2C; }
 .ms-auth-project-notice strong { color: #713820; }
 .ms-auth-project-notice p { color: #5C554D; }
+
+/* Auth artwork uses a deep warm charcoal so the light copy and chart stay legible. */
+.ms-auth-art {
+  color: #FBF7F0;
+  background: radial-gradient(ellipse at 80% 8%, rgba(156,76,46,.22), transparent 35%), linear-gradient(145deg, #39332E 0%, #453A32 58%, #513C31 100%);
+}
+.ms-auth-art::before {
+  background-image:
+    linear-gradient(rgba(255,250,244,.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,250,244,.09) 1px, transparent 1px);
+}
+.ms-auth-headline { color: #FBF7F0; }
+.ms-auth-headline em { color: #F0A17C; }
+.ms-auth-lede { color: rgba(255,250,244,.84); }
+.ms-auth-figure-title, .ms-auth-legend-item { color: rgba(255,250,244,.96); }
+.ms-auth-figure-tag, .ms-auth-stat { color: rgba(255,250,244,.82); }
+.ms-auth-figure-tag { border-color: rgba(255,250,244,.34); }
+.ms-auth-swatch.is-accent, .ms-auth-highlight-k::before { background: #F18C65; }
+.ms-auth-swatch.is-muted { background: #D0C5B7; }
+.ms-auth-highlights { border-top-color: rgba(255,250,244,.24); }
+.ms-auth-highlight-k { color: #FBF7F0; }
+.ms-auth-highlight-v { color: rgba(255,250,244,.82); }
+
+/* Resultados a pantalla completa, con índice persistente y retorno directo a datos. */
+.project-results-workspace {
+  position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column;
+  min-width: 0; min-height: 0; color: #342F2A; background: #F7F5F1;
+}
+.project-results-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  flex: 0 0 auto; min-height: 88px; padding: .9rem clamp(1rem, 2.5vw, 2.25rem);
+  background: #FBFAF8; border-bottom: 1px solid #E2DBD1; box-shadow: 0 3px 12px rgba(52,47,42,.04);
+}
+.project-results-heading { display: flex; align-items: center; gap: 1.25rem; min-width: 0; }
+.project-results-back { flex: 0 0 auto; }
+.project-results-breadcrumb { display: flex; align-items: center; gap: .35rem; margin-bottom: .15rem; color: #786F65; font-size: .73rem; font-weight: 650; }
+.project-results-breadcrumb svg { color: #9B9287; }
+.project-results-heading h1 { margin: 0; color: #342F2A; font-size: 1.2rem; font-weight: 750; letter-spacing: -.02em; }
+.project-results-heading p { margin: .2rem 0 0; color: #6B6258; font-size: .77rem; }
+.project-results-actions { display: flex; align-items: center; gap: .6rem; flex: 0 0 auto; }
+.project-results-content { flex: 1; min-height: 0; overflow: auto; padding: clamp(.75rem, 1.6vw, 1.5rem); }
+.project-results-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8rem;
+  min-height: min(65vh, 680px); padding: 2rem; text-align: center; background: #FBFAF8;
+  border: 1px solid #E2DBD1; border-radius: 20px; box-shadow: var(--shadow-sm);
+}
+.project-results-empty-icon { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; color: #813D25; background: #F4E5D9; border-radius: 16px; }
+.project-results-empty h2 { margin: 0; color: #342F2A; font-size: 1.25rem; }
+.project-results-empty p { max-width: 32rem; margin: 0 0 .5rem; color: #615950; line-height: 1.55; }
+.project-results-workspace .analysis-output-viewer { grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) !important; gap: clamp(1rem, 2vw, 1.75rem) !important; min-height: 100% !important; }
+.project-results-workspace .analysis-output-viewer > div:first-child { position: sticky !important; top: .25rem !important; max-height: calc(100dvh - 125px) !important; border-color: #E2DBD1 !important; box-shadow: 0 4px 14px rgba(52,47,42,.055) !important; }
+.project-results-workspace .analysis-output-viewer > div:first-child > div:first-child { background: #F3EFE8 !important; border-bottom-color: #E2DBD1 !important; }
+.project-results-workspace .analysis-output-viewer > div:first-child > div:first-child span { color: #51483F !important; }
+.project-results-workspace .analysis-output-viewer > div:last-child { gap: 1.25rem !important; }
+.project-results-workspace .analysis-output-viewer button:focus-visible { outline: 3px solid rgba(156,76,46,.28); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .project-results-header { align-items: flex-start; flex-direction: column; gap: .8rem; padding-block: .8rem; }
+  .project-results-heading { width: 100%; align-items: flex-start; flex-direction: column; gap: .65rem; }
+  .project-results-heading h1 { font-size: 1.05rem; }
+  .project-results-actions { width: 100%; }
+  .project-results-actions > button { flex: 1; justify-content: center; }
+  .project-results-content { overflow: auto; padding: .65rem; }
+  .project-results-workspace .analysis-output-viewer { grid-template-columns: minmax(0, 1fr) !important; }
+  .project-results-workspace .analysis-output-viewer > div:first-child { position: static !important; max-height: 240px !important; }
+  .project-open-results span { display: none; }
+}
 @media (max-width: 640px) {
   .ecrf-header-main { align-items: stretch; }
   .ecrf-controls { grid-template-columns: 1fr 1fr; width: 100%; }

@@ -20,6 +20,12 @@ import {
   CLINICAL_TEXT_PRESETS,
   type ExtractedFieldMatch,
 } from '../utils/clinicalTextExtractor';
+import {
+  buildClinicalExtractionPrompt,
+  generateLocalJSON,
+  validateClinicalAIResponse,
+  type ClinicalAIResponse,
+} from '../../utils/localLanguageModel';
 
 interface TextExtractorModalProps {
   isOpen: boolean;
@@ -47,6 +53,7 @@ export function TextExtractorModal({
   const [extractionMatches, setExtractionMatches] = useState<ExtractedFieldMatch[]>([]);
   const [filterSectionOnly, setFilterSectionOnly] = useState<boolean>(false);
   const [aiErrorNotice, setAiErrorNotice] = useState<string | null>(null);
+  const [modelProgress, setModelProgress] = useState<string | null>(null);
 
   // Analyze against all form fields so variables across sections are never lost
   const availableFields = useMemo(() => {
@@ -136,50 +143,30 @@ export function TextExtractorModal({
       let finalMatches: ExtractedFieldMatch[] = [];
 
       if (useAiMode) {
-        // Attempt server-side Gemini extraction
         try {
-          const response = await fetch('/api/extract-clinical-text', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: inputText,
-              fields: availableFields,
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.extractedData) {
-              // Convert object to ExtractedFieldMatch format
-              const aiMatches: ExtractedFieldMatch[] = [];
-              Object.entries(data.extractedData).forEach(([fieldName, val]) => {
-                const field = availableFields.find((f) => f.name === fieldName);
-                if (field && val !== undefined && val !== null && val !== '') {
-                  aiMatches.push({
-                    fieldName: field.name,
-                    fieldLabel: field.label,
-                    fieldType: field.type,
-                    extractedValue: val,
-                    formattedDisplay: String(val) + (field.unit ? ` ${field.unit}` : ''),
-                    confidence: 'high',
-                    rawSnippet: 'Extraído con IA (Gemini)',
-                    unit: field.unit,
-                  });
-                }
-              });
-
-              if (aiMatches.length > 0) {
-                finalMatches = aiMatches;
+          setModelProgress('Preparando el modelo local…');
+          const response = await generateLocalJSON<ClinicalAIResponse>(
+            'Eres un extractor estructurado. No haces diagnóstico ni completas información ausente.',
+            buildClinicalExtractionPrompt(inputText, availableFields),
+            progress => {
+              if (['progress', 'progress_total'].includes(progress.status || '') && typeof progress.progress === 'number') {
+                setModelProgress(`Descargando modelo local · ${Math.round(progress.progress)}%`);
+              } else if (progress.status === 'fallback') {
+                setModelProgress('Activando modo compatible…');
+              } else if (progress.status) {
+                setModelProgress('Cargando modelo local…');
               }
-            }
-          } else {
-            const errData = await response.json().catch(() => ({}));
-            console.warn('AI endpoint warning, falling back to local extractor:', errData);
-            setAiErrorNotice('IA en alta demanda temporal. Se utilizó el motor clínico local con precisión.');
+            },
+          );
+          finalMatches = validateClinicalAIResponse(response, inputText, availableFields);
+          if (!finalMatches.length) {
+            setAiErrorNotice('La IA no encontró valores con una cita textual verificable. Se muestran los resultados del extractor local por reglas.');
           }
-        } catch (e: any) {
-          console.warn('AI extraction fetch failed, using local NLP extractor', e);
-          setAiErrorNotice('Motor clínico local ejecutado con éxito.');
+        } catch (error) {
+          console.warn('Local AI extraction failed; using the clinical rules extractor.', error);
+          setAiErrorNotice('No se pudo cargar la IA local. Se muestran los resultados del extractor por reglas.');
+        } finally {
+          setModelProgress(null);
         }
       }
 
@@ -384,13 +371,16 @@ export function TextExtractorModal({
                   onClick={() => handleAnalyzeText(true)}
                   disabled={!inputText.trim() || isProcessing}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-md text-xs font-semibold shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
-                  title="Utiliza IA de Gemini para interpretación semántica"
+                  title="Usa Qwen3 en este navegador, sin enviar el texto a un servicio externo"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Extraer con IA</span>
+                  <span>{modelProgress || 'Extraer con IA local'}</span>
                 </button>
               </div>
             </div>
+            <p className="text-[11px] leading-relaxed text-slate-500">
+              La IA se ejecuta en este navegador y no envía el texto clínico a un servicio externo. La primera carga descarga el modelo (aprox. 600 MB); después queda en la caché del navegador. MedStats Studio sigue en construcción: no introduzcas datos identificables o sensibles.
+            </p>
           </div>
 
           {/* AI Error Notification (if any) */}

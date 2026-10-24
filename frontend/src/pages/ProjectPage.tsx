@@ -27,6 +27,7 @@ import apiClient from '../api/client';
 import type { ColumnType } from '../types';
 import type { AnalysisResult } from '../types/analysis';
 import { OutputViewer } from '../components/output/OutputViewer';
+import { generateLocalJSON } from '../utils/localLanguageModel';
 
 // ============================================================
 // Cabecera personalizada con selector de tipo
@@ -108,6 +109,45 @@ interface AnalysisOption {
   requiredTypes: { numeric: number; categorical: number };
   allowMore: boolean;
 }
+
+interface LocalAnalysisPlan {
+  kind: 'analysis' | 'chart' | 'clarify';
+  analysis_type?: string;
+  params?: Record<string, unknown>;
+  chart_type?: 'histogram' | 'density' | 'scatter' | 'boxplot' | 'barplot';
+  x_var?: string;
+  y_var?: string;
+  fill_var?: string;
+  title?: string;
+  question?: string;
+  explanation?: string;
+}
+
+const analysisRoleGuide: Record<string, string> = {
+  descriptive: 'columns: array de columnas que se resumen',
+  table1: 'columns: array de variables; group_var: columna categórica opcional',
+  compare: 'num_var: numérica; cat_var: categórica binaria',
+  anova: 'dep_var: numérica; group_var: categórica',
+  correlation: 'var1 y var2: numéricas',
+  'chi-square': 'var1 y var2: categóricas',
+  'linear-regression': 'dep_var: numérica; indep_vars: array de predictoras numéricas/categóricas',
+  'logistic-regression': 'dep_var: binaria; indep_vars: array de predictoras numéricas/categóricas',
+  'roc-curve': 'outcome: binaria; predictor: numérica',
+  'kaplan-meier': 'time_var: numérica; event_var: binaria; group_var: categórica opcional',
+  'cox-regression': 'time_var: numérica; event_var: 0/1; covariates: array de predictoras',
+  ancova: 'dep_var: numérica; group_var: categórica; covariates: array de variables de ajuste',
+  mcnemar: 'var1 y var2: respuestas binarias emparejadas de los mismos sujetos',
+  kappa: 'var1 y var2: clasificaciones categóricas de dos evaluadores',
+  'bland-altman': 'var1 y var2: métodos numéricos de medición',
+  icc: 'columns: al menos dos columnas numéricas de evaluadores/mediciones',
+  friedman: 'columns: al menos tres columnas numéricas de mediciones repetidas',
+  'odds-ratio': 'var1 y var2: variables binarias',
+  'diagnostic-accuracy': 'outcome: desenlace 0/1; predictor: numérico; threshold: umbral numérico',
+  'sample-size': 'alpha, power y effect: números; test_type: t-test, proporciones o ANOVA',
+  'count-regression': 'outcome: recuento numérico; covariates: array de predictoras; method: auto, poisson o negative-binomial',
+  'data-quality': 'sin parámetros ni variables',
+  'paired-comparison': 'var1 y var2: medidas numéricas pareadas, una fila por sujeto; method: welch o mannwhitney',
+};
 
 const readSavedAnalysisResults = (projectId?: string): AnalysisResult[] => {
   if (!projectId || typeof window === 'undefined') return [];
@@ -387,6 +427,11 @@ const ProjectPage: React.FC = () => {
   const [selectedRoleValues, setSelectedRoleValues] = useState<Record<string, string | string[]>>({});
   const [analysisSearch, setAnalysisSearch] = useState('');
   const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false);
+  const [naturalRequest, setNaturalRequest] = useState('');
+  const [naturalPlan, setNaturalPlan] = useState<LocalAnalysisPlan | null>(null);
+  const [naturalProgress, setNaturalProgress] = useState<string | null>(null);
+  const [naturalError, setNaturalError] = useState<string | null>(null);
+  const [naturalLoading, setNaturalLoading] = useState(false);
 
   const [_analysisResult, setAnalysisResult] = useState<any>(null);
   const [, setAnalysisLoading] = useState(false);
@@ -910,7 +955,266 @@ const ProjectPage: React.FC = () => {
     }
 
     return { title, explanation, alternative };
-  }, [selectedAnalysis, covariates.length, useNonParametric]);
+  }, [selectedAnalysis, useNonParametric]);
+
+  const handleNaturalRequest = async () => {
+    if (!naturalRequest.trim() || naturalLoading) return;
+    setNaturalLoading(true);
+    setNaturalError(null);
+    setNaturalProgress('Cargando modelo local…');
+    setNaturalPlan(null);
+    try {
+      const catalog = analysisOptions.map(option => ({
+        id: option.id,
+        objective: option.label,
+        description: option.description,
+        variables: analysisRoleGuide[option.id],
+      }));
+      const columns = Object.entries(columnTypes).map(([name, type]) => ({ name, type }));
+      const followUp = naturalPlan?.kind === 'clarify' ? naturalPlan.question : undefined;
+      const plan = await generateLocalJSON<LocalAnalysisPlan>(
+        'Eres el selector de análisis de MedStats Studio. Traduces peticiones a planes JSON estrictos. No calculas estadísticas, no escribes código y no inventas nombres de columnas.',
+        JSON.stringify({
+          request: naturalRequest.slice(0, 3000),
+          clarificationFromPreviousTurn: followUp,
+          availableAnalyses: catalog,
+          availableColumns: columns,
+          supportedCharts: [
+            { type: 'histogram', description: 'una variable numérica' },
+            { type: 'density', description: 'una variable numérica y opcionalmente un grupo categórico' },
+            { type: 'scatter', description: 'dos variables numéricas x e y' },
+            { type: 'boxplot', description: 'variable categórica x y numérica y' },
+            { type: 'barplot', description: 'una variable categórica; recuentos por defecto' },
+          ],
+          outputContracts: [
+            { kind: 'analysis', analysis_type: 'exact catalog id', params: 'role keys described in catalog; variable values must exactly match available column names', explanation: 'brief Spanish confirmation' },
+            { kind: 'chart', chart_type: 'one supported chart type', x_var: 'exact column', y_var: 'exact column when required', fill_var: 'exact optional column', title: 'short Spanish title', explanation: 'brief Spanish confirmation' },
+            { kind: 'clarify', question: 'one short Spanish question if more than one valid interpretation exists or required columns are unclear' },
+          ],
+          rules: [
+            'Return exactly one JSON object and no markdown.',
+            'Never invent or rename a column. Use exact column names.',
+            'For an analysis choose only one id from availableAnalyses and fill its role keys.',
+            'Prefer a clarification if the user goal, group, outcome, or chart axes are ambiguous.',
+            'Choose kind chart only when the user explicitly asks for a graph or visualization.',
+            'Do not include patient data. You only receive column names and types.',
+          ],
+        }),
+        progress => {
+          if (['progress', 'progress_total'].includes(progress.status || '') && typeof progress.progress === 'number') {
+            setNaturalProgress(`Descargando modelo local · ${Math.round(progress.progress)}%`);
+          } else if (progress.status === 'fallback') {
+            setNaturalProgress('Activando modo compatible…');
+          } else if (progress.status) {
+            setNaturalProgress('Cargando modelo local…');
+          }
+        },
+      );
+
+      if (plan.kind === 'clarify') {
+        setNaturalPlan({ kind: 'clarify', question: plan.question || '¿Qué resultado o variables quieres analizar?' });
+        return;
+      }
+
+      if (plan.kind === 'chart') {
+        const supported = ['histogram', 'density', 'scatter', 'boxplot', 'barplot'];
+        if (!plan.chart_type || !supported.includes(plan.chart_type)) throw new Error('No se reconoció un tipo de gráfico disponible.');
+        const xType = columnTypes[plan.x_var || ''];
+        const yType = columnTypes[plan.y_var || ''];
+        const isCategoricalColumn = (name: string) => ['categorical', 'binary'].includes(columnTypes[name]);
+        if (!plan.x_var || !xType) throw new Error('El gráfico propuesto no contiene una variable X válida.');
+        if (plan.chart_type === 'histogram' || plan.chart_type === 'density') {
+          if (xType !== 'numeric') throw new Error('El histograma o la densidad necesitan una variable numérica.');
+        }
+        if (plan.chart_type === 'scatter' && (xType !== 'numeric' || yType !== 'numeric')) throw new Error('El gráfico de dispersión necesita dos variables numéricas.');
+        if (plan.chart_type === 'boxplot' && (yType !== 'numeric' || !isCategoricalColumn(plan.x_var))) throw new Error('El diagrama de cajas necesita una categoría en X y una variable numérica en Y.');
+        if (plan.chart_type === 'barplot' && (!isCategoricalColumn(plan.x_var) || (plan.y_var && yType !== 'numeric'))) throw new Error('El gráfico de barras necesita una variable categórica en X y, si se indica, una numérica en Y.');
+        if (plan.fill_var && !isCategoricalColumn(plan.fill_var)) throw new Error('La variable de agrupación debe ser categórica.');
+        setNaturalPlan(plan);
+        return;
+      }
+
+      if (plan.kind !== 'analysis' || !plan.analysis_type) throw new Error('No he podido identificar un análisis disponible.');
+      const option = analysisOptions.find(candidate => candidate.id === plan.analysis_type);
+      if (!option) throw new Error('El análisis propuesto no está disponible en la aplicación.');
+      const params = plan.params || {};
+      const numeric = (key: string, optional = false) => {
+        const value = params[key];
+        if (value === undefined && optional) return;
+        if (typeof value !== 'string' || columnTypes[value] !== 'numeric') throw new Error(`Selecciona una columna numérica válida para «${key}».`);
+      };
+      const isBinaryColumn = (name: string) => {
+        if (!['categorical', 'binary'].includes(columnTypes[name])) return false;
+        const levels = new Set(rowData
+          .map(row => row[name])
+          .filter(value => value !== null && value !== undefined && String(value).trim() !== '')
+          .map(value => String(value)));
+        return levels.size === 2;
+      };
+      const isCountColumn = (name: string) => {
+        if (columnTypes[name] !== 'numeric') return false;
+        const observed = rowData
+          .map(row => row[name])
+          .filter(value => value !== null && value !== undefined && String(value).trim() !== '')
+          .map(Number);
+        return observed.length > 0 && observed.every(value => Number.isFinite(value) && value >= 0 && Number.isInteger(value));
+      };
+      const categorical = (key: string, binary = false, optional = false) => {
+        const value = params[key];
+        if ((value === undefined || value === null || value === '') && optional) return;
+        if (typeof value !== 'string' || !['categorical', 'binary'].includes(columnTypes[value]) || (binary && !isBinaryColumn(value))) throw new Error(`Selecciona una columna ${binary ? 'binaria' : 'categórica'} válida para «${key}».`);
+      };
+      const numericList = (key: string, min = 1) => {
+        const values = params[key];
+        if (!Array.isArray(values) || values.length < min || values.some(value => typeof value !== 'string' || columnTypes[value] !== 'numeric')) throw new Error(`Selecciona al menos ${min} columnas numéricas válidas para «${key}».`);
+      };
+      const predictorList = (key: string, min = 1) => {
+        const values = params[key];
+        if (!Array.isArray(values) || values.length < min || values.some(value => typeof value !== 'string' || !columnTypes[value] || !['numeric', 'categorical', 'binary'].includes(columnTypes[value]))) throw new Error(`Selecciona al menos ${min} predictoras válidas para «${key}».`);
+      };
+      const categoryPair = (binary = false) => { categorical('var1', binary); categorical('var2', binary); };
+      const numericPair = () => { numeric('var1'); numeric('var2'); };
+      switch (plan.analysis_type) {
+        case 'descriptive':
+          if (!Array.isArray(params.columns) || !params.columns.length || params.columns.some(value => typeof value !== 'string' || !columnTypes[value])) throw new Error('Selecciona las columnas que quieres describir.');
+          break;
+        case 'table1':
+          if (!Array.isArray(params.columns) || !params.columns.length || params.columns.some(value => typeof value !== 'string' || !columnTypes[value])) throw new Error('Selecciona las variables para la tabla basal.');
+          categorical('group_var', false, true);
+          break;
+        case 'compare': numeric('num_var'); categorical('cat_var', true); break;
+        case 'anova': numeric('dep_var'); categorical('group_var'); break;
+        case 'correlation': numericPair(); break;
+        case 'chi-square': categoryPair(); break;
+        case 'linear-regression': numeric('dep_var'); predictorList('indep_vars'); break;
+        case 'logistic-regression': categorical('dep_var', true); predictorList('indep_vars'); break;
+        case 'roc-curve': categorical('outcome', true); numeric('predictor'); break;
+        case 'kaplan-meier': numeric('time_var'); categorical('event_var', true); categorical('group_var', false, true); break;
+        case 'cox-regression': numeric('time_var'); categorical('event_var', true); predictorList('covariates'); break;
+        case 'ancova': numeric('dep_var'); categorical('group_var'); predictorList('covariates'); break;
+        case 'mcnemar': categoryPair(true); break;
+        case 'kappa': categoryPair(); break;
+        case 'bland-altman': numericPair(); break;
+        case 'paired-comparison':
+          numericPair();
+          if (!['welch', 'mannwhitney'].includes(String(params.method || 'welch'))) throw new Error('Elige un método disponible para la comparación emparejada.');
+          break;
+        case 'icc': numericList('columns', 2); break;
+        case 'friedman': numericList('columns', 3); break;
+        case 'odds-ratio': categoryPair(true); break;
+        case 'diagnostic-accuracy':
+          categorical('outcome', true); numeric('predictor');
+          if (typeof params.threshold !== 'number' || !Number.isFinite(params.threshold)) throw new Error('Indica un umbral numérico para el análisis diagnóstico.');
+          break;
+        case 'sample-size':
+          for (const key of ['alpha', 'power', 'effect']) if (typeof params[key] !== 'number' || !Number.isFinite(params[key])) throw new Error('La potencia estadística necesita alfa, potencia y tamaño del efecto numéricos.');
+          if (!['t-test', 'proporciones', 'ANOVA'].includes(String(params.test_type || 't-test'))) throw new Error('Elige un tipo de contraste disponible para el cálculo de tamaño muestral.');
+          break;
+        case 'count-regression':
+          if (typeof params.outcome !== 'string' || !isCountColumn(params.outcome)) throw new Error('El desenlace elegido debe ser un recuento entero no negativo.');
+          predictorList('covariates');
+          if (!['auto', 'poisson', 'negative-binomial'].includes(String(params.method || 'auto'))) throw new Error('Elige una distribución disponible para el modelo de recuentos.');
+          break;
+        case 'data-quality': break;
+        default: throw new Error('Ese análisis aún no tiene configuración por lenguaje natural.');
+      }
+      const variableParamKeys = new Set([
+        'columns', 'variables', 'num_var', 'cat_var', 'dep_var', 'group_var', 'var1', 'var2',
+        'outcome', 'predictor', 'time_var', 'event_var', 'indep_vars', 'covariates',
+      ]);
+      const plannedVariables = Object.entries(params)
+        .filter(([key]) => variableParamKeys.has(key))
+        .flatMap(([, value]) => Array.isArray(value) ? value : [value])
+        .filter((value): value is string => typeof value === 'string');
+      if (new Set(plannedVariables).size !== plannedVariables.length) throw new Error('La configuración asigna una misma columna a más de un papel. Corrige la petición.');
+      if (plan.analysis_type === 'sample-size') {
+        if (Number(params.alpha) <= 0 || Number(params.alpha) >= 1 || Number(params.power) <= 0 || Number(params.power) >= 1 || Number(params.effect) <= 0) throw new Error('Alfa y potencia deben estar entre 0 y 1 y el tamaño del efecto debe ser positivo.');
+      }
+
+      setSelectedAnalysis(option);
+      setSelectedVars([]);
+      setSelectedRoleValues(params as Record<string, string | string[]>);
+      resetAnalysisModalState();
+      if (['spearman', 'mannwhitney', 'nonparametric'].includes(String(params.method))) setUseNonParametric(true);
+      setModalOpen(true);
+    } catch (error) {
+      setNaturalError(error instanceof Error ? error.message : 'No se pudo interpretar la petición con la IA local.');
+    } finally {
+      setNaturalLoading(false);
+      setNaturalProgress(null);
+    }
+  };
+
+  const handleCreateNaturalChart = async () => {
+    if (!naturalPlan?.chart_type || !naturalPlan.x_var || !id) return;
+    setNaturalLoading(true);
+    setNaturalError(null);
+    try {
+      const chartTitle = naturalPlan.title || `Gráfico ${naturalPlan.chart_type} · ${naturalPlan.x_var}`;
+      const response = await apiClient.post('/api/graph', {
+        project_id: parseInt(id, 10),
+        graph_type: naturalPlan.chart_type,
+        x_var: naturalPlan.x_var,
+        y_var: naturalPlan.y_var || null,
+        fill_var: naturalPlan.fill_var || null,
+        color_var: naturalPlan.fill_var || null,
+        title: chartTitle,
+        xlab: naturalPlan.x_var,
+        ylab: naturalPlan.y_var || (naturalPlan.chart_type === 'histogram' ? 'Frecuencia' : ''),
+        palette: 'Set2',
+        theme: 'minimal',
+        width: 8,
+        height: 5.5,
+        dpi: 300,
+        bins: 30,
+      });
+      const usedVariables = [naturalPlan.x_var, naturalPlan.y_var, naturalPlan.fill_var].filter((value): value is string => Boolean(value));
+      const now = new Date().toISOString();
+      const chartResult: AnalysisResult = {
+        metadata: {
+          analysis_id: crypto.randomUUID(),
+          analysis_type: 'ai-chart',
+          title: chartTitle,
+          description: naturalPlan.explanation || 'Gráfico generado a partir de una petición en lenguaje natural.',
+          created_at: now,
+          dataset_name: project?.filename,
+          sample_size: rowData.length,
+          variables_used: usedVariables,
+          missing_observations: 0,
+          valid_observations: rowData.length,
+        },
+        summary: {
+          headline: chartTitle,
+          key_metrics: [],
+          interpretation: 'El gráfico se generó con el motor de visualización de la aplicación. Comprueba que las variables y las categorías reflejan la pregunta de investigación.',
+        },
+        tables: [],
+        warnings: [],
+        plots: [{
+          id: `ai-chart-${Date.now()}`,
+          title: chartTitle,
+          plot_type: naturalPlan.chart_type,
+          image_base64: response.data.image_base64,
+          description: naturalPlan.explanation,
+          script_r: response.data.script_r,
+        }],
+        technical: { method: `Gráfico ${naturalPlan.chart_type}`, packages_used: ['ggplot2'], parameters: { x_var: naturalPlan.x_var, y_var: naturalPlan.y_var, fill_var: naturalPlan.fill_var } },
+        reproducible_code: { language: 'R', script: response.data.script_r, packages: ['ggplot2'], instructions: 'Código generado por el motor de gráficos de MedStats Studio.' },
+      };
+      updateOutputResults(previous => [chartResult, ...previous]);
+      setAnalysisResult(chartResult);
+      setActiveTab('results');
+      setPanelOpen(false);
+      setIsPanelExpanded(false);
+      setViewingHistoryId(null);
+      setSearchParams({ view: 'results' });
+      setNaturalPlan(null);
+    } catch (error: any) {
+      setNaturalError(error.response?.data?.detail || 'No se pudo generar el gráfico. Comprueba las variables seleccionadas.');
+    } finally {
+      setNaturalLoading(false);
+    }
+  };
 
   const handleRunAnalysis = async () => {
     if (!selectedAnalysis || !isSelectionComplete()) return;
@@ -1643,6 +1947,43 @@ const ProjectPage: React.FC = () => {
                       </div>
                     )}
 
+                    <section className="analysis-ai-assistant" aria-label="Análisis con lenguaje natural">
+                      <div className="analysis-ai-heading">
+                        <span className="analysis-ai-icon"><Sparkles size={17} /></span>
+                        <div>
+                          <strong>¿Qué quieres analizar o graficar?</strong>
+                          <p>Descríbelo con tus palabras y te prepararé una configuración usando los análisis disponibles.</p>
+                        </div>
+                      </div>
+                      <textarea
+                        value={naturalRequest}
+                        onChange={event => { setNaturalRequest(event.target.value); setNaturalError(null); setNaturalPlan(previous => previous?.kind === 'clarify' ? previous : null); }}
+                        placeholder="Ej.: Compara la edad entre los grupos de tratamiento; o haz un gráfico de dispersión de edad y presión sistólica."
+                        aria-label="Describe el análisis o gráfico que necesitas"
+                        rows={3}
+                        disabled={naturalLoading}
+                      />
+                      <div className="analysis-ai-footer">
+                        <span>Modelo local Qwen3 · sin cuenta ni API key · el texto no sale de este navegador</span>
+                        <button type="button" onClick={handleNaturalRequest} disabled={!naturalRequest.trim() || naturalLoading}>
+                          <Sparkles size={15} /> {naturalLoading ? (naturalProgress || 'Interpretando…') : 'Interpretar petición'}
+                        </button>
+                      </div>
+                      <p className="analysis-ai-download-note">La primera vez descarga el modelo (aprox. 600 MB). Necesita internet para esa descarga; luego se reutiliza desde la caché del navegador. En equipos sin WebGPU puede funcionar más despacio. MedStats Studio sigue en construcción: no introduzcas información personal o sensible.</p>
+                      {naturalError && <div className="analysis-ai-message is-error" role="alert">{naturalError}</div>}
+                      {naturalPlan?.kind === 'clarify' && (
+                        <div className="analysis-ai-message" role="status">{naturalPlan.question}</div>
+                      )}
+                      {naturalPlan?.kind === 'chart' && (
+                        <div className="analysis-ai-plan" role="status">
+                          <div><strong>{naturalPlan.title || `Gráfico ${naturalPlan.chart_type}`}</strong><span>{naturalPlan.explanation || `${naturalPlan.x_var}${naturalPlan.y_var ? ` frente a ${naturalPlan.y_var}` : ''}`}</span></div>
+                          <button type="button" onClick={handleCreateNaturalChart} disabled={naturalLoading}>
+                            {naturalLoading ? 'Generando…' : 'Crear gráfico'}
+                          </button>
+                        </div>
+                      )}
+                    </section>
+
                     <div
                       style={{
                         background: 'linear-gradient(135deg, #F5F7F5 0%, #EDF1EE 100%)',
@@ -2160,6 +2501,178 @@ const ProjectPage: React.FC = () => {
                               <option key={`km-group-${colName}`} value={colName}>{colName}</option>
                             ))}
                           </select>
+                        </div>
+                      </>
+                    )}
+
+                    {selectedAnalysis.id === 'cox-regression' && (
+                      <>
+                        {([
+                          ['time_var', 'Tiempo hasta el evento', 'time'],
+                          ['event_var', 'Evento (0 = censura, 1 = evento)', 'event'],
+                        ] as const).map(([key, label, role]) => (
+                          <label className="analysis-role-field" key={key}>
+                            <span>{label}</span>
+                            <select value={selectedRoleValues[key] || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, [key]: event.target.value }))}>
+                              <option value="">Selecciona una variable</option>
+                              {getAllowedColumnsForRole(role).map(name => <option key={name} value={name}>{name}</option>)}
+                            </select>
+                          </label>
+                        ))}
+                        <div>
+                          <div className="analysis-role-field"><span>Covariables para ajustar</span></div>
+                          <div style={{ display: 'grid', gap: '.5rem' }}>
+                            {getAllowedColumnsForRole('covariates').map(name => {
+                              const checked = ((selectedRoleValues.covariates as string[] | undefined) || []).includes(name);
+                              return <label key={name} className="analysis-variable-choice"><input type="checkbox" checked={checked} onChange={() => setSelectedRoleValues(prev => { const current = (prev.covariates as string[] | undefined) || []; return { ...prev, covariates: checked ? current.filter(value => value !== name) : [...current, name] }; })} /><span>{name}</span></label>;
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {selectedAnalysis.id === 'ancova' && (
+                      <>
+                        {([
+                          ['dep_var', 'Resultado numérico', 'dep'],
+                          ['group_var', 'Grupo a comparar', 'group'],
+                        ] as const).map(([key, label, role]) => (
+                          <label className="analysis-role-field" key={key}>
+                            <span>{label}</span>
+                            <select value={selectedRoleValues[key] || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, [key]: event.target.value }))}>
+                              <option value="">Selecciona una variable</option>
+                              {getAllowedColumnsForRole(role).map(name => <option key={name} value={name}>{name}</option>)}
+                            </select>
+                          </label>
+                        ))}
+                        <div>
+                          <div className="analysis-role-field"><span>Covariables de ajuste</span></div>
+                          <div style={{ display: 'grid', gap: '.5rem' }}>
+                            {getAllowedColumnsForRole('covariates').map(name => {
+                              const checked = ((selectedRoleValues.covariates as string[] | undefined) || []).includes(name);
+                              return <label key={name} className="analysis-variable-choice"><input type="checkbox" checked={checked} onChange={() => setSelectedRoleValues(prev => { const current = (prev.covariates as string[] | undefined) || []; return { ...prev, covariates: checked ? current.filter(value => value !== name) : [...current, name] }; })} /><span>{name}</span></label>;
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {['mcnemar', 'kappa', 'bland-altman', 'odds-ratio', 'paired-comparison'].includes(selectedAnalysis.id) && (
+                      <div style={{ display: 'grid', gap: '1rem' }}>
+                        {(['var1', 'var2'] as const).map((key, index) => (
+                          <label className="analysis-role-field" key={key}>
+                            <span>{index === 0 ? 'Primera variable' : 'Segunda variable'}</span>
+                            <select value={selectedRoleValues[key] || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, [key]: event.target.value }))}>
+                              <option value="">Selecciona una variable</option>
+                              {getAllowedColumnsForRole(key).map(name => <option key={name} value={name}>{name}</option>)}
+                            </select>
+                          </label>
+                        ))}
+                        {selectedAnalysis.id === 'paired-comparison' && (
+                          <>
+                            <p style={{ margin: 0, color: '#665D54', fontSize: '.8rem', lineHeight: 1.5 }}>Cada fila debe corresponder a la misma persona en las dos mediciones.</p>
+                            <label className="analysis-role-field">
+                              <span>Método</span>
+                              <select value={selectedRoleValues.method || 'welch'} onChange={event => setSelectedRoleValues(prev => ({ ...prev, method: event.target.value }))}>
+                                <option value="welch">t pareada</option>
+                                <option value="mannwhitney">Wilcoxon signed-rank</option>
+                              </select>
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedAnalysis.id === 'icc' && (
+                      <div style={{ display: 'grid', gap: '.5rem' }}>
+                        <p style={{ margin: '0 0 .25rem', color: '#63716b', fontSize: '.88rem' }}>Selecciona al menos dos columnas con mediciones comparables de los mismos sujetos.</p>
+                        {getAllowedColumnsForRole('columns').map(name => {
+                          const checked = ((selectedRoleValues.columns as string[] | undefined) || []).includes(name);
+                          return <label key={name} className="analysis-variable-choice"><input type="checkbox" checked={checked} onChange={() => setSelectedRoleValues(prev => { const current = (prev.columns as string[] | undefined) || []; return { ...prev, columns: checked ? current.filter(value => value !== name) : [...current, name] }; })} /><span>{name}</span></label>;
+                        })}
+                      </div>
+                    )}
+
+                    {selectedAnalysis.id === 'friedman' && (
+                      <div style={{ display: 'grid', gap: '.5rem' }}>
+                        <p style={{ margin: '0 0 .25rem', color: '#63716b', fontSize: '.88rem' }}>Selecciona al menos tres columnas con mediciones de los mismos sujetos.</p>
+                        {getAllowedColumnsForRole('columns').map(name => {
+                          const checked = ((selectedRoleValues.columns as string[] | undefined) || []).includes(name);
+                          return <label key={name} className="analysis-variable-choice"><input type="checkbox" checked={checked} onChange={() => setSelectedRoleValues(prev => { const current = (prev.columns as string[] | undefined) || []; return { ...prev, columns: checked ? current.filter(value => value !== name) : [...current, name] }; })} /><span>{name}</span></label>;
+                        })}
+                      </div>
+                    )}
+
+                    {selectedAnalysis.id === 'diagnostic-accuracy' && (
+                      <>
+                        {([
+                          ['outcome', 'Desenlace de referencia (0/1)', 'outcome'],
+                          ['predictor', 'Prueba o marcador numérico', 'predictor'],
+                        ] as const).map(([key, label, role]) => (
+                          <label className="analysis-role-field" key={key}>
+                            <span>{label}</span>
+                            <select value={selectedRoleValues[key] || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, [key]: event.target.value }))}>
+                              <option value="">Selecciona una variable</option>
+                              {getAllowedColumnsForRole(role).map(name => <option key={name} value={name}>{name}</option>)}
+                            </select>
+                          </label>
+                        ))}
+                        <label className="analysis-role-field">
+                          <span>Umbral de positividad</span>
+                          <input type="number" step="any" value={selectedRoleValues.threshold || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, threshold: event.target.value }))} placeholder="p. ej. 0,5" />
+                        </label>
+                      </>
+                    )}
+
+                    {selectedAnalysis.id === 'sample-size' && (
+                      <div style={{ display: 'grid', gap: '1rem' }}>
+                        <label className="analysis-role-field">
+                          <span>Tipo de contraste</span>
+                          <select value={selectedRoleValues.test_type || 't-test'} onChange={event => setSelectedRoleValues(prev => ({ ...prev, test_type: event.target.value }))}>
+                            <option value="t-test">Dos medias (d de Cohen)</option>
+                            <option value="proporciones">Dos proporciones (h de Cohen)</option>
+                            <option value="ANOVA">ANOVA de tres grupos (f de Cohen)</option>
+                          </select>
+                        </label>
+                        {([
+                          ['alpha', 'Alfa', '0.05'],
+                          ['power', 'Potencia deseada', '0.80'],
+                          ['effect', 'Tamaño del efecto (d, h o f)', '0.5'],
+                        ] as const).map(([key, label, placeholder]) => (
+                          <label className="analysis-role-field" key={key}>
+                            <span>{label}</span>
+                            <input type="number" min="0" step="any" value={selectedRoleValues[key] || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, [key]: event.target.value }))} placeholder={placeholder} />
+                          </label>
+                        ))}
+                        <p style={{ margin: 0, color: '#665D54', fontSize: '.8rem', lineHeight: 1.5 }}>Se calcula a partir del tamaño del efecto esperado; no se usan filas del conjunto de datos.</p>
+                      </div>
+                    )}
+
+                    {selectedAnalysis.id === 'count-regression' && (
+                      <>
+                        <label className="analysis-role-field">
+                          <span>Desenlace: recuento entero no negativo</span>
+                          <select value={selectedRoleValues.outcome || ''} onChange={event => setSelectedRoleValues(prev => ({ ...prev, outcome: event.target.value }))}>
+                            <option value="">Selecciona una variable numérica</option>
+                            {getAllowedColumnsForRole('outcome').map(name => <option key={name} value={name}>{name}</option>)}
+                          </select>
+                        </label>
+                        <label className="analysis-role-field">
+                          <span>Distribución</span>
+                          <select value={selectedRoleValues.method || 'auto'} onChange={event => setSelectedRoleValues(prev => ({ ...prev, method: event.target.value }))}>
+                            <option value="auto">Automática según sobredispersión</option>
+                            <option value="poisson">Poisson</option>
+                            <option value="negative-binomial">Binomial negativa</option>
+                          </select>
+                        </label>
+                        <div>
+                          <div className="analysis-role-field"><span>Predictores</span></div>
+                          <div style={{ display: 'grid', gap: '.5rem' }}>
+                            {getAllowedColumnsForRole('covariates').map(name => {
+                              const checked = ((selectedRoleValues.covariates as string[] | undefined) || []).includes(name);
+                              return <label key={name} className="analysis-variable-choice"><input type="checkbox" checked={checked} onChange={() => setSelectedRoleValues(prev => { const current = (prev.covariates as string[] | undefined) || []; return { ...prev, covariates: checked ? current.filter(value => value !== name) : [...current, name] }; })} /><span>{name}</span></label>;
+                            })}
+                          </div>
                         </div>
                       </>
                     )}

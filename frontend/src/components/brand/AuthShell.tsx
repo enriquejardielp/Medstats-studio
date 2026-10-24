@@ -6,7 +6,7 @@ interface AuthShellProps {
   title: string;
   subtitle: string;
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
 }
 
 const highlights = [
@@ -15,99 +15,150 @@ const highlights = [
   { k: 'eCRF', v: 'Captura de datos estructurada' },
 ];
 
-// Ilustración: curvas de supervivencia sobre una rejilla de papel milimetrado
+// Ilustración: curvas de supervivencia con IC al 95 % sobre papel milimetrado.
+// Los datos son simulados y solo tienen fines decorativos.
 function SurvivalIllustration() {
   return (
-    <svg viewBox="0 0 480 300" style={{ width: '100%', height: 'auto' }} aria-hidden="true">
-      <defs>
-        <pattern id="ms-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-          <path d="M24 0H0V24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-        </pattern>
-        <linearGradient id="ms-band" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#EB5E28" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#EB5E28" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <rect width="480" height="300" fill="url(#ms-grid)" />
-      <path d="M40 30V260H460" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5" fill="none" />
-      {[0, 1, 2, 3, 4].map(i => (
-        <text key={i} x={40 + i * 100} y={280} fill="rgba(255,255,255,0.35)" fontSize="11" fontFamily="JetBrains Mono, monospace" textAnchor="middle">
-          {i * 12}
-        </text>
-      ))}
-      <path d="M40 40H96V58H150V84H210V104H270V136H330V150H392V170H460V260H40Z" fill="url(#ms-band)" />
-      <path className="ms-draw" d="M40 40H96V58H150V84H210V104H270V136H330V150H392V170H460" stroke="#EB5E28" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-      <path className="ms-draw ms-draw-late" d="M40 40H80V72H128V110H176V140H236V176H300V200H368V214H460" stroke="#CCC5B9" strokeWidth="2.5" fill="none" strokeLinejoin="round" />
-      {[[150, 84], [270, 136], [392, 170]].map(([x, y]) => (
-        <path key={`${x}`} d={`M${x} ${y - 6}V${y + 6}`} stroke="#EB5E28" strokeWidth="2" />
-      ))}
-      <g fontFamily="Manrope, sans-serif" fontSize="12" fontWeight="600">
-        <circle cx="330" cy="40" r="4" fill="#EB5E28" />
-        <text x="342" y="44" fill="rgba(255,255,255,0.9)">Tratamiento</text>
-        <circle cx="330" cy="62" r="4" fill="#CCC5B9" />
-        <text x="342" y="66" fill="rgba(255,255,255,0.9)">Control</text>
-      </g>
-      <text x="252" y="232" fill="rgba(255,255,255,0.55)" fontSize="12" fontFamily="JetBrains Mono, monospace">log-rank p = 0.003</text>
-    </svg>
+    <figure className="ms-auth-figure">
+      <figcaption className="ms-auth-figure-head">
+        <span className="ms-auth-figure-title">Supervivencia global</span>
+        <span className="ms-auth-figure-tag">Datos simulados</span>
+      </figcaption>
+
+      <svg
+        viewBox="0 0 480 280"
+        className="ms-auth-chart"
+        role="img"
+        aria-label="Gráfica ilustrativa con datos simulados: la curva del grupo tratamiento se mantiene por encima de la del grupo control durante 48 meses."
+      >
+        {/* Líneas guía horizontales */}
+        <g stroke="rgba(255,252,242,0.08)" strokeWidth="1">
+          <line x1="52" x2="452" y1="16" y2="16" />
+          <line x1="52" x2="452" y1="88" y2="88" />
+          <line x1="52" x2="452" y1="160" y2="160" />
+        </g>
+
+        {/* Ejes */}
+        <path d="M52 16V232H452" stroke="rgba(255,252,242,0.35)" strokeWidth="1.5" fill="none" />
+
+        {/* Marcas y títulos de ejes */}
+        <g fill="rgba(255,252,242,0.5)" fontSize="11" fontFamily="JetBrains Mono, monospace">
+          {[['1.0', 16], ['0.8', 88], ['0.6', 160], ['0.4', 232]].map(([label, y]) => (
+            <text key={label} x="44" y={Number(y) + 4} textAnchor="end">{label}</text>
+          ))}
+          {[0, 12, 24, 36, 48].map((m, i) => (
+            <text key={m} x={52 + i * 100} y="250" textAnchor="middle">{m}</text>
+          ))}
+        </g>
+        <g fill="rgba(255,252,242,0.5)" fontSize="11" fontFamily="Manrope, sans-serif" fontWeight="600">
+          <text x="252" y="272" textAnchor="middle">Meses desde la inclusión</text>
+          <text transform="translate(12 124) rotate(-90)" textAnchor="middle">Probabilidad</text>
+        </g>
+
+        {/* Intervalos de confianza al 95 % */}
+        <path
+          className="ms-band ms-band-late"
+          fill="rgba(204,197,185,0.16)"
+          d="M52.0 16.0 L93.7 16.0 L93.7 33.3 L127.0 33.3 L127.0 51.6 L168.7 51.6 L168.7 73.9 L210.3 73.9 L210.3 96.4 L252.0 96.4 L252.0 119.1 L293.7 119.1 L293.7 138.2 L343.7 138.2 L343.7 153.8 L393.7 153.8 L393.7 165.9 L452.0 165.9 L452.0 174.4 L452.0 224.8 L452.0 211.7 L393.7 211.7 L393.7 195.0 L343.7 195.0 L343.7 174.6 L293.7 174.6 L293.7 150.5 L252.0 150.5 L252.0 122.8 L210.3 122.8 L210.3 94.9 L168.7 94.9 L168.7 66.8 L127.0 66.8 L127.0 41.9 L93.7 41.9 L93.7 16.0 L52.0 16.0 Z"
+        />
+        <path
+          className="ms-band"
+          fill="rgba(235,94,40,0.2)"
+          d="M52.0 16.0 L93.7 16.0 L93.7 23.1 L127.0 23.1 L127.0 31.1 L168.7 31.1 L168.7 43.0 L210.3 43.0 L210.3 55.1 L252.0 55.1 L252.0 67.3 L293.7 67.3 L293.7 79.6 L343.7 79.6 L343.7 88.3 L393.7 88.3 L393.7 97.1 L452.0 97.1 L452.0 102.4 L452.0 145.6 L452.0 136.5 L393.7 136.5 L393.7 123.7 L343.7 123.7 L343.7 110.8 L293.7 110.8 L293.7 94.3 L252.0 94.3 L252.0 77.7 L210.3 77.7 L210.3 61.0 L168.7 61.0 L168.7 44.1 L127.0 44.1 L127.0 30.5 L93.7 30.5 L93.7 16.0 L52.0 16.0 Z"
+        />
+
+        {/* Curvas (pathLength=1 hace que la animación no dependa de la longitud real) */}
+        <path
+          className="ms-draw ms-draw-late"
+          pathLength={1}
+          stroke="#CCC5B9"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinejoin="round"
+          d="M52.0 16.0 L93.7 16.0 L93.7 37.6 L127.0 37.6 L127.0 59.2 L168.7 59.2 L168.7 84.4 L210.3 84.4 L210.3 109.6 L252.0 109.6 L252.0 134.8 L293.7 134.8 L293.7 156.4 L343.7 156.4 L343.7 174.4 L393.7 174.4 L393.7 188.8 L452.0 188.8 L452.0 199.6"
+        />
+        <path
+          className="ms-draw"
+          pathLength={1}
+          stroke="#EB5E28"
+          strokeWidth="2.75"
+          fill="none"
+          strokeLinejoin="round"
+          d="M52.0 16.0 L93.7 16.0 L93.7 26.8 L127.0 26.8 L127.0 37.6 L168.7 37.6 L168.7 52.0 L210.3 52.0 L210.3 66.4 L252.0 66.4 L252.0 80.8 L293.7 80.8 L293.7 95.2 L343.7 95.2 L343.7 106.0 L393.7 106.0 L393.7 116.8 L452.0 116.8 L452.0 124.0"
+        />
+
+        {/* Marcas de censura */}
+        <g className="ms-band" stroke="#EB5E28" strokeWidth="2">
+          {[[143.7, 37.6], [235.3, 66.4], [327.0, 95.2], [418.7, 116.8]].map(([x, y]) => (
+            <path key={`a${x}`} d={`M${x} ${y - 6}V${y + 6}`} />
+          ))}
+        </g>
+        <g className="ms-band ms-band-late" stroke="#CCC5B9" strokeWidth="2">
+          {[[110.3, 37.6], [185.3, 84.4], [277.0, 134.8], [368.7, 174.4]].map(([x, y]) => (
+            <path key={`b${x}`} d={`M${x} ${y - 6}V${y + 6}`} />
+          ))}
+        </g>
+      </svg>
+
+      <div className="ms-auth-figure-foot">
+        <div className="ms-auth-legend">
+          <span className="ms-auth-legend-item"><i className="ms-auth-swatch is-accent" /> Tratamiento</span>
+          <span className="ms-auth-legend-item"><i className="ms-auth-swatch is-muted" /> Control</span>
+        </div>
+        <span className="ms-auth-stat">log-rank <em>p</em> = 0.003</span>
+      </div>
+    </figure>
   );
 }
 
 export default function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthShellProps) {
   return (
     <div className="ms-auth">
-      <style>{`
-        .ms-auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); background: var(--color-bg); }
-        .ms-auth-art {
-          position: relative; overflow: hidden; color: white;
-          background: #252422;
-          padding: 2.5rem 3rem; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
-        }
-        .ms-auth-form { display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; }
-        .ms-auth-card { width: 100%; max-width: 25rem; }
-        .ms-draw { stroke-dasharray: 900; stroke-dashoffset: 900; animation: ms-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.3s; }
-        .ms-draw-late { animation-delay: 0.7s; }
-        @keyframes ms-draw { to { stroke-dashoffset: 0; } }
-        @media (max-width: 900px) {
-          .ms-auth { grid-template-columns: 1fr; }
-          .ms-auth-art { display: none; }
-          .ms-auth-mobile-logo { display: flex !important; }
-        }
-      `}</style>
+      <aside className="ms-auth-art" aria-label="Sobre MedStats Studio">
+        <div className="ms-auth-art-logo">
+          <Logo variant="light" />
+        </div>
 
-      <aside className="ms-auth-art">
-        <Logo variant="light" />
-        <div className="slide-up">
-          <h2 className="ms-display" style={{ fontSize: 'clamp(2rem, 3.2vw, 2.9rem)', lineHeight: 1.08, maxWidth: '30rem' }}>
-            De la hoja de datos al resultado <em style={{ color: '#EB5E28' }}>publicable</em>.
+        <div className="ms-auth-art-body slide-up">
+          <h2 className="ms-auth-headline ms-display">
+            De la hoja de datos al resultado <em>publicable</em>.
           </h2>
-          <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.65)', maxWidth: '28rem', lineHeight: 1.6 }}>
+          <p className="ms-auth-lede">
             Estadística rigurosa, explicada en lenguaje clínico y con código reproducible en R.
           </p>
-          <div style={{ marginTop: '2rem', maxWidth: '32rem' }}>
-            <SurvivalIllustration />
-          </div>
+          <SurvivalIllustration />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: '1.5rem' }}>
+
+        <ul className="ms-auth-highlights">
           {highlights.map(h => (
-            <div key={h.k}>
-              <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{h.k}</div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', marginTop: '0.25rem', lineHeight: 1.45 }}>{h.v}</div>
-            </div>
+            <li key={h.k} className="ms-auth-highlight">
+              <div className="ms-auth-highlight-k">{h.k}</div>
+              <div className="ms-auth-highlight-v">{h.v}</div>
+            </li>
           ))}
-        </div>
+        </ul>
       </aside>
 
-      <main className="ms-auth-form">
+      <main className="ms-auth-stage">
         <div className="ms-auth-card slide-up">
-          <div className="ms-auth-mobile-logo" style={{ display: 'none', marginBottom: '2.5rem' }}>
+          <div className="ms-auth-mobile-logo">
             <Logo />
           </div>
-          <div className="ms-eyebrow">{eyebrow}</div>
-          <h1 className="ms-page-title" style={{ fontSize: '2.4rem' }}>{title}</h1>
-          <p className="ms-page-subtitle">{subtitle}</p>
-          <div style={{ marginTop: '2rem' }}>{children}</div>
-          <div style={{ marginTop: '2rem', fontSize: '0.875rem', color: 'var(--color-text-secondary)', textAlign: 'center' }}>{footer}</div>
+
+          <header className="ms-auth-header">
+            <div className="ms-eyebrow">{eyebrow}</div>
+            <h1 className="ms-page-title ms-auth-title">{title}</h1>
+            <p className="ms-page-subtitle ms-auth-subtitle">{subtitle}</p>
+          </header>
+
+          {children}
+
+          {footer && <div className="ms-auth-footer">{footer}</div>}
         </div>
+
+        <p className="ms-auth-disclaimer">
+          Herramienta de apoyo a la investigación. No sustituye el criterio clínico.
+        </p>
       </main>
     </div>
   );

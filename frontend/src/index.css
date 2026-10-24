@@ -495,25 +495,41 @@ button, a, input, select, textarea {
    eCRF CLINICAL FORMS SYSTEM — MEDSTATS STUDIO (ms-form-*)
    ========================================================================== */
 
-/* Layout Container */
+/* Texto solo para lector de pantalla (no depende de utilidades de Tailwind) */
+.ms-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Layout ---------- */
+
 .ms-form-container {
+  --ms-form-gutter: 1rem;
   width: 100%;
   max-width: 1320px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1.5rem var(--ms-form-gutter) 3rem;
 }
 
 @media (min-width: 640px) {
   .ms-form-container {
-    padding: 1.75rem 1.5rem 4rem;
+    --ms-form-gutter: 1.5rem;
+    padding-top: 1.75rem;
+    padding-bottom: 4rem;
   }
 }
 
-/* Two-column layout in desktop (70-75% Main / 25-30% Aux), stacked on tablet/mobile */
 .ms-form-layout {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* 24px */
+  gap: 1.5rem;
   width: 100%;
   align-items: stretch;
 }
@@ -521,42 +537,95 @@ button, a, input, select, textarea {
 @media (min-width: 1024px) {
   .ms-form-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 330px;
-    gap: 1.5rem; /* 24px between columns */
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 1.75rem;
     align-items: start;
   }
 }
 
-/* Main Form Column (approximately 70-75% in desktop grid) */
 .ms-form-main {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem; /* ~28px between sections */
+  gap: 1.25rem;
   min-width: 0;
 }
 
-/* Auxiliary Column (approximately 25-30% in desktop grid) */
 .ms-form-aux {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 @media (min-width: 1024px) {
   .ms-form-aux {
     position: sticky;
     top: 1.5rem;
-    max-height: calc(100vh - 3rem);
+    /* deja hueco para la barra de acciones fija */
+    max-height: calc(100vh - 8rem);
     overflow-y: auto;
     padding-right: 0.15rem;
   }
 }
 
-/* Header Block */
+/* ---------- Cabecera ---------- */
+
 .ms-form-header-block {
   width: 100%;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ms-form-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+}
+
+.ms-form-header-text {
+  min-width: 0;
+  flex: 1 1 24rem;
+}
+
+.ms-form-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 1rem + 1.6vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.ms-form-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.ms-form-desc {
+  max-width: 62ch;
+  margin-top: 0.65rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.ms-form-legend {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+}
+
+.ms-form-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .ms-form-meta-pill {
@@ -572,21 +641,147 @@ button, a, input, select, textarea {
   border: 1px solid var(--color-border);
 }
 
-/* Section Cards & Visual hierarchy (clean rectangular boundary, no chunky rounded box) */
+/* Interruptor "Nombres técnicos" */
+.ms-form-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.125rem;
+  padding: 0.35rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.ms-form-switch:hover {
+  background: var(--color-bg-deep);
+  color: var(--color-text-primary);
+}
+.ms-form-switch-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+  transition: background-color 0.15s ease;
+}
+.ms-form-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1rem - 4px);
+  height: calc(1rem - 4px);
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+.ms-form-switch[aria-checked='true'] .ms-form-switch-track {
+  background: var(--color-accent);
+}
+.ms-form-switch[aria-checked='true'] .ms-form-switch-knob {
+  transform: translateX(0.75rem);
+}
+
+/* ---------- Aviso de guardado (toast) ---------- */
+
+.ms-form-toast {
+  position: fixed;
+  top: 1rem;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
+  max-width: min(92vw, 36rem);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: #FFFFFF;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: var(--shadow-lg);
+  animation: ms-form-toast-in 0.25s ease both;
+}
+.ms-form-toast-icon {
+  flex-shrink: 0;
+  color: #7FD6A4;
+}
+.ms-form-toast-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding: 0.3rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.12);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ms-form-toast-link:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.ms-form-toast-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: rgba(255, 255, 255, 0.75);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ms-form-toast-close:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.12);
+}
+.ms-form-toast :focus-visible {
+  outline-color: #FFFFFF;
+}
+@keyframes ms-form-toast-in {
+  from { opacity: 0; translate: 0 -8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* ---------- Secciones y tarjetas ---------- */
+
 .ms-form-section {
   background: #FFFFFF;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   box-shadow: none;
-  padding: 1.75rem;
-  scroll-margin-top: 5.5rem;
-  transition: border-color 0.15s ease;
+  padding: 1.25rem;
+  scroll-margin-top: 5rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 @media (min-width: 640px) {
   .ms-form-section {
-    padding: 2.25rem 2.5rem;
+    padding: 1.75rem 2rem;
   }
+}
+
+/* La sección en la que estás: la marca lateral indica dónde te encuentras */
+.ms-form-section.is-active {
+  border-color: var(--color-border-strong);
+  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 .ms-form-card {
@@ -594,18 +789,56 @@ button, a, input, select, textarea {
   border: 1px solid var(--color-border);
   border-radius: 4px;
   box-shadow: none;
-  padding: 1.5rem;
+  padding: 1.25rem;
+}
+
+.ms-form-card-calc {
+  background: var(--color-bg-deep);
+  border-color: var(--color-border-strong);
+}
+
+.ms-form-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ms-form-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.ms-form-card-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .ms-form-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.75rem 1rem;
   flex-wrap: wrap;
   padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--color-border);
+}
+
+.ms-form-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .ms-form-section-title {
@@ -619,24 +852,62 @@ button, a, input, select, textarea {
   gap: 0.5rem;
 }
 
+.ms-form-section-state {
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-success);
+}
+
+.ms-form-section-dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: 0.3rem;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}
+
+.ms-form-section-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ms-form-section-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 .ms-form-section-body {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem; /* 20px between fields */
+  gap: 1.25rem;
 }
 
-/* Fields Grid & Hierarchy */
+/* ---------- Campos ---------- */
+
 .ms-form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
   width: 100%;
+  min-width: 0;
+  scroll-margin-top: 6rem;
+}
+
+/* Variable que depende de otra respuesta */
+.ms-form-field.is-conditional {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--color-border-strong);
 }
 
 .ms-form-field-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem; /* 20px */
+  gap: 1.5rem 1.5rem;
 }
 
 @media (min-width: 640px) {
@@ -653,16 +924,21 @@ button, a, input, select, textarea {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.15rem;
+  min-height: 1.75rem;
 }
 
 .ms-form-label {
   font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.3;
   color: var(--color-ink);
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
+}
+
+label.ms-form-label {
   cursor: pointer;
 }
 
@@ -673,16 +949,41 @@ button, a, input, select, textarea {
   line-height: 1;
 }
 
+.ms-form-cond-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--color-text-tertiary);
+}
+
+.ms-form-clear {
+  flex-shrink: 0;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ms-form-clear:hover {
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
 .ms-form-meta-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: 0.75rem;
   font-size: 0.75rem;
 }
 
 .ms-form-colname {
+  flex-shrink: 0;
+  margin-left: auto;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--color-text-tertiary);
@@ -693,7 +994,8 @@ button, a, input, select, textarea {
   letter-spacing: 0.02em;
 }
 
-/* Inputs & Form Controls with 44-48px target height */
+/* ---------- Controles (objetivo táctil de 46–48 px) ---------- */
+
 .ms-form-input,
 .ms-form-select,
 .ms-form-textarea {
@@ -706,9 +1008,18 @@ button, a, input, select, textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.65rem 0.95rem;
-  min-height: 46px; /* 44-48px target height */
+  min-height: 46px;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* En móvil, 16px evita el zoom automático de iOS al enfocar */
+@media (max-width: 639px) {
+  .ms-form-input,
+  .ms-form-select,
+  .ms-form-textarea {
+    font-size: 1rem;
+  }
 }
 
 .ms-form-input::placeholder,
@@ -752,39 +1063,79 @@ button, a, input, select, textarea {
 }
 
 .ms-form-textarea {
-  min-height: 84px;
+  min-height: 96px;
   resize: vertical;
 }
 
-/* Input with Unit Affix - defined dedicated space */
-.ms-form-input-affix {
+/* Select con flecha propia: mismo aspecto en todos los navegadores */
+.ms-form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.5rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236E6A63' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1rem;
+}
+
+/* Input con icono a la izquierda */
+.ms-form-input-icon {
   position: relative;
+  width: 100%;
+}
+.ms-form-input-icon > svg {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  translate: 0 -50%;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+.ms-form-input-icon .ms-form-input {
+  padding-left: 2.6rem;
+}
+
+/* Input con unidad: la unidad es un bloque propio, nunca tapa el texto */
+.ms-form-input-affix {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
 }
 
 .ms-form-input-affix .ms-form-input {
-  padding-right: 4.75rem; /* Generous padding so text never touches or overlaps the suffix */
+  flex: 1 1 auto;
+  min-width: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .ms-form-unit {
-  position: absolute;
-  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 0.85rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   background: var(--color-bg-deep);
   border: 1px solid var(--color-border);
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-sm);
-  pointer-events: none;
+  border-left: 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   user-select: none;
   white-space: nowrap;
+  transition: border-color 0.15s ease;
 }
 
-/* Specialized: Segmented Control for Booleans */
+.ms-form-input-affix:focus-within .ms-form-unit {
+  border-color: var(--color-accent);
+}
+
+/* ---------- Control segmentado (Sí / No) ---------- */
+
 .ms-form-segmented {
   display: inline-flex;
   align-items: stretch;
@@ -794,7 +1145,7 @@ button, a, input, select, textarea {
   padding: 3px;
   gap: 3px;
   width: 100%;
-  min-height: 46px;
+  min-height: 48px;
 }
 
 .ms-form-segmented-btn {
@@ -808,7 +1159,7 @@ button, a, input, select, textarea {
   font-weight: 600;
   color: var(--color-text-secondary);
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 3px;
   cursor: pointer;
   padding: 0.6rem 1rem;
@@ -817,14 +1168,14 @@ button, a, input, select, textarea {
 
 .ms-form-segmented-btn:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .ms-form-segmented-btn.is-active {
   background: var(--color-surface);
-  color: var(--color-ink);
+  color: var(--color-accent-strong);
+  border-color: var(--color-accent);
   box-shadow: var(--shadow-xs);
-  border: 1px solid var(--color-border);
 }
 
 .ms-form-segmented-btn:focus-visible {
@@ -832,7 +1183,8 @@ button, a, input, select, textarea {
   outline-offset: 1px;
 }
 
-/* Specialized: Chip Grid for Multiselect & Radios (No pill radius, unclipped text) */
+/* ---------- Chips (radio y selección múltiple) ---------- */
+
 .ms-form-chip-grid {
   display: flex;
   flex-wrap: wrap;
@@ -845,7 +1197,7 @@ button, a, input, select, textarea {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  min-height: 42px;
+  min-height: 44px;
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 500;
@@ -890,15 +1242,16 @@ button, a, input, select, textarea {
   background: var(--color-accent);
 }
 
-/* Specialized: Calculated Field Card */
+/* ---------- Campo calculado ---------- */
+
 .ms-form-calculated {
   background: var(--color-bg-deep);
-  border: 1px solid var(--color-border);
+  border: 1px dashed var(--color-border-strong);
   border-radius: 4px;
-  padding: 0.85rem 1.15rem;
+  padding: 0.75rem 1.1rem;
+  min-height: 46px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
 }
 
@@ -912,32 +1265,121 @@ button, a, input, select, textarea {
   gap: 0.4rem;
 }
 
+.ms-form-calculated-value.is-pending {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+}
+
+.ms-form-calculated-unit {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
 .ms-form-calculated-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--color-accent-strong);
   background: var(--color-accent-soft);
   border: 1px solid rgba(235, 94, 40, 0.25);
   border-radius: 4px;
-  padding: 0.2rem 0.55rem;
+  padding: 0.1rem 0.5rem;
 }
 
-/* Aligned Metric Pairs for Database Summary */
+/* ---------- Cálculos en vivo y registros (panel lateral) ---------- */
+
+.ms-form-calc-list,
+.ms-form-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ms-form-calc-item,
+.ms-form-recent-item {
+  padding: 0.65rem 0.8rem;
+  border-radius: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.ms-form-calc-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ms-form-calc-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-accent-strong);
+}
+
+.ms-form-recent-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ms-form-recent-code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.ms-form-recent-time {
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ms-form-recent-summary {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ms-form-subtitle {
+  margin: 1rem 0 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.ms-form-empty {
+  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
 .ms-form-metric-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0;
+  padding: 0.55rem 0;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.875rem;
 }
 
-.ms-form-metric-row:last-child {
+.ms-form-metric-row:last-of-type {
   border-bottom: none;
 }
 
@@ -952,23 +1394,24 @@ button, a, input, select, textarea {
   font-weight: 700;
   color: var(--color-ink);
   font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Clinical Warnings & Validation */
+/* ---------- Ayuda, errores y avisos ---------- */
+
 .ms-form-help {
   font-size: 0.78125rem;
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .ms-form-error {
-  font-size: 0.78125rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-error);
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-top: 0.2rem;
 }
 
 .ms-form-alert {
@@ -982,14 +1425,19 @@ button, a, input, select, textarea {
   background: #FFFBEB;
   color: #92400E;
   border: 1px solid #FDE68A;
-  margin-top: 0.25rem;
 }
 
-/* Section Index (Navigation) */
+.ms-form-alert > svg {
+  margin-top: 0.1rem;
+  color: #B45309;
+}
+
+/* ---------- Índice de secciones ---------- */
+
 .ms-form-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .ms-form-nav-item {
@@ -998,7 +1446,7 @@ button, a, input, select, textarea {
   justify-content: space-between;
   gap: 0.65rem;
   width: 100%;
-  padding: 0.65rem 0.85rem;
+  padding: 0.6rem 0.8rem;
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.84375rem;
@@ -1037,6 +1485,7 @@ button, a, input, select, textarea {
   border-radius: 4px;
   background: var(--color-bg-deep);
   color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .ms-form-nav-item.is-active .ms-form-nav-badge {
@@ -1044,34 +1493,58 @@ button, a, input, select, textarea {
   color: var(--color-accent-strong);
 }
 
-/* Mobile horizontal quick jump */
+/* Navegación horizontal fija en móvil/tablet */
+.ms-form-nav-mobile-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  margin: 0 calc(-1 * var(--ms-form-gutter)) 1rem;
+  padding: 0.5rem var(--ms-form-gutter);
+  background: rgba(255, 252, 242, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+@media (min-width: 1024px) {
+  .ms-form-nav-mobile-wrap {
+    display: none;
+  }
+}
+
 .ms-form-nav-mobile {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   overflow-x: auto;
-  padding: 0.5rem 0;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 .ms-form-nav-mobile::-webkit-scrollbar {
   display: none;
 }
+.ms-form-nav-mobile .ms-form-chip {
+  flex-shrink: 0;
+  min-height: 38px;
+  padding: 0.4rem 0.85rem;
+  white-space: nowrap;
+}
 
-/* Sticky Action Bar at Bottom */
+/* ---------- Barra de acciones fija ---------- */
+
 .ms-form-actionbar {
   position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 30;
-  background: rgba(255, 252, 242, 0.95);
+  background: rgba(255, 252, 242, 0.96);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--color-border);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
-  padding: 0.85rem 1.25rem;
-  padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+  padding: 0.75rem 1.25rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   margin-top: 2rem;
 }
 
@@ -1081,8 +1554,34 @@ button, a, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem 1rem;
   flex-wrap: wrap;
+}
+
+.ms-form-actionbar .ms-btn {
+  min-height: 2.75rem;
+}
+
+.ms-form-actionbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.ms-form-bar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.ms-form-bar-status.is-error {
+  flex-wrap: wrap;
+  font-weight: 600;
+  color: var(--color-error);
 }
 
 .ms-form-progress {
@@ -1092,7 +1591,7 @@ button, a, input, select, textarea {
 }
 
 .ms-form-progress-bar {
-  width: 90px;
+  width: 120px;
   height: 6px;
   background: var(--color-bg-deep);
   border-radius: 3px;
@@ -1106,25 +1605,67 @@ button, a, input, select, textarea {
   transition: width 0.2s ease;
 }
 
+.ms-form-progress-fill.is-complete {
+  background: var(--color-success);
+}
+
 .ms-form-progress-text {
   font-size: 0.8125rem;
   color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .ms-form-kbd-tip {
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.45rem;
-  background: rgba(255, 255, 255, 0.25);
+  padding: 0.1rem 0.45rem;
+  background: rgba(255, 255, 255, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 600;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 }
 
-/* FormBuilder Two-Panel Layout */
+/* Sin teclado físico no tiene sentido mostrar el atajo */
+@media (hover: none), (pointer: coarse) {
+  .ms-form-kbd-tip {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .ms-form-actionbar {
+    padding-inline: var(--ms-form-gutter);
+  }
+  .ms-form-actionbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ms-form-actionbar-actions {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+  }
+  .ms-form-actionbar-actions .ms-btn {
+    width: 100%;
+    padding-inline: 0.75rem;
+  }
+  .ms-form-btn-wide {
+    display: none;
+  }
+  .ms-form-progress-bar {
+    flex: 1;
+    width: auto;
+    min-width: 80px;
+  }
+  .ms-form-progress {
+    width: 100%;
+  }
+}
+
+/* ---------- FormBuilder (panel doble) — sin cambios ---------- */
+
 .ms-form-builder-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -1226,14 +1767,19 @@ button, a, input, select, textarea {
   border-top: 1px solid var(--color-border);
 }
 
-/* Reduced Motion Override */
+/* ---------- Movimiento reducido ---------- */
+
 @media (prefers-reduced-motion: reduce) {
   .ms-form-nav-item,
   .ms-form-segmented-btn,
   .ms-form-chip,
   .ms-form-type-card,
   .ms-form-actionbar,
-  .ms-form-progress-fill {
+  .ms-form-progress-fill,
+  .ms-form-switch-track,
+  .ms-form-switch-knob,
+  .ms-form-section,
+  .ms-form-toast {
     transition: none !important;
     animation: none !important;
   }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Save,
   CheckCircle2,
@@ -15,6 +15,8 @@ import {
   ClipboardPaste,
   Check,
   ListOrdered,
+  Database,
+  X,
 } from 'lucide-react';
 import type { ClinicalForm, FormField, RecordEntry } from '../types/clinical';
 import { calculateFieldValue, checkClinicalAlert } from '../utils/calculator';
@@ -28,85 +30,170 @@ interface IntakeFormProps {
   onGoToRecords: () => void;
 }
 
+/* ------------------------------ Utilidades ------------------------------ */
+
+const TECH_KEY = 'ms-intake-show-tech';
+const CLEARABLE_TYPES = ['boolean', 'radio', 'multiselect'];
+const GROUP_TYPES = ['boolean', 'radio', 'multiselect'];
+// Primer control "real" de un campo (ignora el botón "Limpiar")
+const FOCUSABLE =
+  'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.ms-form-clear)';
+
+const isFilled = (v: unknown): boolean =>
+  v !== undefined && v !== null && v !== '' && (!Array.isArray(v) || v.length > 0);
+
+const slug = (s: string) => s.replace(/\s+/g, '-');
+
+const scrollBehavior = (): ScrollBehavior =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ? 'auto'
+    : 'smooth';
+
+const formatValue = (v: unknown): string => {
+  if (Array.isArray(v)) return v.join(', ');
+  if (v === true) return 'Sí';
+  if (v === false) return 'No';
+  return String(v);
+};
+
+const numberPlaceholder = (field: FormField): string => {
+  if (field.placeholder) return field.placeholder;
+  if (field.min !== undefined && field.max !== undefined) return `${field.min} – ${field.max}`;
+  if (field.min !== undefined) return `≥ ${field.min}`;
+  if (field.max !== undefined) return `≤ ${field.max}`;
+  return '';
+};
+
+const getShortcutLabel = (): string =>
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform || '')
+    ? '⌘ ↵'
+    : 'Ctrl ↵';
+
+/* ------------------------------- Componente ------------------------------ */
+
 export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: IntakeFormProps) {
-  // Suggest next record code based on current count
+  // Código sugerido para el siguiente caso
   const nextSuggestedCode = useMemo(() => {
     const prefix = form.codePrefix || 'REG-';
     const num = records.length + 1;
     return `${prefix}${String(num).padStart(3, '0')}`;
   }, [form.codePrefix, records.length]);
 
+  // Valores por defecto de las variables
+  const initialData = useMemo(() => {
+    const data: Record<string, any> = {};
+    form.fields.forEach((f) => {
+      if (f.defaultValue !== undefined) data[f.name] = f.defaultValue;
+    });
+    return data;
+  }, [form.fields]);
+
   const [recordCode, setRecordCode] = useState<string>(nextSuggestedCode);
   const [author, setAuthor] = useState<string>('Clínico / Investigador');
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [savedSuccessMsg, setSavedSuccessMsg] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isDirty, setIsDirty] = useState(false);
+  const [toast, setToast] = useState<{ text: string; showLink: boolean } | null>(null);
   const [isTextExtractorOpen, setIsTextExtractorOpen] = useState(false);
   const [textExtractorSection, setTextExtractorSection] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('');
-  const firstInputRef = useRef<HTMLInputElement | null>(null);
+  const [showTech, setShowTech] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(TECH_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
 
-  const handleOpenTextExtractor = (sectionName: string | null = null) => {
-    setTextExtractorSection(sectionName);
-    setIsTextExtractorOpen(true);
-  };
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const toastTimer = useRef<number | null>(null);
+  const spyLockUntil = useRef(0);
+  const lastSuggestedRef = useRef(nextSuggestedCode);
+  const forceCodeRef = useRef(false);
+  const shortcutLabel = useMemo(getShortcutLabel, []);
 
-  const handleApplyExtractedData = (dataToMerge: Record<string, any>) => {
-    setFormData((prev) => ({
-      ...prev,
-      ...dataToMerge,
-    }));
+  /* ------------------------------ Avisos (toast) ------------------------------ */
 
-    setErrors((prev) => {
-      const copy = { ...prev };
-      Object.keys(dataToMerge).forEach((k) => delete copy[k]);
-      return copy;
-    });
+  const dismissToast = useCallback(() => {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = null;
+    setToast(null);
+  }, []);
 
-    const count = Object.keys(dataToMerge).length;
-    setSavedSuccessMsg(`✨ Se han autocompletado ${count} ${count === 1 ? 'variable clínica' : 'variables clínicas'} desde el texto libre.`);
-    setTimeout(() => setSavedSuccessMsg(null), 4500);
-  };
+  const showToast = useCallback((text: string, showLink: boolean) => {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    setToast({ text, showLink });
+    toastTimer.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimer.current = null;
+    }, 5000);
+  }, []);
 
-  // Sync default values when form changes or resets
   useEffect(() => {
-    setRecordCode(nextSuggestedCode);
-    const initialData: Record<string, any> = {};
-    form.fields.forEach((f) => {
-      if (f.defaultValue !== undefined) {
-        initialData[f.name] = f.defaultValue;
-      }
-    });
+    return () => {
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  /* --------------------------------- Efectos --------------------------------- */
+
+  // Al cambiar de formulario se reinician los datos
+  useEffect(() => {
     setFormData(initialData);
     setErrors({});
-  }, [form, nextSuggestedCode]);
+    setIsDirty(false);
+  }, [initialData]);
 
-  // Compute calculated fields in real-time
+  // El código solo se actualiza solo si el usuario no lo ha personalizado.
+  // (Así "Guardar y mantener datos" no vacía el formulario al añadirse el registro.)
+  useEffect(() => {
+    setRecordCode((prev) =>
+      forceCodeRef.current || !prev.trim() || prev === lastSuggestedRef.current
+        ? nextSuggestedCode
+        : prev
+    );
+    lastSuggestedRef.current = nextSuggestedCode;
+    forceCodeRef.current = false;
+  }, [nextSuggestedCode]);
+
+  // Recordar la preferencia de "Nombres técnicos"
+  useEffect(() => {
+    try {
+      localStorage.setItem(TECH_KEY, showTech ? '1' : '0');
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, [showTech]);
+
+  // Avisar si se intenta cerrar la pestaña con datos sin guardar
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  /* -------------------------------- Cálculos -------------------------------- */
+
   const computedValues = useMemo(() => {
     const computed: Record<string, any> = {};
     form.fields.forEach((f) => {
       if (f.type === 'calculated') {
         const val = calculateFieldValue(f, { ...formData, ...computed });
-        if (val !== null && val !== undefined) {
-          computed[f.name] = val;
-        }
+        if (val !== null && val !== undefined) computed[f.name] = val;
       }
     });
     return computed;
   }, [form.fields, formData]);
 
-  // Combined current data with computed values
-  const activeFullData = useMemo(() => {
-    return { ...formData, ...computedValues };
-  }, [formData, computedValues]);
+  const activeFullData = useMemo(() => ({ ...formData, ...computedValues }), [formData, computedValues]);
 
-  // Handle value change
   const handleInputChange = (fieldName: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: value,
-    }));
-
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
+    setIsDirty(true);
     if (errors[fieldName]) {
       setErrors((prev) => {
         const copy = { ...prev };
@@ -116,24 +203,32 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
     }
   };
 
-  // Keyboard shortcut: Ctrl + Enter to save & next
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleSubmit(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  });
+  const handleApplyExtractedData = (dataToMerge: Record<string, any>) => {
+    setFormData((prev) => ({ ...prev, ...dataToMerge }));
+    setIsDirty(true);
+    setErrors((prev) => {
+      const copy = { ...prev };
+      Object.keys(dataToMerge).forEach((k) => delete copy[k]);
+      return copy;
+    });
+    const count = Object.keys(dataToMerge).length;
+    showToast(
+      `Se ${count === 1 ? 'ha autocompletado 1 variable' : `han autocompletado ${count} variables`} desde el texto libre.`,
+      false
+    );
+  };
 
-  // Group fields by sections, filtering out hidden conditional sections and fields
+  const handleOpenTextExtractor = (sectionName: string | null = null) => {
+    setTextExtractorSection(sectionName);
+    setIsTextExtractorOpen(true);
+  };
+
+  /* ------------------------ Secciones visibles y progreso ------------------------ */
+
   const groupedSections = useMemo(() => {
     const sections = form.sections && form.sections.length > 0 ? form.sections : ['Datos Clínicos'];
     const map = new Map<string, FormField[]>();
 
-    // 1. Filter out sections whose condition is not satisfied
     const visibleSections = sections.filter((sec) => {
       const rule = form.sectionRules?.[sec];
       if (!rule) return true;
@@ -142,20 +237,22 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
 
     visibleSections.forEach((sec) => map.set(sec, []));
 
-    // 2. Filter out fields whose condition is not satisfied
     form.fields.forEach((f) => {
       const sec = f.section && map.has(f.section) ? f.section : visibleSections[0];
       if (!map.has(sec)) return;
-
-      if (isConditionMet(f.conditional, activeFullData)) {
-        map.get(sec)!.push(f);
-      }
+      if (isConditionMet(f.conditional, activeFullData)) map.get(sec)!.push(f);
     });
 
     return Array.from(map.entries()).filter(([_, fields]) => fields.length > 0);
   }, [form, activeFullData]);
 
-  // Keep activeSection valid
+  // Orden visual de las variables (para saber cuál es el primer error)
+  const orderedFieldNames = useMemo(
+    () => groupedSections.flatMap(([_, fields]) => fields.map((f) => f.name)),
+    [groupedSections]
+  );
+
+  // Mantener una sección activa válida
   useEffect(() => {
     if (groupedSections.length > 0) {
       if (!activeSection || !groupedSections.some(([title]) => title === activeSection)) {
@@ -164,80 +261,138 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
     }
   }, [groupedSections, activeSection]);
 
-  // Determine completed sections (all required or all fields filled)
-  const completedSections = useMemo(() => {
-    const set = new Set<string>();
-    groupedSections.forEach(([secTitle, fields]) => {
-      if (fields.length === 0) return;
-      const targetFields = fields.filter((f) => f.required && f.type !== 'calculated');
-      const fieldsToCheck = targetFields.length > 0 ? targetFields : fields.filter((f) => f.type !== 'calculated');
-      if (fieldsToCheck.length === 0) return;
-
-      const isCompleted = fieldsToCheck.every((f) => {
-        const val = activeFullData[f.name];
-        return val !== undefined && val !== null && val !== '' && (!Array.isArray(val) || val.length > 0);
+  // Estado de cada sección: obligatorios completados y si está completa
+  const sectionStats = useMemo(() => {
+    const map = new Map<
+      string,
+      { requiredTotal: number; requiredFilled: number; complete: boolean }
+    >();
+    groupedSections.forEach(([title, fields]) => {
+      const editable = fields.filter((f) => f.type !== 'calculated');
+      const required = editable.filter((f) => f.required);
+      const target = required.length > 0 ? required : editable;
+      const filledTarget = target.filter((f) => isFilled(activeFullData[f.name])).length;
+      map.set(title, {
+        requiredTotal: required.length,
+        requiredFilled: required.filter((f) => isFilled(activeFullData[f.name])).length,
+        complete: target.length > 0 && filledTarget === target.length,
       });
-
-      if (isCompleted) {
-        set.add(secTitle);
-      }
     });
-    return set;
+    return map;
   }, [groupedSections, activeFullData]);
 
-  // Mandatory fields progress stats
   const mandatoryStats = useMemo(() => {
-    const visibleFields = new Set<string>();
-    groupedSections.forEach(([_, fields]) => {
-      fields.forEach((f) => visibleFields.add(f.name));
-    });
-
+    const visible = new Set(orderedFieldNames);
     const requiredFields = form.fields.filter(
-      (f) => f.required && f.type !== 'calculated' && visibleFields.has(f.name)
+      (f) => f.required && f.type !== 'calculated' && visible.has(f.name)
     );
-
-    const filledCount = requiredFields.filter((f) => {
-      const val = activeFullData[f.name];
-      return val !== undefined && val !== null && val !== '' && (!Array.isArray(val) || val.length > 0);
-    }).length;
-
+    const filled = requiredFields.filter((f) => isFilled(activeFullData[f.name])).length;
     return {
       total: requiredFields.length,
-      filled: filledCount,
-      percentage: requiredFields.length > 0 ? Math.round((filledCount / requiredFields.length) * 100) : 100,
+      filled,
+      percentage: requiredFields.length > 0 ? Math.round((filled / requiredFields.length) * 100) : 100,
     };
-  }, [form.fields, groupedSections, activeFullData]);
+  }, [form.fields, orderedFieldNames, activeFullData]);
 
-  const validateForm = (): boolean => {
+  const errorCount = Object.keys(errors).length;
+
+  const errorSections = useMemo(() => {
+    const set = new Set<string>();
+    groupedSections.forEach(([title, fields]) => {
+      if (fields.some((f) => errors[f.name])) set.add(title);
+    });
+    return set;
+  }, [groupedSections, errors]);
+
+  const fieldLabels = useMemo(() => {
+    const map = new Map<string, string>();
+    form.fields.forEach((f) => map.set(f.name, f.label));
+    return map;
+  }, [form.fields]);
+
+  /* ------------------------------ Navegación ------------------------------ */
+
+  const focusField = useCallback((key: string) => {
+    const wrapper = document.getElementById(`field-${key}`);
+    if (!wrapper) return;
+    wrapper.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
+    wrapper.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true });
+  }, []);
+
+  const firstErrorKey = (errs: Record<string, string>) =>
+    ['_code', ...orderedFieldNames].find((k) => errs[k]);
+
+  const scrollToSection = (secTitle: string) => {
+    setActiveSection(secTitle);
+    spyLockUntil.current = Date.now() + 900; // evita que el scroll-spy pise el clic
+    const el = document.getElementById(`section-card-${slug(secTitle)}`);
+    if (el) el.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+  };
+
+  // Scroll-spy: la sección activa sigue al scroll
+  const sectionKey = groupedSections.map(([t]) => t).join('\u0000');
+  useEffect(() => {
+    const titles = sectionKey ? sectionKey.split('\u0000') : [];
+    if (titles.length < 2 || typeof IntersectionObserver === 'undefined') return;
+
+    const inBand = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          const title = (e.target as HTMLElement).dataset.section;
+          if (!title) return;
+          if (e.isIntersecting) inBand.add(title);
+          else inBand.delete(title);
+        });
+        if (Date.now() < spyLockUntil.current) return;
+        const current = titles.find((t) => inBand.has(t));
+        if (current) setActiveSection(current);
+      },
+      { rootMargin: '-15% 0px -70% 0px' }
+    );
+
+    titles.forEach((t) => {
+      const el = document.getElementById(`section-card-${slug(t)}`);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [sectionKey]);
+
+  /* ------------------------------ Guardado ------------------------------ */
+
+  const validate = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
     if (!recordCode.trim()) {
-      newErrors._code = 'El identificador de caso es obligatorio.';
+      newErrors._code = 'Introduce un identificador para este caso.';
     }
-
-    // Identify which fields are currently visible
-    const visibleFields = new Set<string>();
-    groupedSections.forEach(([_, fields]) => {
-      fields.forEach((f) => visibleFields.add(f.name));
-    });
-
+    const visible = new Set(orderedFieldNames);
     form.fields.forEach((f) => {
-      if (f.required && f.type !== 'calculated' && visibleFields.has(f.name)) {
-        const val = activeFullData[f.name];
-        if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
-          newErrors[f.name] = `Campo requerido: ${f.label}`;
+      if (f.required && f.type !== 'calculated' && visible.has(f.name)) {
+        if (!isFilled(activeFullData[f.name])) {
+          newErrors[f.name] = 'Este campo es obligatorio.';
         }
       }
     });
+    return newErrors;
+  };
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const focusFirstField = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+    container
+      .querySelector<HTMLElement>('[data-capture-field]')
+      ?.querySelector<HTMLElement>(FOCUSABLE)
+      ?.focus({ preventScroll: true });
   };
 
   const handleSubmit = (andNext: boolean) => {
-    if (!validateForm()) {
-      const firstErrorKey = Object.keys(errors)[0];
-      const el = document.getElementById(`field-${firstErrorKey}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const newErrors = validate();
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      const first = firstErrorKey(newErrors);
+      if (first) focusField(first);
       return;
     }
 
@@ -250,142 +405,138 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
     };
 
     onSaveRecord(newEntry, andNext);
-
-    setSavedSuccessMsg(`Caso ${newEntry.recordCode} guardado exitosamente.`);
-    setTimeout(() => {
-      setSavedSuccessMsg(null);
-    }, 3500);
+    showToast(`Caso ${newEntry.recordCode} guardado.`, true);
+    setIsDirty(false);
 
     if (andNext) {
-      // Reset data for next entry
-      const initialData: Record<string, any> = {};
-      form.fields.forEach((f) => {
-        if (f.defaultValue !== undefined) {
-          initialData[f.name] = f.defaultValue;
-        }
-      });
+      forceCodeRef.current = true; // el siguiente caso usa el código sugerido
       setFormData(initialData);
       setErrors({});
-
-      // Focus first input
-      setTimeout(() => {
-        if (firstInputRef.current) {
-          firstInputRef.current.focus();
-        }
-      }, 100);
+      window.setTimeout(focusFirstField, 80);
     }
   };
+
+  // Atajo Ctrl/⌘ + Enter (se registra una sola vez y lee siempre la última versión)
+  const submitRef = useRef(handleSubmit);
+  submitRef.current = handleSubmit;
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        submitRef.current(true);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const handleReset = () => {
-    if (window.confirm('¿Deseas restablecer los campos de este caso?')) {
-      setFormData({});
+    if (
+      !isDirty ||
+      window.confirm('¿Restablecer los campos de este caso? Se perderán los datos sin guardar.')
+    ) {
+      setFormData(initialData);
       setErrors({});
+      setIsDirty(false);
     }
   };
 
-  const scrollToSection = (secTitle: string) => {
-    setActiveSection(secTitle);
-    const el = document.getElementById(`section-card-${secTitle.replace(/\s+/g, '-')}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
+  const recentRecords = useMemo(() => records.slice(-3).reverse(), [records]);
 
-  // Last 3 recently entered records for quick review
-  const recentRecords = useMemo(() => {
-    return records.slice(-3).reverse();
-  }, [records]);
+  /* --------------------------------- Render --------------------------------- */
 
   return (
-    <div className="ms-form-container">
-      {/* A. CABECERA DEL FORMULARIO: Bloque claramente identificable con acciones independientes */}
-      <header className="ms-form-header-block mb-8 pb-6 border-b border-[var(--color-border)]">
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
-          {/* Título principal, metadatos discretos y descripción legible */}
-          <div className="space-y-2 max-w-3xl">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-ink)] font-display">
-                {form.title}
-              </h1>
-              <span className="ms-form-meta-pill" title="Número total de variables en este cuaderno">
-                {form.fields.length} variables
-              </span>
+    <div className="ms-form-container" ref={containerRef}>
+      {/* Aviso de guardado / autocompletado */}
+      {toast && (
+        <div className="ms-form-toast" role="status" aria-live="polite">
+          <CheckCircle2 size={18} className="ms-form-toast-icon" />
+          <span>{toast.text}</span>
+          {toast.showLink && (
+            <button type="button" className="ms-form-toast-link" onClick={onGoToRecords}>
+              <span>Ver registros ({records.length})</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+          <button
+            type="button"
+            className="ms-form-toast-close"
+            onClick={dismissToast}
+            aria-label="Cerrar aviso"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Cabecera */}
+      <header className="ms-form-header-block">
+        <div className="ms-form-header-row">
+          <div className="ms-form-header-text">
+            <h1 className="ms-form-title">{form.title}</h1>
+            <div className="ms-form-meta">
+              <span className="ms-form-meta-pill">{form.fields.length} variables</span>
               {form.codePrefix && (
-                <span className="ms-form-meta-pill font-mono" title="Prefijo asignado a identificadores de caso">
-                  ID: {form.codePrefix}XXX
+                <span className="ms-form-meta-pill" title="Prefijo de los identificadores de caso">
+                  Prefijo {form.codePrefix}
                 </span>
               )}
             </div>
-            {form.description && (
-              <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed max-w-2xl">
-                {form.description}
+            {form.description && <p className="ms-form-desc">{form.description}</p>}
+            {mandatoryStats.total > 0 && (
+              <p className="ms-form-legend">
+                Los campos con <span className="ms-form-required" aria-hidden="true">*</span> son
+                obligatorios.
               </p>
             )}
           </div>
 
-          {/* Acciones globales alineadas en una zona independiente */}
-          <div className="flex items-center gap-3 flex-wrap self-start shrink-0">
+          <div className="ms-form-header-actions">
             <button
               type="button"
               onClick={() => handleOpenTextExtractor(null)}
               className="ms-btn ms-btn-secondary ms-btn-sm"
-              title="Pegar analítica completa, informe o antecedentes para autocompletar el caso"
+              title="Pega una analítica, informe o antecedentes para autocompletar el caso"
             >
               <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
-              <span>Rellenar desde Texto Libre</span>
+              <span>Rellenar desde texto libre</span>
             </button>
-
             <button
               type="button"
-              onClick={() => handleSubmit(true)}
-              className="ms-btn ms-btn-primary ms-btn-sm"
-              title="Guardar caso actual y avanzar al siguiente formulario"
+              role="switch"
+              aria-checked={showTech}
+              onClick={() => setShowTech((v) => !v)}
+              className="ms-form-switch"
+              title="Muestra el nombre de columna de cada variable"
             >
-              <Save className="w-4 h-4" />
-              <span>Guardar y Siguiente</span>
+              <span className="ms-form-switch-track" aria-hidden="true">
+                <span className="ms-form-switch-knob" />
+              </span>
+              <span>Nombres técnicos</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Success Notification Alert */}
-      {savedSuccessMsg && (
-        <div className="mb-6 p-4 bg-[var(--color-success-soft)] border border-[#C5E3D1] rounded flex items-center justify-between text-[var(--color-ink)] text-sm slide-up">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
-            <span className="font-semibold">{savedSuccessMsg}</span>
-          </div>
-          <button
-            onClick={onGoToRecords}
-            className="ms-btn ms-btn-sm ms-btn-ghost"
-            style={{ color: 'var(--color-success)' }}
-          >
-            <span>Ver registros ({records.length})</span>
-            <ArrowRight size={14} />
-          </button>
-        </div>
-      )}
-
-      {/* Navegación rápida entre secciones en móvil/pantallas compactas */}
+      {/* Navegación de secciones en móvil / tablet */}
       {groupedSections.length > 1 && (
-        <nav className="lg:hidden mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded p-3 shadow-xs" aria-label="Secciones rápidas">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-tertiary)] mb-2 flex items-center gap-1.5">
-            <ListOrdered className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-            <span>Navegación de Secciones:</span>
-          </div>
+        <nav className="ms-form-nav-mobile-wrap" aria-label="Ir a una sección">
           <div className="ms-form-nav-mobile">
             {groupedSections.map(([secTitle]) => {
               const isActive = activeSection === secTitle;
-              const isCompleted = completedSections.has(secTitle);
-
+              const hasError = errorSections.has(secTitle);
+              const isComplete = sectionStats.get(secTitle)?.complete;
               return (
                 <button
                   key={secTitle}
                   type="button"
                   onClick={() => scrollToSection(secTitle)}
                   className={`ms-form-chip ${isActive ? 'is-active' : ''}`}
+                  aria-current={isActive ? 'true' : undefined}
                 >
-                  {isCompleted ? (
+                  {hasError ? (
+                    <AlertTriangle className="w-3.5 h-3.5 text-[var(--color-error)] shrink-0" />
+                  ) : isComplete ? (
                     <Check className="w-3.5 h-3.5 text-[var(--color-success)] shrink-0" />
                   ) : (
                     <span className="ms-form-chip-bullet" />
@@ -398,27 +549,25 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
         </nav>
       )}
 
-      {/* B. ÁREA DE CAPTURA: Distribución en 2 columnas (Principal ~70-75% / Auxiliar ~25-30%) */}
       <div className="ms-form-layout">
-        {/* COLUMNA PRINCIPAL: Formulario de captura (~70–75%) */}
+        {/* Columna principal */}
         <main className="ms-form-main">
-          {/* Identificador de Sujeto / Paciente */}
+          {/* Identificación del caso */}
           <section className="ms-form-section" aria-labelledby="section-case-title">
             <div className="ms-form-section-header">
-              <h2 id="section-case-title" className="ms-form-section-title">
-                <Hash className="w-4 h-4 text-[var(--color-accent)]" />
-                <span>Identificador de Sujeto / Paciente</span>
-              </h2>
-              <span className="text-xs text-[var(--color-text-secondary)] font-mono">
-                Clave de fila en base de datos
-              </span>
+              <div className="ms-form-section-heading">
+                <h2 id="section-case-title" className="ms-form-section-title">
+                  <Hash className="w-4 h-4 text-[var(--color-accent)]" />
+                  <span>Identificación del caso</span>
+                </h2>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="ms-form-field">
+            <div className="ms-form-field-grid ms-form-field-grid-2">
+              <div className="ms-form-field" id="field-_code">
                 <div className="ms-form-label-row">
                   <label htmlFor="input-record-code" className="ms-form-label">
-                    <span>Código de Registro</span>
+                    <span>Código de registro</span>
                     <span className="ms-form-required" aria-hidden="true">*</span>
                   </label>
                 </div>
@@ -426,20 +575,35 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                   id="input-record-code"
                   type="text"
                   value={recordCode}
-                  onChange={(e) => setRecordCode(e.target.value)}
-                  placeholder="Ej. PAC-001 o ID-SUJETO"
+                  onChange={(e) => {
+                    setRecordCode(e.target.value);
+                    if (errors._code) {
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy._code;
+                        return copy;
+                      });
+                    }
+                  }}
+                  placeholder="Ej. PAC-001"
+                  autoComplete="off"
+                  aria-required="true"
+                  aria-invalid={errors._code ? true : undefined}
+                  aria-describedby={errors._code ? 'error-_code' : 'help-_code'}
                   className={`ms-form-input font-mono font-semibold ${errors._code ? 'has-error' : ''}`}
                 />
                 <div className="ms-form-meta-row">
                   {errors._code ? (
-                    <p className="ms-form-error">
+                    <p id="error-_code" className="ms-form-error">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       <span>{errors._code}</span>
                     </p>
                   ) : (
-                    <span className="ms-form-help">Identificador único del sujeto</span>
+                    <span id="help-_code" className="ms-form-help">
+                      Identificador único. Se propone automáticamente.
+                    </span>
                   )}
-                  <span className="ms-form-colname">col: _code</span>
+                  {showTech && <span className="ms-form-colname">col: _code</span>}
                 </div>
               </div>
 
@@ -449,356 +613,406 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                     <span>Profesional / Investigador</span>
                   </label>
                 </div>
-                <div className="relative">
+                <div className="ms-form-input-icon">
+                  <User aria-hidden="true" />
                   <input
                     id="input-author"
                     type="text"
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Nombre o firma del clínico"
-                    className="ms-form-input pl-9"
+                    placeholder="Nombre o firma"
+                    autoComplete="name"
+                    aria-describedby="help-author"
+                    className="ms-form-input"
                   />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--color-text-tertiary)]">
-                    <User className="w-4 h-4" />
-                  </div>
                 </div>
                 <div className="ms-form-meta-row">
-                  <span className="ms-form-help">Responsable de la recogida</span>
-                  <span className="ms-form-colname">col: author</span>
+                  <span id="help-author" className="ms-form-help">
+                    Quién registra este caso.
+                  </span>
+                  {showTech && <span className="ms-form-colname">col: author</span>}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Secciones Clínicas del Formulario */}
-          {groupedSections.map(([sectionTitle, fields], sIdx) => (
-            <section
-              key={sectionTitle}
-              id={`section-card-${sectionTitle.replace(/\s+/g, '-')}`}
-              className="ms-form-section"
-              aria-labelledby={`heading-${sectionTitle.replace(/\s+/g, '-')}`}
-            >
-              {/* Cabecera de Sección */}
-              <div className="ms-form-section-header">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent)]" />
-                  <h2 id={`heading-${sectionTitle.replace(/\s+/g, '-')}`} className="ms-form-section-title">
-                    {sectionTitle}
-                  </h2>
-                  {form.sectionRules?.[sectionTitle] && (
-                    <span className="text-[11px] text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded font-mono flex items-center gap-1">
-                      <GitBranch className="w-3 h-3 text-indigo-600" />
-                      Condición Activa
-                    </span>
-                  )}
-                </div>
+          {/* Secciones clínicas */}
+          {groupedSections.map(([sectionTitle, fields]) => {
+            const stats = sectionStats.get(sectionTitle);
+            const isActive = groupedSections.length > 1 && activeSection === sectionTitle;
+            const headingId = `heading-${slug(sectionTitle)}`;
 
-                {/* Acciones de Sección */}
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenTextExtractor(sectionTitle)}
-                    className="ms-btn ms-btn-secondary ms-btn-sm"
-                    title={`Pegar informe o analítica para autocompletar la sección ${sectionTitle}`}
-                  >
-                    <ClipboardPaste className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                    <span>Pegar texto en esta sección</span>
-                  </button>
-                  <span className="text-xs text-[var(--color-text-tertiary)] font-mono">
-                    {fields.length} {fields.length === 1 ? 'variable' : 'variables'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Contenedor de Campos (separación de 16–24 px entre campos) */}
-              <div className="ms-form-section-body">
-                <div className="ms-form-field-grid ms-form-field-grid-2">
-                  {fields.map((field, fIdx) => {
-                    const currentValue = activeFullData[field.name] ?? '';
-                    const alertMsg = checkClinicalAlert(field, currentValue);
-                    const isCalculated = field.type === 'calculated';
-                    const isConditional = !!field.conditional;
-                    const hasError = !!errors[field.name];
-
-                    // Campos largos u observaciones ocupan ancho completo (1 columna)
-                    // Campos breves (número, fecha, boolean, select corto) ocupan 2 columnas en pantallas anchas
-                    const isFullWidth =
-                      field.type === 'textarea' ||
-                      field.type === 'multiselect' ||
-                      isCalculated ||
-                      (field.options && field.options.length > 3) ||
-                      (field.description && field.description.length > 70);
-
-                    return (
-                      <div
-                        key={field.id}
-                        id={`field-${field.name}`}
-                        className={`ms-form-field ${isFullWidth ? 'ms-form-col-span-2' : ''} ${
-                          isConditional ? 'border-l-2 border-l-indigo-400 pl-3 py-1' : ''
-                        }`}
+            return (
+              <section
+                key={sectionTitle}
+                id={`section-card-${slug(sectionTitle)}`}
+                data-section={sectionTitle}
+                className={`ms-form-section ${isActive ? 'is-active' : ''}`}
+                aria-labelledby={headingId}
+              >
+                <div className="ms-form-section-header">
+                  <div className="ms-form-section-heading">
+                    {stats?.complete ? (
+                      <CheckCircle2 className="ms-form-section-state" aria-hidden="true" />
+                    ) : (
+                      <span className="ms-form-section-dot" aria-hidden="true" />
+                    )}
+                    <h2 id={headingId} className="ms-form-section-title">
+                      {sectionTitle}
+                    </h2>
+                    {stats?.complete && <span className="ms-sr-only">Sección completa</span>}
+                    {form.sectionRules?.[sectionTitle] && (
+                      <span
+                        className="ms-form-meta-pill"
+                        title="Esta sección aparece según otras respuestas"
                       >
-                        {/* Etiqueta del campo encima del control */}
-                        <div className="ms-form-label-row">
-                          <label
-                            htmlFor={`field-ctrl-${field.name}`}
-                            className="ms-form-label"
-                          >
-                            <span>{field.label}</span>
-                            {field.required && !isCalculated && (
-                              <span className="ms-form-required" aria-hidden="true" title="Campo obligatorio">
-                                *
-                              </span>
-                            )}
-                            {isCalculated && (
-                              <span className="ms-form-calculated-badge">
-                                <Calculator className="w-2.5 h-2.5" /> Automático
-                              </span>
-                            )}
-                            {isConditional && (
-                              <span
-                                className="text-[10px] text-indigo-700 bg-indigo-50 border border-indigo-200 font-mono px-1.5 py-0.5 rounded flex items-center gap-1"
-                                title="Campo dependiente de otra variable"
-                              >
-                                <GitBranch className="w-2.5 h-2.5 text-indigo-600" /> Condicional
-                              </span>
-                            )}
-                          </label>
-                        </div>
+                        <GitBranch className="w-3 h-3" />
+                        Condicional
+                      </span>
+                    )}
+                  </div>
 
-                        {/* Control de entrada con altura de 44–48 px */}
-                        {isCalculated ? (
-                          <div className="ms-form-calculated">
-                            <div className="space-y-0.5">
-                              <span className="text-xs text-[var(--color-text-secondary)]">Resultado automático</span>
-                              <div className="ms-form-calculated-value">
-                                <span>
-                                  {currentValue !== '' && currentValue !== null && currentValue !== undefined
-                                    ? currentValue
-                                    : 'Pendiente de datos'}
-                                </span>
-                                {field.unit && (
-                                  <span className="text-xs font-normal text-[var(--color-text-secondary)]">
-                                    {field.unit}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-mono text-[var(--color-accent-strong)] bg-[var(--color-accent-soft)] px-2.5 py-1 rounded border border-[var(--color-accent)]/20">
-                              Solo lectura
+                  <div className="ms-form-section-tools">
+                    <span className="ms-form-section-count">
+                      {stats && stats.requiredTotal > 0
+                        ? `${stats.requiredFilled} de ${stats.requiredTotal} obligatorios`
+                        : `${fields.length} ${fields.length === 1 ? 'variable' : 'variables'}`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenTextExtractor(sectionTitle)}
+                      className="ms-btn ms-btn-secondary ms-btn-sm"
+                      title={`Pega un informe o analítica para autocompletar «${sectionTitle}»`}
+                    >
+                      <ClipboardPaste className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                      <span>Pegar texto</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="ms-form-section-body">
+                  <div className="ms-form-field-grid ms-form-field-grid-2">
+                    {fields.map((field) => {
+                      const currentValue = activeFullData[field.name] ?? '';
+                      const alertMsg = checkClinicalAlert(field, currentValue);
+                      const isCalculated = field.type === 'calculated';
+                      const isConditional = !!field.conditional;
+                      const hasError = !!errors[field.name];
+                      const isGroup = GROUP_TYPES.includes(field.type);
+                      const canClear = CLEARABLE_TYPES.includes(field.type) && isFilled(currentValue);
+
+                      const ctrlId = `field-ctrl-${field.name}`;
+                      const labelId = `field-label-${field.name}`;
+                      const helpId = `help-${field.name}`;
+                      const errorId = `error-${field.name}`;
+                      const alertId = `alert-${field.name}`;
+                      const describedBy =
+                        [field.description && helpId, hasError && errorId, alertMsg && alertId]
+                          .filter(Boolean)
+                          .join(' ') || undefined;
+
+                      // Atributos comunes de accesibilidad para controles nativos
+                      const a11y = {
+                        id: ctrlId,
+                        'aria-required': field.required || undefined,
+                        'aria-invalid': hasError || undefined,
+                        'aria-describedby': describedBy,
+                      };
+
+                      // Campos largos u observaciones ocupan todo el ancho
+                      const isFullWidth =
+                        field.type === 'textarea' ||
+                        field.type === 'multiselect' ||
+                        isCalculated ||
+                        (field.options && field.options.length > 3) ||
+                        (field.description && field.description.length > 70);
+
+                      const labelContent = (
+                        <>
+                          <span>{field.label}</span>
+                          {field.required && !isCalculated && (
+                            <span className="ms-form-required" aria-hidden="true" title="Obligatorio">
+                              *
                             </span>
+                          )}
+                          {isCalculated && (
+                            <span className="ms-form-calculated-badge">
+                              <Calculator className="w-2.5 h-2.5" /> Automático
+                            </span>
+                          )}
+                          {isConditional && (
+                            <>
+                              <span title="Depende de otra variable" className="inline-flex">
+                                <GitBranch className="ms-form-cond-icon" aria-hidden="true" />
+                              </span>
+                              <span className="ms-sr-only">(campo condicional)</span>
+                            </>
+                          )}
+                        </>
+                      );
+
+                      return (
+                        <div
+                          key={field.id}
+                          id={`field-${field.name}`}
+                          data-capture-field
+                          className={`ms-form-field ${isFullWidth ? 'ms-form-col-span-2' : ''} ${
+                            isConditional ? 'is-conditional' : ''
+                          }`}
+                        >
+                          <div className="ms-form-label-row">
+                            {isGroup || isCalculated ? (
+                              <span id={labelId} className="ms-form-label">
+                                {labelContent}
+                              </span>
+                            ) : (
+                              <label htmlFor={ctrlId} className="ms-form-label">
+                                {labelContent}
+                              </label>
+                            )}
+                            {canClear && (
+                              <button
+                                type="button"
+                                className="ms-form-clear"
+                                onClick={() =>
+                                  handleInputChange(field.name, field.type === 'multiselect' ? [] : '')
+                                }
+                                aria-label={`Limpiar ${field.label}`}
+                              >
+                                Limpiar
+                              </button>
+                            )}
                           </div>
-                        ) : field.type === 'number' ? (
-                          <div className="ms-form-input-affix">
-                            <input
-                              ref={sIdx === 0 && fIdx === 0 ? firstInputRef : undefined}
-                              id={`field-ctrl-${field.name}`}
-                              type="number"
-                              step={field.step || 'any'}
-                              min={field.min}
-                              max={field.max}
-                              value={currentValue}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  field.name,
-                                  e.target.value === '' ? '' : Number(e.target.value)
-                                )
-                              }
-                              placeholder={
-                                field.placeholder || (field.min !== undefined ? `Mín: ${field.min}` : '0')
-                              }
-                              className={`ms-form-input font-mono ${hasError ? 'has-error' : ''}`}
-                            />
-                            {field.unit && <span className="ms-form-unit">{field.unit}</span>}
-                          </div>
-                        ) : field.type === 'boolean' ? (
-                          <div
-                            className="ms-form-segmented"
-                            role="radiogroup"
-                            aria-label={field.label}
-                          >
-                            <button
-                              type="button"
-                              role="radio"
-                              aria-checked={currentValue === true}
-                              onClick={() => handleInputChange(field.name, true)}
-                              className={`ms-form-segmented-btn ${currentValue === true ? 'is-active' : ''}`}
+
+                          {/* Control */}
+                          {isCalculated ? (
+                            <div
+                              className="ms-form-calculated"
+                              role="group"
+                              aria-labelledby={labelId}
+                              aria-describedby={describedBy}
                             >
-                              <span>Sí / Positivo</span>
-                            </button>
-                            <button
-                              type="button"
-                              role="radio"
-                              aria-checked={currentValue === false}
-                              onClick={() => handleInputChange(field.name, false)}
-                              className={`ms-form-segmented-btn ${currentValue === false ? 'is-active' : ''}`}
-                            >
-                              <span>No / Negativo</span>
-                            </button>
-                          </div>
-                        ) : field.type === 'radio' ? (
-                          <div
-                            className="ms-form-chip-grid pt-1"
-                            role="radiogroup"
-                            aria-label={field.label}
-                          >
-                            {field.options?.map((opt) => {
-                              const isSelected = currentValue === opt;
-                              return (
-                                <button
-                                  key={opt}
-                                  type="button"
-                                  role="radio"
-                                  aria-checked={isSelected}
-                                  onClick={() => handleInputChange(field.name, opt)}
-                                  className={`ms-form-chip ${isSelected ? 'is-active' : ''}`}
-                                >
-                                  {isSelected ? (
-                                    <Check className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
-                                  ) : (
-                                    <span className="ms-form-chip-bullet" />
+                              {isFilled(currentValue) ? (
+                                <div className="ms-form-calculated-value">
+                                  <span>{currentValue}</span>
+                                  {field.unit && (
+                                    <span className="ms-form-calculated-unit">{field.unit}</span>
                                   )}
-                                  <span>{opt}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        ) : field.type === 'multiselect' ? (
-                          <div
-                            className="ms-form-chip-grid pt-1"
-                            role="group"
-                            aria-label={field.label}
-                          >
-                            {field.options?.map((opt) => {
-                              const selectedList = Array.isArray(currentValue) ? currentValue : [];
-                              const isChecked = selectedList.includes(opt);
-                              return (
-                                <button
-                                  key={opt}
-                                  type="button"
-                                  role="checkbox"
-                                  aria-checked={isChecked}
-                                  onClick={() => {
-                                    if (isChecked) {
+                                </div>
+                              ) : (
+                                <div className="ms-form-calculated-value is-pending">
+                                  <span>Se calcula al completar los datos necesarios</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : field.type === 'number' ? (
+                            <div className="ms-form-input-affix">
+                              <input
+                                {...a11y}
+                                type="number"
+                                inputMode="decimal"
+                                step={field.step || 'any'}
+                                min={field.min}
+                                max={field.max}
+                                value={currentValue}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    field.name,
+                                    e.target.value === '' ? '' : Number(e.target.value)
+                                  )
+                                }
+                                // Evita cambiar el valor sin querer al hacer scroll sobre el campo
+                                onWheel={(e) => e.currentTarget.blur()}
+                                placeholder={numberPlaceholder(field)}
+                                className={`ms-form-input font-mono ${hasError ? 'has-error' : ''}`}
+                              />
+                              {field.unit && <span className="ms-form-unit">{field.unit}</span>}
+                            </div>
+                          ) : field.type === 'boolean' ? (
+                            <div className="ms-form-segmented" role="group" aria-labelledby={labelId}>
+                              <button
+                                type="button"
+                                aria-pressed={currentValue === true}
+                                onClick={() => handleInputChange(field.name, true)}
+                                className={`ms-form-segmented-btn ${currentValue === true ? 'is-active' : ''}`}
+                              >
+                                <span>Sí / Positivo</span>
+                              </button>
+                              <button
+                                type="button"
+                                aria-pressed={currentValue === false}
+                                onClick={() => handleInputChange(field.name, false)}
+                                className={`ms-form-segmented-btn ${currentValue === false ? 'is-active' : ''}`}
+                              >
+                                <span>No / Negativo</span>
+                              </button>
+                            </div>
+                          ) : field.type === 'radio' ? (
+                            <div className="ms-form-chip-grid" role="group" aria-labelledby={labelId}>
+                              {field.options?.map((opt) => {
+                                const isSelected = currentValue === opt;
+                                return (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    aria-pressed={isSelected}
+                                    onClick={() => handleInputChange(field.name, opt)}
+                                    className={`ms-form-chip ${isSelected ? 'is-active' : ''}`}
+                                  >
+                                    {isSelected ? (
+                                      <Check className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
+                                    ) : (
+                                      <span className="ms-form-chip-bullet" />
+                                    )}
+                                    <span>{opt}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : field.type === 'multiselect' ? (
+                            <div className="ms-form-chip-grid" role="group" aria-labelledby={labelId}>
+                              {field.options?.map((opt) => {
+                                const selectedList = Array.isArray(currentValue) ? currentValue : [];
+                                const isChecked = selectedList.includes(opt);
+                                return (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    aria-pressed={isChecked}
+                                    onClick={() =>
                                       handleInputChange(
                                         field.name,
-                                        selectedList.filter((item: string) => item !== opt)
-                                      );
-                                    } else {
-                                      handleInputChange(field.name, [...selectedList, opt]);
+                                        isChecked
+                                          ? selectedList.filter((item: string) => item !== opt)
+                                          : [...selectedList, opt]
+                                      )
                                     }
-                                  }}
-                                  className={`ms-form-chip ${isChecked ? 'is-active' : ''}`}
-                                >
-                                  {isChecked ? (
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
-                                  ) : (
-                                    <span className="ms-form-chip-bullet" />
-                                  )}
-                                  <span>{opt}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        ) : field.type === 'select' ? (
-                          <select
-                            id={`field-ctrl-${field.name}`}
-                            value={currentValue}
-                            onChange={(e) => handleInputChange(field.name, e.target.value)}
-                            className={`ms-form-select ${hasError ? 'has-error' : ''}`}
-                          >
-                            <option value="">-- Seleccionar opción --</option>
-                            {field.options?.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : field.type === 'date' ? (
-                          <input
-                            id={`field-ctrl-${field.name}`}
-                            type="date"
-                            value={currentValue}
-                            onChange={(e) => handleInputChange(field.name, e.target.value)}
-                            className={`ms-form-input font-mono ${hasError ? 'has-error' : ''}`}
-                          />
-                        ) : field.type === 'textarea' ? (
-                          <textarea
-                            id={`field-ctrl-${field.name}`}
-                            rows={3}
-                            value={currentValue}
-                            onChange={(e) => handleInputChange(field.name, e.target.value)}
-                            placeholder={field.placeholder || 'Observaciones clínicas...'}
-                            className={`ms-form-textarea ${hasError ? 'has-error' : ''}`}
-                          />
-                        ) : (
-                          <div className="ms-form-input-affix">
-                            <input
-                              id={`field-ctrl-${field.name}`}
-                              type="text"
+                                    className={`ms-form-chip ${isChecked ? 'is-active' : ''}`}
+                                  >
+                                    {isChecked ? (
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0" />
+                                    ) : (
+                                      <span className="ms-form-chip-bullet" />
+                                    )}
+                                    <span>{opt}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : field.type === 'select' ? (
+                            <select
+                              {...a11y}
                               value={currentValue}
                               onChange={(e) => handleInputChange(field.name, e.target.value)}
-                              placeholder={field.placeholder || ''}
-                              className={`ms-form-input ${hasError ? 'has-error' : ''}`}
+                              className={`ms-form-select ${hasError ? 'has-error' : ''}`}
+                            >
+                              <option value="">Seleccionar…</option>
+                              {field.options?.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          ) : field.type === 'date' ? (
+                            <input
+                              {...a11y}
+                              type="date"
+                              value={currentValue}
+                              onChange={(e) => handleInputChange(field.name, e.target.value)}
+                              className={`ms-form-input font-mono ${hasError ? 'has-error' : ''}`}
                             />
-                            {field.unit && <span className="ms-form-unit">{field.unit}</span>}
-                          </div>
-                        )}
-
-                        {/* Ayuda y metadato técnico discreto alineados debajo del control */}
-                        <div className="ms-form-meta-row">
-                          {field.description ? (
-                            <p className="ms-form-help">{field.description}</p>
+                          ) : field.type === 'textarea' ? (
+                            <textarea
+                              {...a11y}
+                              rows={3}
+                              value={currentValue}
+                              onChange={(e) => handleInputChange(field.name, e.target.value)}
+                              placeholder={field.placeholder || 'Escribe observaciones…'}
+                              className={`ms-form-textarea ${hasError ? 'has-error' : ''}`}
+                            />
                           ) : (
-                            <span />
+                            <div className="ms-form-input-affix">
+                              <input
+                                {...a11y}
+                                type="text"
+                                value={currentValue}
+                                onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                placeholder={field.placeholder || ''}
+                                className={`ms-form-input ${hasError ? 'has-error' : ''}`}
+                              />
+                              {field.unit && <span className="ms-form-unit">{field.unit}</span>}
+                            </div>
                           )}
-                          <span className="ms-form-colname" title={`Variable técnica: ${field.name}`}>
-                            col: {field.name}
-                          </span>
+
+                          {/* Ayuda y nombre técnico (opcional) */}
+                          {(field.description || showTech) && (
+                            <div className="ms-form-meta-row">
+                              {field.description ? (
+                                <p id={helpId} className="ms-form-help">
+                                  {field.description}
+                                </p>
+                              ) : (
+                                <span />
+                              )}
+                              {showTech && (
+                                <span className="ms-form-colname" title={`Variable técnica: ${field.name}`}>
+                                  col: {field.name}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Error de validación */}
+                          {hasError && (
+                            <p id={errorId} className="ms-form-error">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{errors[field.name]}</span>
+                            </p>
+                          )}
+
+                          {/* Alerta de rango clínico */}
+                          {alertMsg && (
+                            <div id={alertId} className="ms-form-alert">
+                              <AlertTriangle className="w-4 h-4 shrink-0" />
+                              <span>{alertMsg}</span>
+                            </div>
+                          )}
                         </div>
-
-                        {/* Mensaje de error de validación */}
-                        {hasError && (
-                          <p className="ms-form-error">
-                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                            <span>{errors[field.name]}</span>
-                          </p>
-                        )}
-
-                        {/* Alerta de rango clínico */}
-                        {alertMsg && (
-                          <div className="ms-form-alert">
-                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                            <span>{alertMsg}</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </section>
-          ))}
+              </section>
+            );
+          })}
         </main>
 
-        {/* C. PANEL AUXILIAR: Información secundaria en tarjetas (~25–30%) */}
-        <aside className="ms-form-aux">
-          {/* Navegación de secciones (si hay múltiples secciones) */}
+        {/* Panel lateral */}
+        <aside className="ms-form-aux" aria-label="Resumen y navegación">
+          {/* Índice de secciones */}
           {groupedSections.length > 1 && (
-            <div className="ms-form-card space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
+            <div className="ms-form-card">
+              <div className="ms-form-card-header">
+                <span className="ms-form-card-title">
                   <ListOrdered className="w-4 h-4 text-[var(--color-accent)]" />
-                  <span>Índice de Secciones</span>
+                  <span>Secciones</span>
                 </span>
-                <span className="text-xs text-[var(--color-text-secondary)] font-mono">
-                  {groupedSections.length}
-                </span>
+                <span className="ms-form-card-meta">{groupedSections.length}</span>
               </div>
 
               <nav className="ms-form-nav" aria-label="Navegación de secciones">
                 {groupedSections.map(([secTitle, fields]) => {
                   const isActive = activeSection === secTitle;
-                  const isCompleted = completedSections.has(secTitle);
+                  const stats = sectionStats.get(secTitle);
+                  const hasError = errorSections.has(secTitle);
+                  const badge =
+                    stats && stats.requiredTotal > 0
+                      ? `${stats.requiredFilled}/${stats.requiredTotal}`
+                      : String(fields.length);
+                  const badgeTitle =
+                    stats && stats.requiredTotal > 0
+                      ? 'Obligatorios completados'
+                      : 'Variables en la sección';
 
                   return (
                     <button
@@ -806,12 +1020,15 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                       type="button"
                       onClick={() => scrollToSection(secTitle)}
                       className={`ms-form-nav-item ${isActive ? 'is-active' : ''}`}
+                      aria-current={isActive ? 'true' : undefined}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        {isCompleted ? (
+                        {hasError ? (
+                          <AlertTriangle className="w-4 h-4 text-[var(--color-error)] shrink-0" />
+                        ) : stats?.complete ? (
                           <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
                         ) : (
-                          <div
+                          <span
                             className={`w-2 h-2 rounded-full shrink-0 ${
                               isActive ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-neutral-muted)]'
                             }`}
@@ -819,7 +1036,9 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
                         )}
                         <span className="truncate">{secTitle}</span>
                       </div>
-                      <span className="ms-form-nav-badge shrink-0">{fields.length}</span>
+                      <span className="ms-form-nav-badge shrink-0" title={badgeTitle}>
+                        {badge}
+                      </span>
                     </button>
                   );
                 })}
@@ -827,71 +1046,26 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
             </div>
           )}
 
-          {/* Tarjeta de Estado de la Base de Datos (Métricas en pares alineados) */}
-          <div className="ms-form-card space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
-                <span>Estado de la BD</span>
-              </span>
-              <span className="text-[11px] text-[var(--color-text-secondary)] font-mono">Resumen</span>
-            </div>
-
-            <div className="divide-y divide-[var(--color-border)]">
-              <div className="ms-form-metric-row">
-                <span className="ms-form-metric-label">Casos registrados</span>
-                <span className="ms-form-metric-value text-base">{records.length}</span>
-              </div>
-              <div className="ms-form-metric-row">
-                <span className="ms-form-metric-label">Variables activas</span>
-                <span className="ms-form-metric-value">{form.fields.length}</span>
-              </div>
-              <div className="ms-form-metric-row">
-                <span className="ms-form-metric-label">Prefijo de caso</span>
-                <span className="ms-form-metric-value text-[var(--color-accent)] font-mono">
-                  {form.codePrefix || 'REG-'}
-                </span>
-              </div>
-            </div>
-
-            {/* Acción auxiliar: Abrir tabla completa */}
-            <button
-              type="button"
-              onClick={onGoToRecords}
-              className="w-full ms-btn ms-btn-secondary ms-btn-sm"
-            >
-              <span>Abrir tabla completa</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Tarjeta de Cálculos en Tiempo Real (si existen) */}
+          {/* Cálculos en tiempo real */}
           {Object.keys(computedValues).length > 0 && (
-            <div className="ms-form-card bg-[var(--color-bg-deep)] border-[var(--color-border-strong)] space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
+            <div className="ms-form-card ms-form-card-calc">
+              <div className="ms-form-card-header">
+                <span className="ms-form-card-title">
                   <Calculator className="w-4 h-4 text-[var(--color-accent)]" />
-                  <span>Cálculos Activos</span>
-                </span>
-                <span className="text-[10px] text-[var(--color-accent-strong)] bg-[var(--color-accent-soft)] px-1.5 py-0.5 rounded font-mono font-bold">
-                  Auto
+                  <span>Cálculos automáticos</span>
                 </span>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="ms-form-calc-list">
                 {Object.entries(computedValues).map(([key, val]) => {
                   const fieldDef = form.fields.find((f) => f.name === key);
                   return (
-                    <div key={key} className="bg-[var(--color-surface)] p-3 rounded border border-[var(--color-border)]">
-                      <div className="text-xs font-medium text-[var(--color-text-secondary)] truncate">
-                        {fieldDef?.label || key}
-                      </div>
-                      <div className="text-lg font-bold font-mono text-[var(--color-accent-strong)] flex items-baseline gap-1 mt-0.5">
+                    <div key={key} className="ms-form-calc-item">
+                      <div className="ms-form-calc-label">{fieldDef?.label || key}</div>
+                      <div className="ms-form-calc-value">
                         {val}
                         {fieldDef?.unit && (
-                          <span className="text-xs font-normal text-[var(--color-text-secondary)]">
-                            {fieldDef.unit}
-                          </span>
+                          <span className="ms-form-calculated-unit">{fieldDef.unit}</span>
                         )}
                       </div>
                     </div>
@@ -901,109 +1075,156 @@ export function IntakeForm({ form, records, onSaveRecord, onGoToRecords }: Intak
             </div>
           )}
 
-          {/* Tarjeta de Últimos Registros */}
-          <div className="ms-form-card space-y-3">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] flex items-center gap-2">
-                <Clock className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                <span>Últimos Registros</span>
-              </span>
-              <span className="text-[11px] text-[var(--color-text-secondary)] font-mono">
-                {recentRecords.length} recientes
+          {/* Registros */}
+          <div className="ms-form-card">
+            <div className="ms-form-card-header">
+              <span className="ms-form-card-title">
+                <Database className="w-4 h-4 text-[var(--color-accent)]" />
+                <span>Registros</span>
               </span>
             </div>
 
+            <div>
+              <div className="ms-form-metric-row">
+                <span className="ms-form-metric-label">Casos guardados</span>
+                <span className="ms-form-metric-value">{records.length}</span>
+              </div>
+              <div className="ms-form-metric-row">
+                <span className="ms-form-metric-label">Próximo código</span>
+                <span className="ms-form-metric-value">{nextSuggestedCode}</span>
+              </div>
+            </div>
+
+            <h3 className="ms-form-subtitle flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Últimos guardados</span>
+            </h3>
+
             {recentRecords.length === 0 ? (
-              <p className="text-xs text-[var(--color-text-secondary)] italic py-3 text-center">
-                Aún no hay casos guardados.
-              </p>
+              <p className="ms-form-empty">Aún no hay casos guardados. El primero aparecerá aquí.</p>
             ) : (
-              <div className="space-y-2.5">
+              <div className="ms-form-recent-list">
                 {recentRecords.map((r) => (
-                  <div
-                    key={r.id}
-                    className="p-2.5 rounded bg-[var(--color-surface)] border border-[var(--color-border)] space-y-1"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-[var(--color-ink)]">
-                        {r.recordCode}
-                      </span>
-                      <span className="text-[10px] text-[var(--color-text-tertiary)]">
-                        {r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                  <div key={r.id} className="ms-form-recent-item">
+                    <div className="ms-form-recent-top">
+                      <span className="ms-form-recent-code">{r.recordCode}</span>
+                      <span className="ms-form-recent-time">
+                        {r.timestamp
+                          ? new Date(r.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : ''}
                       </span>
                     </div>
-                    <div className="text-[11px] text-[var(--color-text-secondary)] truncate">
+                    <div className="ms-form-recent-summary">
                       {Object.entries(r.data)
+                        .filter(([, v]) => isFilled(v))
                         .slice(0, 2)
-                        .map(([k, v]) => `${k}: ${v}`)
+                        .map(([k, v]) => `${fieldLabels.get(k) || k}: ${formatValue(v)}`)
                         .join(' · ')}
                     </div>
                   </div>
                 ))}
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={onGoToRecords}
+              className="w-full ms-btn ms-btn-secondary ms-btn-sm"
+              style={{ marginTop: '1rem' }}
+            >
+              <span>Abrir tabla completa</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </aside>
       </div>
 
-      {/* 5. JERARQUÍA DE ACCIONES: Acciones del registro en barra inferior accesible */}
+      {/* Barra de acciones */}
       <footer className="ms-form-actionbar" role="region" aria-label="Acciones del registro clínico">
         <div className="ms-form-actionbar-inner">
-          {/* Acción de restablecimiento aislada en la izquierda */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="ms-btn ms-btn-ghost ms-btn-sm ms-btn-danger"
-              title="Restablecer los valores de este caso"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Restablecer campos</span>
-            </button>
-          </div>
-
-          {/* Progreso de campos obligatorios en el centro con espaciado claro */}
-          {mandatoryStats.total > 0 && (
-            <div className="ms-form-progress" title="Progreso de campos obligatorios requeridos">
-              <div className="ms-form-progress-bar">
+          {/* Estado: errores pendientes o progreso de obligatorios */}
+          {errorCount > 0 ? (
+            <div className="ms-form-bar-status is-error" role="alert">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>
+                {errorCount === 1
+                  ? 'Falta 1 campo obligatorio'
+                  : `Faltan ${errorCount} campos obligatorios`}
+              </span>
+              <button
+                type="button"
+                className="ms-btn ms-btn-ghost ms-btn-sm"
+                onClick={() => {
+                  const k = firstErrorKey(errors);
+                  if (k) focusField(k);
+                }}
+              >
+                Ir al primero
+              </button>
+            </div>
+          ) : mandatoryStats.total > 0 ? (
+            <div className="ms-form-progress">
+              <div
+                className="ms-form-progress-bar"
+                role="progressbar"
+                aria-label="Campos obligatorios completados"
+                aria-valuemin={0}
+                aria-valuemax={mandatoryStats.total}
+                aria-valuenow={mandatoryStats.filled}
+              >
                 <div
-                  className="ms-form-progress-fill"
+                  className={`ms-form-progress-fill ${mandatoryStats.percentage === 100 ? 'is-complete' : ''}`}
                   style={{ width: `${mandatoryStats.percentage}%` }}
                 />
               </div>
               <span className="ms-form-progress-text">
-                <strong className="text-[var(--color-ink)]">{mandatoryStats.filled}</strong> de {mandatoryStats.total} obligatorios
+                <strong className="text-[var(--color-ink)]">{mandatoryStats.filled}</strong> de{' '}
+                {mandatoryStats.total} obligatorios
               </span>
             </div>
+          ) : (
+            <span />
           )}
 
-          {/* Acciones principales de guardado en la derecha */}
-          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap justify-end">
+          <div className="ms-form-actionbar-actions">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="ms-btn ms-btn-ghost ms-btn-danger"
+              title="Restablecer los valores de este caso"
+              aria-label="Restablecer campos"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="ms-form-btn-wide">Restablecer</span>
+            </button>
+
             <button
               type="button"
               onClick={() => handleSubmit(false)}
-              className="ms-btn ms-btn-secondary ms-btn-md"
+              className="ms-btn ms-btn-secondary"
+              title="Guarda el caso y conserva los datos para registrar uno parecido"
             >
-              <span>Guardar y Mantener</span>
+              <span>Guardar y mantener datos</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleSubmit(true)}
-              className="ms-btn ms-btn-primary ms-btn-md"
-              title="Atajo de teclado: Ctrl + Enter"
+              className="ms-btn ms-btn-primary"
+              title={`Guardar y empezar un caso nuevo (${shortcutLabel.replace(' ↵', ' + Enter')})`}
             >
               <Save className="w-4 h-4" />
-              <span>Guardar y Siguiente Caso</span>
-              <kbd className="ms-form-kbd-tip">
-                Ctrl + ↵
-              </kbd>
+              <span>Guardar y siguiente</span>
+              <kbd className="ms-form-kbd-tip">{shortcutLabel}</kbd>
             </button>
           </div>
         </div>
       </footer>
 
-      {/* Modal de extracción de texto libre (Preservado íntegramente) */}
+      {/* Modal de extracción de texto libre */}
       <TextExtractorModal
         isOpen={isTextExtractorOpen}
         onClose={() => setIsTextExtractorOpen(false)}

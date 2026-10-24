@@ -1717,6 +1717,59 @@ class RBridge:
             RBridge._cleanup(data_path)
 
     # =========================================================================
+    # REGRESIÓN PARA RECUENTOS: POISSON / BINOMIAL NEGATIVA
+    # =========================================================================
+
+    @staticmethod
+    def count_regression(df: pd.DataFrame, outcome: str, covariates: list, method: str = "auto") -> dict:
+        if method not in {"auto", "poisson", "negative-binomial"}:
+            raise ValueError("El método debe ser auto, poisson o negative-binomial.")
+        used_names = set()
+        safe_outcome = RBridge._sanitize(outcome, used_names)
+        used_names.add(safe_outcome)
+        safe_covariates = []
+        for name in covariates:
+            safe_name = RBridge._sanitize(name, used_names)
+            safe_covariates.append(safe_name)
+            used_names.add(safe_name)
+        rename_map = {outcome: safe_outcome, **dict(zip(covariates, safe_covariates))}
+        data_path = RBridge._write_temp_csv(df[[outcome] + covariates].rename(columns=rename_map))
+        covariate_names = ", ".join(f"'{name}'" for name in safe_covariates)
+        script = f"""
+        library(jsonlite)
+        library(MASS)
+        datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
+        datos <- datos[complete.cases(datos), , drop = FALSE]
+        datos[['{safe_outcome}']] <- as.numeric(datos[['{safe_outcome}']])
+        if (nrow(datos) < 3) stop("Se necesitan al menos tres observaciones completas.")
+        if (any(datos[['{safe_outcome}']] < 0) || any(datos[['{safe_outcome}']] %% 1 != 0)) stop("El desenlace debe contener recuentos enteros no negativos.")
+        covs <- datos[, c({covariate_names}), drop = FALSE]
+        formula <- stats::reformulate(names(covs), response = "{safe_outcome}")
+        selected <- "{method}"
+        poisson_fit <- stats::glm(formula, data = data.frame(datos, covs), family = stats::poisson())
+        dispersion <- sum(stats::residuals(poisson_fit, type = "pearson")^2) / stats::df.residual(poisson_fit)
+        if (selected == "auto") selected <- if (is.finite(dispersion) && dispersion > 1.5) "negative-binomial" else "poisson"
+        fit <- if (selected == "negative-binomial") MASS::glm.nb(formula, data = data.frame(datos, covs)) else poisson_fit
+        coef <- summary(fit)$coefficients
+        ci <- suppressMessages(stats::confint(fit))
+        rows <- data.frame(
+          termino = rownames(coef), estimacion = coef[,1], error_estandar = coef[,2],
+          razon_tasas = exp(coef[,1]), ic_inferior = exp(ci[,1]), ic_superior = exp(ci[,2]),
+          p_valor = coef[, ncol(coef)], row.names = NULL
+        )
+        cat(toJSON(list(method = selected, dispersion_poisson = as.numeric(dispersion),
+          n = nrow(datos), aic = as.numeric(stats::AIC(fit)), coefficients = rows),
+          auto_unbox = TRUE, na = "null"))
+        """
+        try:
+            res = RBridge._run_script(script)
+            ret = res["result"]
+            ret["script_r"] = res["script"]
+            return RBridge._to_native(ret)
+        finally:
+            RBridge._cleanup(data_path)
+
+    # =========================================================================
     # BLAND-ALTMAN
     # =========================================================================
 
@@ -1789,6 +1842,8 @@ class RBridge:
         library(jsonlite)
         library(irr)
         datos  <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
+        datos  <- datos[complete.cases(datos), , drop = FALSE]
+        if (nrow(datos) < 2) stop("El ICC requiere al menos dos sujetos con todas las mediciones completas.")
         matriz <- as.matrix(datos)
         test   <- icc(matriz, model = "twoway", type = "agreement", unit = "single")
 
@@ -2037,7 +2092,7 @@ class RBridge:
     @staticmethod
     def ggplot_boxplot(df, x_var, y_var, color_var=None,
                        title="", xlab="", ylab="",
-                       palette="Set1", theme="classic",
+                       palette="Set2", theme="minimal",
                        width=8, height=6, dpi=300):
         theme = RBridge._validate_theme(theme)
         palette = RBridge._validate_palette(palette)
@@ -2084,7 +2139,7 @@ class RBridge:
     @staticmethod
     def ggplot_scatter(df, x_var, y_var, color_var=None,
                        title="", xlab="", ylab="",
-                       palette="Set1", theme="classic",
+                       palette="Set2", theme="minimal",
                        width=8, height=6, dpi=300):
         theme = RBridge._validate_theme(theme)
         palette = RBridge._validate_palette(palette)
@@ -2131,7 +2186,7 @@ class RBridge:
     @staticmethod
     def ggplot_histogram(df, x_var, fill_var=None, bins=30,
                          title="", xlab="", ylab="",
-                         palette="Set1", theme="classic",
+                         palette="Set2", theme="minimal",
                          width=8, height=6, dpi=300):
         theme = RBridge._validate_theme(theme)
         palette = RBridge._validate_palette(palette)
@@ -2178,7 +2233,7 @@ class RBridge:
     @staticmethod
     def ggplot_barplot(df, x_var, y_var=None, fill_var=None,
                        title="", xlab="", ylab="",
-                       palette="Set1", theme="classic",
+                       palette="Set2", theme="minimal",
                        width=8, height=6, dpi=300):
         theme = RBridge._validate_theme(theme)
         palette = RBridge._validate_palette(palette)
@@ -2235,7 +2290,7 @@ class RBridge:
     @staticmethod
     def ggplot_density(df, x_var, fill_var=None,
                        title="", xlab="", ylab="",
-                       palette="Set1", theme="classic",
+                       palette="Set2", theme="minimal",
                        width=8, height=6, dpi=300):
         theme = RBridge._validate_theme(theme)
         palette = RBridge._validate_palette(palette)
@@ -2281,7 +2336,7 @@ class RBridge:
     @staticmethod
     def ggplot_roc(df, outcome, predictor,
                    title="Curva ROC", xlab="1 - Especificidad", ylab="Sensibilidad",
-                   palette="Set1", theme="classic",
+                   palette="Set2", theme="minimal",
                    width=8, height=6, dpi=300):
         theme = RBridge._validate_theme(theme)
         palette = RBridge._validate_palette(palette)

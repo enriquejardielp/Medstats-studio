@@ -124,7 +124,7 @@ export const StatisticalPlots: React.FC<Props> = ({ plots }) => {
                 src={`data:image/png;base64,${plot.image_base64}`}
                 alt={plot.title}
                 style={{
-                  maxWidth: isZoomed ? '100%' : '560px',
+                  maxWidth: '100%',
                   width: '100%',
                   height: 'auto',
                   borderRadius: '6px',

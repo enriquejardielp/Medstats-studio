@@ -15,6 +15,14 @@ from backend.core.analyses.chi_square import ChiSquareAnalysis
 from backend.core.analyses.roc_curve import RocCurveAnalysis
 from backend.core.analyses.kaplan_meier import KaplanMeierAnalysis
 from backend.core.analyses.table1 import Table1Analysis
+from backend.core.analyses.data_quality import DataQualityAnalysis
+from backend.core.analyses.advanced import (
+    ANCOVAAnalysis, BlandAltmanAnalysis, CoxRegressionAnalysis,
+    DiagnosticAccuracyAnalysis, FriedmanAnalysis, ICCAnalysis,
+    KappaAnalysis, McNemarAnalysis, OddsRatioAnalysis, SampleSizeAnalysis,
+    CountRegressionAnalysis,
+    PairedComparisonAnalysis,
+)
 
 
 class AnalysisRegistry:
@@ -33,6 +41,19 @@ class AnalysisRegistry:
         "roc-curve": RocCurveAnalysis,
         "kaplan-meier": KaplanMeierAnalysis,
         "table1": Table1Analysis,
+        "cox-regression": CoxRegressionAnalysis,
+        "mcnemar": McNemarAnalysis,
+        "kappa": KappaAnalysis,
+        "bland-altman": BlandAltmanAnalysis,
+        "icc": ICCAnalysis,
+        "ancova": ANCOVAAnalysis,
+        "friedman": FriedmanAnalysis,
+        "odds-ratio": OddsRatioAnalysis,
+        "diagnostic-accuracy": DiagnosticAccuracyAnalysis,
+        "sample-size": SampleSizeAnalysis,
+        "count-regression": CountRegressionAnalysis,
+        "data-quality": DataQualityAnalysis,
+        "paired-comparison": PairedComparisonAnalysis,
     }
 
     @classmethod

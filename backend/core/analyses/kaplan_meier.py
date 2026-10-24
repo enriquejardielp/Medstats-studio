@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -30,7 +31,7 @@ from backend.core.results_schema import (
 class KaplanMeierAnalysis(BaseAnalysis):
     analysis_type = "kaplan-meier"
     title = "Análisis de Supervivencia de Kaplan-Meier"
-    required_packages = ["survival", "jsonlite"]
+    required_packages = ["survival", "jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         time_var = params.get("time_var")
@@ -87,6 +88,7 @@ class KaplanMeierAnalysis(BaseAnalysis):
         event_var = params.get("event_var")
         group_var = params.get("group_var")
         conf_level = float(params.get("conf_level", 0.95))
+        conf_pct = int(round(conf_level * 100))
 
         r_time = col_map[time_var]
         r_event = col_map[event_var]
@@ -97,6 +99,8 @@ class KaplanMeierAnalysis(BaseAnalysis):
         return f"""
         library(jsonlite)
         library(survival)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -219,20 +223,24 @@ class KaplanMeierAnalysis(BaseAnalysis):
         img_base64 <- ""
         tryCatch({{
             tmp_img <- tempfile(fileext = ".png")
-            png(tmp_img, width = 650, height = 480, res = 110)
-            par(mar = c(4.5, 4.5, 3, 2))
-            
-            col_palette <- c("#2563eb", "#dc2626", "#16a34a", "#9333ea", "#d97706")
-            plot(fit, col = col_palette[1:max(1, length(strata_names))], lwd = 2.5,
-                 xlab = "Tiempo de Seguimiento", ylab = "Probabilidad de Supervivencia Cumulativa",
-                 main = "Curva de Supervivencia de Kaplan-Meier", mark.time = TRUE, pch = 3, cex = 0.8)
-            grid(col = "#e2e8f0")
-            
-            if (has_group) {{
-                legend("bottomleft", legend = strata_names, col = col_palette[1:length(strata_names)],
-                       lwd = 2.5, bty = "o", bg = "white", box.col = "#cbd5e1", cex = 0.85)
-            }}
-            dev.off()
+            km_summary <- summary(fit, censored = TRUE)
+            km_strata <- if (is.null(km_summary$strata)) rep("Global", length(km_summary$time)) else
+                sub("^group_factor=", "", rep(names(km_summary$strata), as.integer(km_summary$strata)))
+            km_data <- data.frame(time = km_summary$time, survival = km_summary$surv,
+                                  lower = km_summary$lower, upper = km_summary$upper,
+                                  n_event = km_summary$n.event, strata = factor(km_strata, levels = strata_names))
+            km_palette <- grDevices::colorRampPalette(medstats_palette)(length(strata_names))
+            p <- ggplot(km_data, aes(x = time, y = survival, colour = strata, fill = strata, group = strata)) +
+                geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.13, colour = NA, show.legend = FALSE) +
+                geom_step(linewidth = 1.15, direction = "hv") +
+                geom_point(data = km_data[km_data$n_event == 0, ], shape = 124, size = 3, stroke = 1.1, show.legend = FALSE) +
+                scale_colour_manual(values = km_palette) + scale_fill_manual(values = km_palette) +
+                scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2), expand = expansion(mult = c(0, 0.02))) +
+                labs(title = "Supervivencia de Kaplan–Meier",
+                     subtitle = if (has_group) "Estimación con intervalo de confianza del {conf_pct} %" else "Estimación global con intervalo de confianza del {conf_pct} %",
+                     x = "Tiempo de seguimiento", y = "Probabilidad de supervivencia", colour = NULL) +
+                theme_medstats
+            save_medstats_plot(tmp_img, p, width = 9, height = 6)
             img_base64 <- jsonlite::base64_enc(readBin(tmp_img, "raw", n = file.info(tmp_img)$size))
             unlink(tmp_img)
         }}, error = function(e) {{}})
@@ -470,7 +478,7 @@ class KaplanMeierAnalysis(BaseAnalysis):
         technical = TechnicalDetails(
             method="Estimador de Límite de Producto de Kaplan-Meier con Test de Log-Rank (Mantel-Cox)",
             formula=f"Surv({time_var}, {event_var})" + (f" ~ {group_var}" if group_var else " ~ 1"),
-            packages_used=["survival (3.7-0)", "stats", "jsonlite"]
+            packages_used=["survival", "stats", "jsonlite", "ggplot2"]
         )
 
         # 6. Gráficos

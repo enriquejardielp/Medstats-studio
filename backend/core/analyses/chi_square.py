@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -30,7 +31,7 @@ from backend.core.results_schema import (
 class ChiSquareAnalysis(BaseAnalysis):
     analysis_type = "chi-square"
     title = "Tablas de Contingencia y Chi-cuadrado"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         var1 = params.get("var1")
@@ -71,6 +72,8 @@ class ChiSquareAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -131,13 +134,14 @@ class ChiSquareAnalysis(BaseAnalysis):
         img_base64 <- ""
         tryCatch({{
             tmp_img <- tempfile(fileext = ".png")
-            png(tmp_img, width = 580, height = 360, res = 110)
-            par(mar = c(5, 4, 3, 5))
-            barplot(t(tab), beside = TRUE, col = rainbow(c_dim, s=0.5, v=0.9),
-                    main = "Distribución de Frecuencias Cruzadas",
-                    xlab = "{var1}", ylab = "Frecuencia", las = 1)
-            legend("topright", inset=c(-0.25, 0), legend = col_levels, fill = rainbow(c_dim, s=0.5, v=0.9), xpd = TRUE, bty = "n")
-            dev.off()
+            plot_data <- as.data.frame(tab, stringsAsFactors = FALSE)
+            plot_palette <- grDevices::colorRampPalette(medstats_palette)(c_dim)
+            p <- ggplot(plot_data, aes(x = .data[["Var1"]], y = .data[["Freq"]], fill = .data[["Var2"]])) +
+                geom_col(position = position_dodge(width = 0.78), width = 0.68, colour = "white", linewidth = 0.35) +
+                scale_fill_manual(values = plot_palette) +
+                labs(title = "Distribución de frecuencias", subtitle = "Recuento por combinación de categorías", x = "{var1}", y = "Frecuencia") +
+                theme_medstats + theme(legend.position = "bottom", axis.text.x = element_text(angle = if (r_dim > 5) 30 else 0, hjust = if (r_dim > 5) 1 else 0.5))
+            save_medstats_plot(tmp_img, p)
             img_base64 <- jsonlite::base64_enc(readBin(tmp_img, "raw", n = file.info(tmp_img)$size))
             unlink(tmp_img)
         }}, error = function(e) {{}})
@@ -297,7 +301,7 @@ class ChiSquareAnalysis(BaseAnalysis):
             method="Prueba de Independencia Chi-cuadrado de Pearson",
             formula=f"{var1} × {var2}",
             degrees_of_freedom=df_val,
-            packages_used=["stats", "jsonlite"]
+            packages_used=["stats", "jsonlite", "ggplot2"]
         )
 
         # 6. Gráficos

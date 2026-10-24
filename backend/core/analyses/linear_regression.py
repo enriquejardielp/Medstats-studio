@@ -9,6 +9,7 @@ import uuid
 from typing import Dict, Any, List, Tuple
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -24,13 +25,14 @@ from backend.core.results_schema import (
     WarningSeverity,
     TechnicalDetails,
     ReproducibleCode,
+    AnalysisPlot,
 )
 
 
 class LinearRegressionAnalysis(BaseAnalysis):
     analysis_type = "linear-regression"
     title = "Regresión Lineal Múltiple (MCO)"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         dep_var = params.get("dep_var")
@@ -89,6 +91,8 @@ class LinearRegressionAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -130,6 +134,34 @@ class LinearRegressionAnalysis(BaseAnalysis):
             }}, error = function(e) {{}})
         }}
 
+        # Gráficos de diagnóstico del modelo
+        residual_plot_base64 <- ""
+        qq_plot_base64 <- ""
+        tryCatch({{
+            residual_plot_data <- data.frame(ajustado = fitted(fit), residuo_estandarizado = rstandard(fit))
+            p_residuals <- ggplot(residual_plot_data, aes(x = ajustado, y = residuo_estandarizado)) +
+                geom_hline(yintercept = 0, colour = "#A65336", linetype = "dashed", linewidth = 0.75) +
+                geom_point(colour = medstats_palette[1], alpha = 0.52, size = 1.8) +
+                geom_smooth(method = "loess", formula = y ~ x, colour = medstats_palette[2], fill = "#E9C8B3", alpha = 0.25, linewidth = 0.85) +
+                labs(title = "Residuos frente a valores ajustados", subtitle = "Revisa patrones y variación no constante", x = "Valores ajustados", y = "Residuos estandarizados") +
+                theme_medstats
+            residual_path <- tempfile(fileext = ".png")
+            save_medstats_plot(residual_path, p_residuals)
+            residual_plot_base64 <- jsonlite::base64_enc(readBin(residual_path, "raw", n = file.info(residual_path)$size))
+            unlink(residual_path)
+
+            qq_data <- data.frame(qqnorm(rstandard(fit), plot.it = FALSE))
+            p_qq <- ggplot(qq_data, aes(x = x, y = y)) +
+                geom_abline(intercept = 0, slope = 1, colour = "#A65336", linetype = "dashed", linewidth = 0.75) +
+                geom_point(colour = medstats_palette[1], alpha = 0.58, size = 1.8) +
+                labs(title = "Gráfico Q–Q de residuos", subtitle = "Compara cuantiles observados y teóricos", x = "Cuantiles teóricos", y = "Cuantiles observados") +
+                theme_medstats
+            qq_path <- tempfile(fileext = ".png")
+            save_medstats_plot(qq_path, p_qq)
+            qq_plot_base64 <- jsonlite::base64_enc(readBin(qq_path, "raw", n = file.info(qq_path)$size))
+            unlink(qq_path)
+        }}, error = function(e) {{ residual_plot_base64 <<- ""; qq_plot_base64 <<- "" }})
+
         f_stat <- as.numeric(s$fstatistic[1])
         f_num_df <- as.numeric(s$fstatistic[2])
         f_den_df <- as.numeric(s$fstatistic[3])
@@ -166,7 +198,8 @@ class LinearRegressionAnalysis(BaseAnalysis):
                 shapiro_p = sw_p,
                 durbin_watson = dw_val,
                 vif = vif_list
-            )
+            ),
+            plots = list(residuals = residual_plot_base64, qqplot = qq_plot_base64)
         )
         cat(toJSON(res, auto_unbox = TRUE, na = "null"))
         """
@@ -300,6 +333,27 @@ class LinearRegressionAnalysis(BaseAnalysis):
         else:
             interp = f"El modelo lineal no alcanzó significación estadística global (F({f_df1}, {f_df2}) = {f_stat:.2f}, p = {f_p:.4f}, R² = {r2:.3f})."
 
+        raw_plots = raw_r_output.get("plots", {}) or {}
+        plots = []
+        if raw_plots.get("residuals"):
+            plots.append(AnalysisPlot(
+                id="linear_regression_residuals",
+                title="Residuos frente a valores ajustados",
+                plot_type="residuals",
+                image_base64=raw_plots["residuals"],
+                description="Gráfico diagnóstico para explorar patrones en los residuos y cambios de dispersión.",
+                script_r=script_r,
+            ))
+        if raw_plots.get("qqplot"):
+            plots.append(AnalysisPlot(
+                id="linear_regression_qqplot",
+                title="Gráfico Q–Q de residuos",
+                plot_type="qqplot",
+                image_base64=raw_plots["qqplot"],
+                description="Compara los cuantiles observados de los residuos con los cuantiles de una distribución normal.",
+                script_r=script_r,
+            ))
+
         return AnalysisResult(
             metadata=AnalysisMetadata(
                 analysis_id=analysis_id,
@@ -325,7 +379,7 @@ class LinearRegressionAnalysis(BaseAnalysis):
             tables=[table_coefs],
             diagnostics=diagnostics,
             warnings=warnings,
-            plots=[],
+            plots=plots,
             technical=TechnicalDetails(
                 method="Mínimos Cuadrados Ordinarios (OLS)",
                 formula=f"{dep_var} ~ {' + '.join(indep_vars)}",

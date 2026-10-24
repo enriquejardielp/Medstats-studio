@@ -9,6 +9,7 @@ import uuid
 from typing import Dict, Any, List, Tuple
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -24,13 +25,14 @@ from backend.core.results_schema import (
     WarningSeverity,
     TechnicalDetails,
     ReproducibleCode,
+    AnalysisPlot,
 )
 
 
 class CorrelationAnalysis(BaseAnalysis):
     analysis_type = "correlation"
     title = "Análisis de Correlación"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         var1 = params.get("var1")
@@ -76,6 +78,8 @@ class CorrelationAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
         x <- as.numeric(datos[['{r_v1}']])
@@ -95,6 +99,25 @@ class CorrelationAnalysis(BaseAnalysis):
         sw_x <- if (n_obs >= 3 && n_obs <= 5000) shapiro.test(x)$p.value else NA
         sw_y <- if (n_obs >= 3 && n_obs <= 5000) shapiro.test(y)$p.value else NA
 
+        # Gráfico exploratorio de la asociación
+        plot_base64 <- ""
+        tryCatch({{
+            plot_data <- data.frame(x = x, y = y)
+            p <- ggplot(plot_data, aes(x = x, y = y)) +
+                geom_point(colour = medstats_palette[1], alpha = 0.58, size = 2) +
+                labs(title = "Relación entre variables", subtitle = paste0("Correlación de {method.capitalize()} · N = ", n_obs), x = "{var1}", y = "{var2}") +
+                theme_medstats
+            if ("{method}" == "pearson") {{
+                p <- p + geom_smooth(method = "lm", formula = y ~ x, colour = medstats_palette[2], fill = "#E9C8B3", alpha = 0.28, linewidth = 0.9)
+            }} else {{
+                p <- p + geom_smooth(method = "loess", formula = y ~ x, colour = medstats_palette[2], fill = "#E9C8B3", alpha = 0.28, linewidth = 0.9)
+            }}
+            plot_path <- tempfile(fileext = ".png")
+            save_medstats_plot(plot_path, p)
+            plot_base64 <- jsonlite::base64_enc(readBin(plot_path, "raw", n = file.info(plot_path)$size))
+            unlink(plot_path)
+        }}, error = function(e) {{ plot_base64 <<- "" }})
+
         res <- list(
             coeficiente = r_val,
             p_valor = p_val,
@@ -105,6 +128,7 @@ class CorrelationAnalysis(BaseAnalysis):
             n = n_obs,
             metodo = '{method}',
             conf_level = {conf_level},
+            plot_base64 = plot_base64,
             diagnosticos = list(
                 shapiro_x = as.numeric(sw_x),
                 shapiro_y = as.numeric(sw_y)
@@ -206,6 +230,16 @@ class CorrelationAnalysis(BaseAnalysis):
             ]
         )
 
+        plot_base64 = raw_r_output.get("plot_base64") or ""
+        plots = [AnalysisPlot(
+            id="correlation_scatter",
+            title=f"Relación entre {var1} y {var2}",
+            plot_type="scatter",
+            image_base64=plot_base64,
+            description="Cada punto representa una observación; la banda muestra la incertidumbre de la tendencia exploratoria.",
+            script_r=script_r,
+        )] if plot_base64 else []
+
         return AnalysisResult(
             metadata=AnalysisMetadata(
                 analysis_id=analysis_id,
@@ -228,7 +262,7 @@ class CorrelationAnalysis(BaseAnalysis):
             tables=[table],
             diagnostics=diagnostics,
             warnings=warnings,
-            plots=[],
+            plots=plots,
             technical=TechnicalDetails(
                 method=f"Correlación de {method}",
                 degrees_of_freedom=raw_r_output.get("gl"),

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Sparkles, Copy, Check, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Sparkles, Copy, Check } from 'lucide-react';
 import type { ExecutiveSummary, MetricItem } from '../../types/analysis';
 
 interface Props {
@@ -20,107 +20,27 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
     }
   };
 
-  const getSignificanceBadge = (metric: MetricItem) => {
+  const getPValueBadge = (metric: MetricItem) => {
     const p = metric.p_value;
     const star = metric.significance_star;
 
     if (p !== undefined && p !== null) {
-      if (p < 0.001) {
-        return (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '3px',
-              backgroundColor: '#ecfdf5',
-              color: '#065f46',
-              border: '1px solid #a7f3d0',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              fontSize: '0.68rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-            }}
-          >
-            <CheckCircle2 size={11} color="#059669" /> p &lt; .001 ***
-          </span>
-        );
-      }
-      if (p < 0.01) {
-        return (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '3px',
-              backgroundColor: '#e7f4f2',
-              color: '#0a5f58',
-              border: '1px solid #b6ddd8',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              fontSize: '0.68rem',
-              fontWeight: 700,
-            }}
-          >
-            p &lt; .01 **
-          </span>
-        );
-      }
-      if (p < 0.05) {
-        return (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '3px',
-              backgroundColor: 'var(--color-success-soft)',
-              color: 'var(--color-success)',
-              border: '1px solid #C5E3D1',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              fontSize: '0.68rem',
-              fontWeight: 700,
-            }}
-          >
-            p &lt; .05 *
-          </span>
-        );
-      }
-      if (p < 0.10) {
-        return (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '3px',
-              backgroundColor: '#fffbeb',
-              color: '#92400e',
-              border: '1px solid #fde68a',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              fontSize: '0.68rem',
-              fontWeight: 600,
-            }}
-          >
-            p &lt; .10 (tendencia)
-          </span>
-        );
-      }
       return (
         <span
+          title="Interpreta el valor p junto con el tamaño del efecto, su intervalo de confianza y el diseño del estudio."
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            backgroundColor: '#efebe3',
-            color: '#64748b',
-            border: '1px solid #e3ded3',
+            backgroundColor: '#F3EFE8',
+            color: '#51483F',
+            border: '1px solid #E2DBD1',
             padding: '2px 7px',
             borderRadius: '999px',
             fontSize: '0.68rem',
-            fontWeight: 500,
+            fontWeight: 650,
           }}
         >
-          p = {p.toFixed(3)} ns
+          {p < 0.001 ? 'p < .001' : `p = ${p.toFixed(3)}`}
         </span>
       );
     }
@@ -129,9 +49,9 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
       return (
         <span
           style={{
-            backgroundColor: '#e7f4f2',
-            color: '#0d7c72',
-            border: '1px solid #b6ddd8',
+            backgroundColor: '#F3EFE8',
+            color: '#51483F',
+            border: '1px solid #E2DBD1',
             padding: '2px 6px',
             borderRadius: '999px',
             fontSize: '0.7rem',
@@ -153,7 +73,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
         style={{
           background: 'linear-gradient(135deg, #ffffff 0%, #f8f6f1 100%)',
           border: '1px solid #e3ded3',
-          borderLeft: '4px solid #0d7c72',
+          borderLeft: '4px solid #A65336',
           borderRadius: '10px',
           padding: '1.15rem 1.4rem',
           boxShadow: '0 2px 8px -2px rgba(15, 23, 42, 0.04)',
@@ -166,8 +86,8 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
-              backgroundColor: '#e7f4f2',
-              color: '#0a5f58',
+              backgroundColor: '#F4E5D9',
+              color: '#713820',
               padding: '2px 8px',
               borderRadius: '4px',
               fontSize: '0.72rem',
@@ -176,7 +96,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
               letterSpacing: '0.06em',
             }}
           >
-            <Sparkles size={13} color="#0d7c72" /> Resumen Ejecutivo
+            <Sparkles size={13} color="#A65336" /> Resumen para lectura rápida
           </span>
           <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
             Evidencia estadística sintetizada
@@ -206,7 +126,7 @@ export const Layer1Summary: React.FC<Props> = ({ summary }) => {
           }}
         >
           {summary.key_metrics.map((metric, idx) => {
-            const badge = getSignificanceBadge(metric);
+            const badge = getPValueBadge(metric);
 
             return (
               <div

@@ -53,20 +53,33 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
     switch (type) {
       case 'descriptive':
       case 'table1':
-        return { bg: '#e7f4f2', text: '#0a5f58', border: '#b6ddd8' };
+        return { bg: '#F3EFE8', text: '#6D4C38', border: '#E2DBD1' };
       case 'compare':
       case 'anova':
-        return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' };
+        return { bg: '#F8E9DF', text: '#803F28', border: '#E8C8B3' };
       case 'correlation':
       case 'linear-regression':
       case 'logistic-regression':
-        return { bg: '#faf5ff', text: '#7e22ce', border: '#e9d5ff' };
+        return { bg: '#EDF1EE', text: '#485B50', border: '#D2DDD5' };
       case 'roc-curve':
       case 'kaplan-meier':
-        return { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' };
+        return { bg: '#F4E5D9', text: '#713820', border: '#E9C8B3' };
       default:
         return { bg: '#efebe3', text: '#334155', border: '#cbd5e1' };
     }
+  };
+
+  const analysisTypeLabels: Record<string, string> = {
+    descriptive: 'Descriptiva',
+    table1: 'Tabla basal',
+    compare: 'Comparación',
+    anova: 'Varios grupos',
+    correlation: 'Asociación',
+    'chi-square': 'Categorías',
+    'linear-regression': 'Modelo lineal',
+    'logistic-regression': 'Modelo binario',
+    'roc-curve': 'Diagnóstico',
+    'kaplan-meier': 'Supervivencia',
   };
 
   const typeTheme = getAnalysisTypeTheme(meta.analysis_type);
@@ -113,7 +126,7 @@ export const AnalysisBlock: React.FC<Props> = ({ result, onDelete }) => {
                 letterSpacing: '0.04em',
               }}
             >
-              {meta.analysis_type}
+              {analysisTypeLabels[meta.analysis_type] || meta.analysis_type}
             </span>
 
             <span

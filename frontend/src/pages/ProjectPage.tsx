@@ -125,102 +125,232 @@ const readSavedAnalysisResults = (projectId?: string): AnalysisResult[] => {
 const analysisOptions: AnalysisOption[] = [
   {
     id: 'descriptive',
-    label: 'Estadística Descriptiva',
-    category: '1. Descriptiva y Basal',
-    badge: 'Media, DE, Mediana, IQR',
+    label: 'Describir la muestra',
+    category: 'Describir datos',
+    badge: 'Variables numéricas y categóricas',
     icon: <BarChart3 size={18} color="#9C4C2E" />,
-    description: 'Resumen numérico y categórico univariado con test de normalidad.',
+    description: 'Resume cada variable, sus valores ausentes y su distribución para conocer los datos antes de analizarlos.',
     requiredTypes: { numeric: 1, categorical: 0 },
     allowMore: true,
   },
   {
     id: 'table1',
-    label: 'Tabla 1 Basal (Lancet / NEJM)',
-    category: '1. Descriptiva y Basal',
-    badge: 'Características Basales',
+    label: 'Tabla basal de participantes',
+    category: 'Describir datos',
+    badge: 'Formato de publicación',
     icon: <Table2 size={18} color="#9C4C2E" />,
-    description: 'Demografía y variables basales estratificadas con comparaciones.',
+    description: 'Presenta características clínicas y demográficas, globales o separadas por grupos.',
     requiredTypes: { numeric: 1, categorical: 0 },
     allowMore: true,
   },
   {
     id: 'compare',
-    label: 'Comparar 2 Grupos (t / Mann-Whitney)',
-    category: '2. Comparación de Grupos',
-    badge: 't de Student / Welch / U',
+    label: 'Comparar dos grupos',
+    category: 'Comparar grupos',
+    badge: 'Welch · Mann–Whitney',
     icon: <GitCompare size={18} color="#9C4C2E" />,
-    description: 'Diferencia de medias o rangos para muestras independientes o pareadas.',
+    description: 'Compara una medida numérica entre dos grupos independientes. Elige el contraste paramétrico o por rangos.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
   },
   {
     id: 'anova',
-    label: 'Comparar 3+ Grupos (ANOVA / Kruskal)',
-    category: '2. Comparación de Grupos',
-    badge: 'ANOVA / Kruskal-Wallis',
+    label: 'Comparar tres o más grupos',
+    category: 'Comparar grupos',
+    badge: 'ANOVA · Kruskal–Wallis',
     icon: <Layers size={18} color="#9C4C2E" />,
-    description: 'Prueba F global, homocedasticidad de Levene y comparaciones post-hoc Tukey.',
+    description: 'Evalúa si una medida numérica difiere entre varios grupos e incluye comparaciones posteriores cuando corresponda.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
   },
   {
     id: 'correlation',
-    label: 'Correlación Bivariada',
-    category: '3. Asociación y Contingencia',
-    badge: 'Pearson / Spearman',
+    label: 'Relacionar dos medidas',
+    category: 'Explorar asociaciones',
+    badge: 'Pearson · Spearman',
     icon: <TrendingUp size={18} color="#9C4C2E" />,
-    description: 'Fuerza y dirección de asociación lineal o monótona con IC 95%.',
+    description: 'Cuantifica dirección y fuerza de la asociación entre dos variables numéricas.',
     requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: false,
   },
   {
     id: 'chi-square',
-    label: 'Tablas de Contingencia (Chi² / Fisher)',
-    category: '3. Asociación y Contingencia',
-    badge: 'Odds Ratio / Riesgo Relativo',
+    label: 'Asociación entre categorías',
+    category: 'Explorar asociaciones',
+    badge: 'Chi-cuadrado · Fisher',
     icon: <Sparkles size={18} color="#9C4C2E" />,
-    description: 'Asociación entre cualitativas, corrección de Yates y corrección de Haldane.',
+    description: 'Muestra los recuentos y evalúa si dos variables categóricas están asociadas.',
     requiredTypes: { numeric: 0, categorical: 2 },
     allowMore: false,
   },
   {
     id: 'linear-regression',
-    label: 'Regresión Lineal Múltiple',
-    category: '4. Modelos Predictivos',
-    badge: 'Ajuste de Covariables',
+    label: 'Explicar una medida numérica',
+    category: 'Modelar resultados',
+    badge: 'Regresión lineal',
     icon: <SlidersHorizontal size={18} color="#9C4C2E" />,
-    description: 'Estimación de coeficientes beta, R² ajustado y diagnóstico de residuos.',
+    description: 'Estima la relación de una medida continua con uno o varios predictores.',
     requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: true,
   },
   {
     id: 'logistic-regression',
-    label: 'Regresión Logística Binaria',
-    category: '4. Modelos Predictivos',
-    badge: 'Odds Ratios Ajustados',
+    label: 'Modelar un resultado sí / no',
+    category: 'Modelar resultados',
+    badge: 'Regresión logística',
     icon: <Activity size={18} color="#9C4C2E" />,
-    description: 'Modelado de desenlace clínico binario con Hosmer-Lemeshow y Nagelkerke.',
+    description: 'Relaciona un desenlace con dos categorías con uno o varios predictores.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: true,
   },
   {
     id: 'roc-curve',
-    label: 'Curva ROC & Biomarcadores',
-    category: '5. Medicina Diagnóstica & Supervivencia',
-    badge: 'AUC & Índice Youden',
+    label: 'Evaluar un marcador diagnóstico',
+    category: 'Diagnóstico y supervivencia',
+    badge: 'Curva ROC · AUC',
     icon: <Activity size={18} color="#9C4C2E" />,
-    description: 'Capacidad diagnóstica, sensibilidad, especificidad y punto de corte.',
+    description: 'Evalúa cómo discrimina un marcador entre dos estados y explora posibles puntos de corte.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
   },
   {
     id: 'kaplan-meier',
-    label: 'Supervivencia Kaplan-Meier',
-    category: '5. Medicina Diagnóstica & Supervivencia',
-    badge: 'Curvas & Log-Rank Test',
+    label: 'Analizar tiempo hasta un evento',
+    category: 'Diagnóstico y supervivencia',
+    badge: 'Kaplan–Meier · Log-rank',
     icon: <Activity size={18} color="#9C4C2E" />,
-    description: 'Tiempo hasta el evento, medianas de supervivencia y contraste Log-Rank.',
+    description: 'Estima la probabilidad de permanecer sin el evento a lo largo del seguimiento.',
     requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: false,
+  },
+  {
+    id: 'cox-regression',
+    label: 'Ajustar supervivencia con covariables',
+    category: 'Diagnóstico y supervivencia',
+    badge: 'Regresión de Cox · HR',
+    icon: <Activity size={18} color="#9C4C2E" />,
+    description: 'Estima hazard ratios ajustados y revisa el supuesto de riesgos proporcionales.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: true,
+  },
+  {
+    id: 'ancova',
+    label: 'Comparar grupos ajustando por covariables',
+    category: 'Comparar grupos',
+    badge: 'ANCOVA',
+    icon: <SlidersHorizontal size={18} color="#9C4C2E" />,
+    description: 'Compara una medida numérica entre grupos teniendo en cuenta otras variables.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: true,
+  },
+  {
+    id: 'mcnemar',
+    label: 'Comparar respuestas binarias emparejadas',
+    category: 'Comparar grupos',
+    badge: 'McNemar',
+    icon: <GitCompare size={18} color="#9C4C2E" />,
+    description: 'Compara dos mediciones sí/no de las mismas personas, por ejemplo antes y después.',
+    requiredTypes: { numeric: 0, categorical: 2 },
+    allowMore: false,
+  },
+  {
+    id: 'kappa',
+    label: 'Medir acuerdo entre evaluadores',
+    category: 'Explorar asociaciones',
+    badge: 'Kappa de Cohen',
+    icon: <GitCompare size={18} color="#9C4C2E" />,
+    description: 'Cuantifica el acuerdo entre dos clasificaciones, descontando el esperado por azar.',
+    requiredTypes: { numeric: 0, categorical: 2 },
+    allowMore: false,
+  },
+  {
+    id: 'bland-altman',
+    label: 'Comparar dos métodos de medición',
+    category: 'Explorar asociaciones',
+    badge: 'Bland–Altman',
+    icon: <TrendingUp size={18} color="#9C4C2E" />,
+    description: 'Estima el sesgo y los límites de acuerdo entre dos medidas continuas.',
+    requiredTypes: { numeric: 2, categorical: 0 },
+    allowMore: false,
+  },
+  {
+    id: 'icc',
+    label: 'Medir fiabilidad de varias mediciones',
+    category: 'Explorar asociaciones',
+    badge: 'ICC',
+    icon: <Activity size={18} color="#9C4C2E" />,
+    description: 'Resume la concordancia entre mediciones continuas de dos o más evaluadores.',
+    requiredTypes: { numeric: 2, categorical: 0 },
+    allowMore: true,
+  },
+  {
+    id: 'friedman',
+    label: 'Comparar tres o más mediciones relacionadas',
+    category: 'Comparar grupos',
+    badge: 'Friedman',
+    icon: <Layers size={18} color="#9C4C2E" />,
+    description: 'Alternativa por rangos para comparar tres o más medidas de los mismos sujetos.',
+    requiredTypes: { numeric: 3, categorical: 0 },
+    allowMore: true,
+  },
+  {
+    id: 'odds-ratio',
+    label: 'Cuantificar asociación entre dos variables sí/no',
+    category: 'Explorar asociaciones',
+    badge: 'Odds ratio',
+    icon: <GitCompare size={18} color="#9C4C2E" />,
+    description: 'Estima el odds ratio y su intervalo en una tabla 2 × 2.',
+    requiredTypes: { numeric: 0, categorical: 2 },
+    allowMore: false,
+  },
+  {
+    id: 'diagnostic-accuracy',
+    label: 'Calcular sensibilidad y especificidad',
+    category: 'Diagnóstico y supervivencia',
+    badge: 'Rendimiento diagnóstico',
+    icon: <Activity size={18} color="#9C4C2E" />,
+    description: 'Calcula sensibilidad, especificidad y valores predictivos para un umbral definido.',
+    requiredTypes: { numeric: 1, categorical: 1 },
+    allowMore: false,
+  },
+  {
+    id: 'sample-size',
+    label: 'Estimar tamaño muestral',
+    category: 'Planificar estudios',
+    badge: 'Potencia · alfa',
+    icon: <BarChart3 size={18} color="#9C4C2E" />,
+    description: 'Calcula participantes necesarios para una prueba t, comparación de proporciones o ANOVA.',
+    requiredTypes: { numeric: 0, categorical: 0 },
+    allowMore: false,
+  },
+  {
+    id: 'count-regression',
+    label: 'Modelar número de eventos o episodios',
+    category: 'Modelar resultados',
+    badge: 'Poisson · Binomial negativa',
+    icon: <Activity size={18} color="#9C4C2E" />,
+    description: 'Modela recuentos enteros y elige binomial negativa si hay sobredispersión.',
+    requiredTypes: { numeric: 2, categorical: 0 },
+    allowMore: true,
+  },
+  {
+    id: 'data-quality',
+    label: 'Revisar calidad y datos ausentes',
+    category: 'Describir datos',
+    badge: 'Completitud · duplicados',
+    icon: <Search size={18} color="#9C4C2E" />,
+    description: 'Detecta valores ausentes, columnas sin variación y filas duplicadas sin modificar los datos.',
+    requiredTypes: { numeric: 0, categorical: 0 },
+    allowMore: false,
+  },
+  {
+    id: 'paired-comparison',
+    label: 'Comparar dos medidas de los mismos sujetos',
+    category: 'Comparar grupos',
+    badge: 't pareada · Wilcoxon',
+    icon: <GitCompare size={18} color="#9C4C2E" />,
+    description: 'Compara dos columnas emparejadas fila por fila, con test t pareado o Wilcoxon signed-rank.',
+    requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: false,
   },
 ];
@@ -255,19 +385,14 @@ const ProjectPage: React.FC = () => {
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisOption | null>(null);
   const [selectedVars, setSelectedVars] = useState<string[]>([]);
   const [selectedRoleValues, setSelectedRoleValues] = useState<Record<string, string | string[]>>({});
+  const [analysisSearch, setAnalysisSearch] = useState('');
+  const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false);
 
   const [_analysisResult, setAnalysisResult] = useState<any>(null);
   const [, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [analysisNotes, setAnalysisNotes] = useState('');
   const [useNonParametric, setUseNonParametric] = useState(false);
   const [confLevel, setConfLevel] = useState<number>(0.95);
-  const [isPaired, setIsPaired] = useState<boolean>(false);
-  const [newCovariateOption, setNewCovariateOption] = useState('Edad');
-  const [covariates, setCovariates] = useState<Array<{id:string; name:string; type:string; status:string}>>([
-    { id: 'cov-1', name: 'Edad (Pacientes)', type: 'Numérica', status: 'Verificada' },
-    { id: 'cov-2', name: 'Género (Biomarcador)', type: 'Categoría', status: 'Verificada' },
-  ]);
   const [viewingHistoryId, setViewingHistoryId] = useState<string | null>(null);
 
   const updateOutputResults = useCallback((update: (current: AnalysisResult[]) => AnalysisResult[]) => {
@@ -425,13 +550,9 @@ const ProjectPage: React.FC = () => {
   };
 
   const resetAnalysisModalState = () => {
-    setAnalysisNotes('');
     setUseNonParametric(false);
-    setNewCovariateOption('Edad');
-    setCovariates([
-      { id: 'cov-1', name: 'Edad (Pacientes)', type: 'Numérica', status: 'Verificada' },
-      { id: 'cov-2', name: 'Género (Biomarcador)', type: 'Categoría', status: 'Verificada' },
-    ]);
+    setConfLevel(0.95);
+    setAdvancedOptionsOpen(false);
   };
 
   const openAnalysisModal = (analysis: AnalysisOption) => {
@@ -455,8 +576,12 @@ const ProjectPage: React.FC = () => {
 
     switch (selectedAnalysis.id) {
       case 'descriptive':
-      case 'table1':
         return (selectedRoleValues.columns as string[] | undefined) || [];
+      case 'table1': {
+        const columns = (selectedRoleValues.columns as string[] | undefined) || [];
+        const group = selectedRoleValues.group_var as string | undefined;
+        return group && !columns.includes(group) ? [...columns, group] : columns;
+      }
       case 'linear-regression':
       case 'logistic-regression': {
         const depVar = selectedRoleValues.dep_var as string | undefined;
@@ -494,6 +619,53 @@ const ProjectPage: React.FC = () => {
         const groupVar = selectedRoleValues.group_var as string | undefined;
         return timeVar && eventVar ? [timeVar, eventVar, ...(groupVar ? [groupVar] : [])] : [];
       }
+      case 'cox-regression': {
+        const timeVar = selectedRoleValues.time_var as string | undefined;
+        const eventVar = selectedRoleValues.event_var as string | undefined;
+        const covariates = (selectedRoleValues.covariates as string[] | undefined) || [];
+        return [...(timeVar ? [timeVar] : []), ...(eventVar ? [eventVar] : []), ...covariates];
+      }
+      case 'ancova': {
+        const depVar = selectedRoleValues.dep_var as string | undefined;
+        const groupVar = selectedRoleValues.group_var as string | undefined;
+        const covariates = (selectedRoleValues.covariates as string[] | undefined) || [];
+        return [...(depVar ? [depVar] : []), ...(groupVar ? [groupVar] : []), ...covariates];
+      }
+      case 'mcnemar':
+      case 'kappa':
+      case 'bland-altman': {
+        const var1 = selectedRoleValues.var1 as string | undefined;
+        const var2 = selectedRoleValues.var2 as string | undefined;
+        return var1 && var2 ? [var1, var2] : [];
+      }
+      case 'icc':
+        return (selectedRoleValues.columns as string[] | undefined) || [];
+      case 'friedman':
+        return (selectedRoleValues.columns as string[] | undefined) || [];
+      case 'odds-ratio': {
+        const var1 = selectedRoleValues.var1 as string | undefined;
+        const var2 = selectedRoleValues.var2 as string | undefined;
+        return var1 && var2 ? [var1, var2] : [];
+      }
+      case 'diagnostic-accuracy': {
+        const outcome = selectedRoleValues.outcome as string | undefined;
+        const predictor = selectedRoleValues.predictor as string | undefined;
+        return outcome && predictor ? [outcome, predictor] : [];
+      }
+      case 'sample-size':
+        return [];
+      case 'count-regression': {
+        const outcome = selectedRoleValues.outcome as string | undefined;
+        const covariates = (selectedRoleValues.covariates as string[] | undefined) || [];
+        return [...(outcome ? [outcome] : []), ...covariates];
+      }
+      case 'data-quality':
+        return [];
+      case 'paired-comparison': {
+        const var1 = selectedRoleValues.var1 as string | undefined;
+        const var2 = selectedRoleValues.var2 as string | undefined;
+        return var1 && var2 ? [var1, var2] : [];
+      }
       default:
         return selectedVars;
     }
@@ -519,6 +691,34 @@ const ProjectPage: React.FC = () => {
         return Boolean(selectedRoleValues.outcome) && Boolean(selectedRoleValues.predictor);
       case 'kaplan-meier':
         return Boolean(selectedRoleValues.time_var) && Boolean(selectedRoleValues.event_var);
+      case 'cox-regression':
+        return Boolean(selectedRoleValues.time_var) && Boolean(selectedRoleValues.event_var) && ((selectedRoleValues.covariates as string[] | undefined)?.length ?? 0) > 0;
+      case 'ancova':
+        return Boolean(selectedRoleValues.dep_var) && Boolean(selectedRoleValues.group_var) && ((selectedRoleValues.covariates as string[] | undefined)?.length ?? 0) > 0;
+      case 'mcnemar':
+      case 'kappa':
+      case 'bland-altman':
+        return Boolean(selectedRoleValues.var1) && Boolean(selectedRoleValues.var2);
+      case 'icc':
+        return ((selectedRoleValues.columns as string[] | undefined)?.length ?? 0) >= 2;
+      case 'friedman':
+        return ((selectedRoleValues.columns as string[] | undefined)?.length ?? 0) >= 3;
+      case 'odds-ratio':
+        return Boolean(selectedRoleValues.var1) && Boolean(selectedRoleValues.var2);
+      case 'diagnostic-accuracy':
+        return Boolean(selectedRoleValues.outcome) && Boolean(selectedRoleValues.predictor) && selectedRoleValues.threshold !== undefined && selectedRoleValues.threshold !== '';
+      case 'sample-size':
+        return Boolean(selectedRoleValues.alpha) && Boolean(selectedRoleValues.power) && Boolean(selectedRoleValues.effect);
+      case 'count-regression':
+        return Boolean(selectedRoleValues.outcome) && ((selectedRoleValues.covariates as string[] | undefined)?.length ?? 0) > 0;
+      case 'data-quality':
+        return true;
+      case 'paired-comparison':
+        return Boolean(selectedRoleValues.var1) && Boolean(selectedRoleValues.var2);
+      case 'table1': {
+        const group = selectedRoleValues.group_var as string | undefined;
+        return currentSelectedVars.some(variable => variable !== group);
+      }
       default:
         return currentSelectedVars.length > 0;
     }
@@ -530,54 +730,116 @@ const ProjectPage: React.FC = () => {
 
     const isNumeric = (colName: string) => columnTypes[colName] === 'numeric';
     const isCategorical = (colName: string) => ['categorical', 'binary'].includes(columnTypes[colName]);
+    const levelCount = (colName: string) => new Set(rowData
+      .map(row => row[colName])
+      .filter(value => value !== null && value !== undefined && String(value).trim() !== '')
+      .map(value => String(value))).size;
+    const isBinary = (colName: string) => isCategorical(colName) && levelCount(colName) === 2;
 
+    let allowed: string[];
     switch (selectedAnalysis.id) {
       case 'linear-regression':
-        return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        allowed = role === 'dep'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isNumeric(colName) || isCategorical(colName)).map(([colName]) => colName);
+        break;
       case 'logistic-regression':
-        if (role === 'dep') return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
-        return entries.filter(([colName]) => isNumeric(colName) || isCategorical(colName)).map(([colName]) => colName);
+        allowed = role === 'dep'
+          ? entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isNumeric(colName) || isCategorical(colName)).map(([colName]) => colName);
+        break;
       case 'anova':
-        if (role === 'dep') return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
-        return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        allowed = role === 'dep'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        break;
       case 'compare':
-        if (role === 'num') return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
-        return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        allowed = role === 'num'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName);
+        break;
       case 'correlation':
-        return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        allowed = entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        break;
       case 'chi-square':
-        return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        allowed = entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        break;
       case 'roc-curve':
-        if (role === 'outcome') return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
-        return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        allowed = role === 'outcome'
+          ? entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        break;
       case 'kaplan-meier':
-        if (role === 'time') return entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
-        return entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        allowed = role === 'time'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : role === 'event'
+            ? entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName)
+            : entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        break;
+      case 'cox-regression':
+        allowed = role === 'time'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : role === 'event'
+            ? entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName)
+            : entries.filter(([colName]) => isNumeric(colName) || isCategorical(colName)).map(([colName]) => colName);
+        break;
+      case 'ancova':
+        allowed = role === 'dep'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : role === 'group'
+            ? entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName)
+            : entries.filter(([colName]) => isNumeric(colName) || isCategorical(colName)).map(([colName]) => colName);
+        break;
+      case 'mcnemar':
+        allowed = entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName);
+        break;
+      case 'kappa':
+        allowed = entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName);
+        break;
+      case 'bland-altman':
+      case 'icc':
+      case 'friedman':
+      case 'paired-comparison':
+        allowed = entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        break;
+      case 'count-regression':
+        allowed = role === 'outcome'
+          ? entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isNumeric(colName) || isCategorical(colName)).map(([colName]) => colName);
+        break;
+      case 'odds-ratio':
+        allowed = entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName);
+        break;
+      case 'diagnostic-accuracy':
+        allowed = role === 'outcome'
+          ? entries.filter(([colName]) => isBinary(colName)).map(([colName]) => colName)
+          : entries.filter(([colName]) => isNumeric(colName)).map(([colName]) => colName);
+        break;
+      case 'table1':
+        allowed = role === 'group'
+          ? entries.filter(([colName]) => isCategorical(colName)).map(([colName]) => colName)
+          : entries.map(([colName]) => colName);
+        break;
       default:
-        return entries.map(([colName]) => colName);
+        allowed = entries.map(([colName]) => colName);
     }
-  }, [columnTypes, selectedAnalysis]);
 
-  const addCovariate = () => {
-    const name = newCovariateOption;
-    const type = name.startsWith('Edad') || name.startsWith('PSistólica') ? 'Numérica' : name.startsWith('Género') ? 'Categoría' : 'Ordinal';
-
-    if (covariates.some(c => c.name.includes(name))) return;
-
-    setCovariates(prev => [
-      ...prev,
-      {
-        id: `cov-${Date.now()}`,
-        name: `${name} (Ajuste)`,
-        type,
-        status: 'Verificada',
-      },
-    ]);
-  };
-
-  const deleteCovariate = (id: string) => {
-    setCovariates(prev => prev.filter(c => c.id !== id));
-  };
+    const excluded = new Set<string>();
+    if (role === 'indep' && selectedRoleValues.dep_var) excluded.add(selectedRoleValues.dep_var as string);
+    if (role === 'var1' && selectedRoleValues.var2) excluded.add(selectedRoleValues.var2 as string);
+    if (role === 'var2' && selectedRoleValues.var1) excluded.add(selectedRoleValues.var1 as string);
+    if (role === 'covariates') {
+      if (selectedRoleValues.dep_var) excluded.add(selectedRoleValues.dep_var as string);
+      if (selectedRoleValues.outcome) excluded.add(selectedRoleValues.outcome as string);
+      if (selectedRoleValues.group_var) excluded.add(selectedRoleValues.group_var as string);
+      if (selectedRoleValues.time_var) excluded.add(selectedRoleValues.time_var as string);
+      if (selectedRoleValues.event_var) excluded.add(selectedRoleValues.event_var as string);
+    }
+    if (role === 'group' && selectedAnalysis.id === 'kaplan-meier' && selectedRoleValues.event_var) {
+      excluded.add(selectedRoleValues.event_var as string);
+    }
+    return allowed.filter(colName => !excluded.has(colName));
+  }, [columnTypes, rowData, selectedAnalysis, selectedRoleValues]);
 
   const getRecommendedTestInfo = useCallback(() => {
     if (!selectedAnalysis) {
@@ -588,7 +850,6 @@ const ProjectPage: React.FC = () => {
       };
     }
 
-    const hasCovariates = covariates.length > 0;
     const np = useNonParametric;
     let title = selectedAnalysis.label;
     let explanation = selectedAnalysis.description;
@@ -596,17 +857,17 @@ const ProjectPage: React.FC = () => {
 
     switch (selectedAnalysis.id) {
       case 'compare':
-        title = np ? 'Prueba U de Mann-Whitney' : 'Prueba t de Student para Muestras Independientes';
-        explanation = hasCovariates
-          ? 'Comparación de medias entre dos grupos ajustando por covariables de confusión.'
-          : 'Compara el descenso promedio entre dos grupos independientes.';
+        title = np ? 'Prueba U de Mann–Whitney' : 'Prueba t de Welch';
+        explanation = np
+          ? 'Compara los rangos de una medida numérica entre dos grupos.'
+          : 'Compara las medias entre dos grupos sin asumir varianzas iguales.';
         alternative = 'U de Mann-Whitney';
         break;
       case 'anova':
         title = np ? 'Kruskal-Wallis' : 'ANOVA de una vía';
-        explanation = hasCovariates
-          ? 'Evalúa diferencias entre grupos con ajustes por covariables.'
-          : 'Compara las medias de múltiples grupos categóricos.';
+        explanation = np
+          ? 'Compara los rangos entre varios grupos.'
+          : 'Compara las medias de varios grupos.';
         alternative = 'Kruskal-Wallis';
         break;
       case 'correlation':
@@ -616,9 +877,7 @@ const ProjectPage: React.FC = () => {
         break;
       case 'linear-regression':
         title = 'Regresión Lineal Simple / Múltiple';
-        explanation = hasCovariates
-          ? 'Modelo lineal que controla covariables adicionales.'
-          : 'Estima la relación lineal entre la variable dependiente y los predictores.';
+        explanation = 'Estima la relación lineal entre una medida numérica y los predictores seleccionados.';
         alternative = 'Regresión robusta';
         break;
       case 'logistic-regression':
@@ -676,6 +935,19 @@ const ProjectPage: React.FC = () => {
         'roc-curve',
         'kaplan-meier',
         'table1',
+        'cox-regression',
+        'mcnemar',
+        'kappa',
+        'bland-altman',
+        'icc',
+        'ancova',
+        'friedman',
+        'odds-ratio',
+        'diagnostic-accuracy',
+        'sample-size',
+        'count-regression',
+        'data-quality',
+        'paired-comparison',
       ];
 
       if (unifiedTests.includes(test)) {
@@ -734,7 +1006,6 @@ const ProjectPage: React.FC = () => {
             num_var: numVar,
             cat_var: catVar,
             method: useNonParametric ? 'mannwhitney' : 'welch',
-            paired: isPaired,
             conf_level: confLevel,
           };
         } else if (test === 'anova') {
@@ -784,16 +1055,63 @@ const ProjectPage: React.FC = () => {
             conf_level: confLevel,
           };
         } else if (test === 'table1') {
-          if (currentSelectedVars.length === 0) {
+          const groupVar = selectedRoleValues.group_var as string | undefined;
+          const tableVariables = currentSelectedVars.filter(variable => variable !== groupVar);
+          if (tableVariables.length === 0) {
             setAnalysisError('Debes seleccionar al menos una variable para la Tabla 1.');
             setAnalysisLoading(false);
             return;
           }
-          const catCol = currentSelectedVars.find(c => columnTypes[c] === 'categorical' || columnTypes[c] === 'binary');
           params = {
-            variables: currentSelectedVars,
-            group_var: catCol || null,
+            variables: tableVariables,
+            group_var: groupVar || null,
             decimals: 2,
+          };
+        } else if (test === 'cox-regression') {
+          params = {
+            time_var: selectedRoleValues.time_var,
+            event_var: selectedRoleValues.event_var,
+            covariates: selectedRoleValues.covariates || [],
+          };
+        } else if (test === 'ancova') {
+          params = {
+            dep_var: selectedRoleValues.dep_var,
+            group_var: selectedRoleValues.group_var,
+            covariates: selectedRoleValues.covariates || [],
+          };
+        } else if (['mcnemar', 'kappa', 'bland-altman'].includes(test)) {
+          params = { var1: selectedRoleValues.var1, var2: selectedRoleValues.var2 };
+        } else if (test === 'paired-comparison') {
+          params = {
+            var1: selectedRoleValues.var1,
+            var2: selectedRoleValues.var2,
+            method: selectedRoleValues.method || 'welch',
+            conf_level: confLevel,
+          };
+        } else if (test === 'icc') {
+          params = { columns: selectedRoleValues.columns || [] };
+        } else if (test === 'friedman') {
+          params = { columns: selectedRoleValues.columns || [] };
+        } else if (test === 'odds-ratio') {
+          params = { var1: selectedRoleValues.var1, var2: selectedRoleValues.var2 };
+        } else if (test === 'diagnostic-accuracy') {
+          params = {
+            outcome: selectedRoleValues.outcome,
+            predictor: selectedRoleValues.predictor,
+            threshold: Number(selectedRoleValues.threshold),
+          };
+        } else if (test === 'sample-size') {
+          params = {
+            alpha: Number(selectedRoleValues.alpha),
+            power: Number(selectedRoleValues.power),
+            effect: Number(selectedRoleValues.effect),
+            test_type: selectedRoleValues.test_type || 't-test',
+          };
+        } else if (test === 'count-regression') {
+          params = {
+            outcome: selectedRoleValues.outcome,
+            covariates: selectedRoleValues.covariates || [],
+            method: selectedRoleValues.method || 'auto',
           };
         }
 
@@ -846,7 +1164,6 @@ const ProjectPage: React.FC = () => {
             payload = {
               group1: groups[groupKeys[0]],
               group2: groups[groupKeys[1]],
-              paired: isPaired,
               method: selectedMethod,
               conf_level: confLevel
             };
@@ -905,9 +1222,8 @@ const ProjectPage: React.FC = () => {
             payload.predictor = selectedRoleValues.predictor;
             break;
           case 'table1':
-            payload.variables = currentSelectedVars;
-            const catCol = currentSelectedVars.find(c => columnTypes[c] === 'categorical' || columnTypes[c] === 'binary');
-            payload.group_var = catCol || null;
+            payload.variables = currentSelectedVars.filter(variable => variable !== selectedRoleValues.group_var);
+            payload.group_var = selectedRoleValues.group_var || null;
             break;
           case 'descriptive':
             payload = { project_id: parseInt(id!), columns: currentSelectedVars };
@@ -1338,17 +1654,33 @@ const ProjectPage: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
                         <Sparkles size={15} color="#9C4C2E" />
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#813D25', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Catálogo de Procedimientos Estadísticos
+                          Elige qué quieres averiguar
                         </span>
                       </div>
                       <p style={{ margin: 0, fontSize: '0.82rem', color: '#53615A', lineHeight: 1.45 }}>
-                        Selecciona un test estadístico para configurar las variables clínicas, ajustar covariables de confusión y verificar supuestos con el motor R.
+                        Puedes elegir por el objetivo del análisis; cada opción explica qué responde y qué columnas necesitas. Los detalles técnicos siguen disponibles en el informe.
                       </p>
                     </div>
 
+                    <label className="analysis-catalog-search">
+                      <Search size={17} aria-hidden="true" />
+                      <input
+                        type="search"
+                        value={analysisSearch}
+                        onChange={event => setAnalysisSearch(event.target.value)}
+                        placeholder="Buscar por objetivo o nombre del análisis…"
+                        aria-label="Buscar análisis estadístico"
+                      />
+                      {analysisSearch && <button type="button" onClick={() => setAnalysisSearch('')} aria-label="Limpiar búsqueda"><X size={15} /></button>}
+                    </label>
+
                     {/* Agrupaciones por Disciplina / Categoría */}
-                    {Array.from(new Set(analysisOptions.map(o => o.category))).map(categoryName => {
-                      const optionsInCategory = analysisOptions.filter(o => o.category === categoryName);
+                    {Array.from(new Set(analysisOptions
+                      .filter(option => `${option.label} ${option.badge || ''} ${option.description} ${option.category}`.toLowerCase().includes(analysisSearch.trim().toLowerCase()))
+                      .map(option => option.category))).map(categoryName => {
+                      const optionsInCategory = analysisOptions.filter(option =>
+                        option.category === categoryName && `${option.label} ${option.badge || ''} ${option.description}`.toLowerCase().includes(analysisSearch.trim().toLowerCase())
+                      );
 
                       return (
                         <div key={categoryName} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -1457,6 +1789,9 @@ const ProjectPage: React.FC = () => {
                         </div>
                       );
                     })}
+                    {analysisOptions.every(option => !`${option.label} ${option.badge || ''} ${option.description} ${option.category}`.toLowerCase().includes(analysisSearch.trim().toLowerCase())) && (
+                      <div className="analysis-catalog-empty">No encontramos un análisis con “{analysisSearch}”. Prueba con “comparar”, “relación” o “supervivencia”.</div>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -1564,9 +1899,9 @@ const ProjectPage: React.FC = () => {
             <div className="project-analysis-content" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
               <div className="project-analysis-options" style={{ width: '65%', padding: '1.5rem', overflowY: 'auto', background: '#F5F7F5', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#29342E' }}>Configuración del análisis estadístico</h2>
+                  <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#29342E' }}>Configura el análisis</h2>
                   <p style={{ marginTop: '0.65rem', fontSize: '0.95rem', color: '#53615A', lineHeight: 1.7 }}>
-                    Selecciona las variables clave e incorpora covariables para ajustar tu modelo. El panel está diseñado para guiar tu flujo como si fuera un tablero de Jira, con pasos claros y recomendaciones inteligentes.
+                    Elige qué columna representa cada papel. Puedes dejar los ajustes avanzados como están si no necesitas modificarlos.
                   </p>
                 </div>
 
@@ -1836,6 +2171,20 @@ const ProjectPage: React.FC = () => {
                             ? 'Elige las variables que aparecerán en la tabla basal.'
                             : 'Elige las variables que quieres resumir.'}
                         </p>
+                        {selectedAnalysis.id === 'table1' && (
+                          <label className="analysis-role-field">
+                            <span>Separar la tabla por grupos <small>Opcional</small></span>
+                            <select
+                              value={selectedRoleValues.group_var || ''}
+                              onChange={event => setSelectedRoleValues(prev => ({ ...prev, group_var: event.target.value }))}
+                            >
+                              <option value="">Mostrar la muestra completa</option>
+                              {getAllowedColumnsForRole('group').map(colName => (
+                                <option key={`table1-group-${colName}`} value={colName}>{colName}</option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
                         {Object.entries(columnTypes).map(([colName, colType]) => (
                           <label key={colName} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
                             <input
@@ -1858,153 +2207,71 @@ const ProjectPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '18px', overflow: 'hidden' }}>
-                  <div style={{ padding: '1rem', borderBottom: '1px solid #DCE4DF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#29342E' }}>Variables de ajuste y covariables</div>
-                      <div style={{ fontSize: '0.8rem', color: '#53615A', marginTop: '0.25rem' }}>Añade columnas que controlen el efecto de confusión en tus modelos.</div>
-                    </div>
-                    <span style={{ fontSize: '0.75rem', color: '#53615A', fontWeight: 600 }}>{Math.min(100, Math.round((covariates.length / 4) * 100))}% procesado</span>
-                  </div>
-                  <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '0.75rem', display: 'grid', gap: '0.75rem', background: '#F5F7F5' }}>
-                    {covariates.length === 0 ? (
-                      <div style={{ color: '#53615A', textAlign: 'center', padding: '1.5rem 0' }}>No hay variables de ajuste añadidas.</div>
-                    ) : covariates.map((cov) => (
-                      <div key={cov.id} style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '14px', padding: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#29342E' }}>{cov.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#53615A', marginTop: '0.15rem' }}>{cov.type}</div>
-                        </div>
-                        <button onClick={() => deleteCovariate(cov.id)} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '1rem' }} title="Eliminar covariable">×</button>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', padding: '0.85rem 1rem', background: 'white', borderTop: '1px solid #DCE4DF' }}>
-                    <select
-                      value={newCovariateOption}
-                      onChange={(e) => setNewCovariateOption(e.target.value)}
-                      style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem' }}
-                    >
-                      <option value="Edad">[Num] Edad</option>
-                      <option value="Género">[Cat] Género</option>
-                      <option value="PSistólica (Pre)">[Num] PSistólica (Pre)</option>
-                      <option value="Estadio Tumor">[Ord] Estadio Tumor</option>
-                    </select>
-                    <button onClick={addCovariate} style={{ padding: '0.75rem 1rem', borderRadius: '14px', border: 'none', background: '#9C4C2E', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Agregar variable</button>
-                  </div>
-                </div>
-
-                <div style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#29342E', marginBottom: '0.75rem' }}>Notas del investigador</div>
-                  <textarea
-                    value={analysisNotes}
-                    onChange={(e) => setAnalysisNotes(e.target.value)}
-                    placeholder="Añade observaciones sobre los supuestos estadísticos o limitaciones del análisis..."
-                    style={{ width: '100%', minHeight: '120px', resize: 'vertical', borderRadius: '16px', border: '1px solid #DCE4DF', padding: '1rem', fontSize: '0.9rem', color: '#29342E' }}
-                  />
-                  <p style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#53615A' }}>Tip: usa este bloque para documentar ajustes clínicos y supuestos de tu prueba.</p>
-                </div>
               </div>
 
-              <div className="project-analysis-summary" style={{ width: '35%', background: '#ffffff', borderLeft: '1px solid #DCE4DF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflowY: 'auto' }}>
-                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#53615A' }}>Estado del análisis</div>
-                    <button style={{ width: '100%', marginTop: '0.85rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #E9C8B3', background: '#F1F6F2', color: '#713820', fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}>
-                      Listo para ejecutar
+              <div className="project-analysis-summary">
+                <div className="project-analysis-summary-content">
+                  <div className="analysis-summary-heading">
+                    <span className="analysis-summary-kicker">Configuración</span>
+                    <h3>{selectedAnalysis.label}</h3>
+                    <p>{selectedAnalysis.description}</p>
+                  </div>
+
+                  <section className="analysis-selection-summary" aria-live="polite">
+                    <div className="analysis-summary-kicker">Variables seleccionadas</div>
+                    {getCurrentSelectedVars().length ? (
+                      <div className="analysis-variable-chips">
+                        {getCurrentSelectedVars().map(variable => (
+                          <span className="analysis-variable-chip" key={variable}>
+                            <span>{variable}</span>
+                            <small>{columnTypes[variable] === 'numeric' ? 'Numérica' : columnTypes[variable] === 'binary' ? 'Binaria' : columnTypes[variable] === 'categorical' ? 'Categórica' : columnTypes[variable] || 'Variable'}</small>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="analysis-summary-empty">Aún no hay variables seleccionadas. Elige las columnas que pide este análisis.</p>
+                    )}
+                  </section>
+
+                  {['compare', 'anova', 'correlation'].includes(selectedAnalysis.id) && (
+                    <section className="analysis-method-card">
+                      <span className="analysis-summary-kicker">Método</span>
+                      <strong>{getRecommendedTestInfo().title}</strong>
+                      <p>{getRecommendedTestInfo().explanation}</p>
+                      <label className="analysis-method-toggle">
+                        <input type="checkbox" checked={useNonParametric} onChange={() => setUseNonParametric(value => !value)} />
+                        <span>Usar alternativa basada en rangos ({getRecommendedTestInfo().alternative})</span>
+                      </label>
+                    </section>
+                  )}
+
+                  {['compare', 'correlation', 'linear-regression', 'logistic-regression', 'roc-curve', 'kaplan-meier'].includes(selectedAnalysis.id) && <section className="analysis-advanced-section">
+                    <button type="button" className="analysis-advanced-toggle" onClick={() => setAdvancedOptionsOpen(value => !value)} aria-expanded={advancedOptionsOpen}>
+                      <span>Opciones del análisis</span>
+                      <span>{advancedOptionsOpen ? '−' : '+'}</span>
                     </button>
-                  </div>
-
-                  <div style={{ background: '#F5F7F5', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem', color: '#29342E', fontWeight: 700 }}>
-                      <span style={{ width: '1.75rem', height: '1.75rem', borderRadius: '0.75rem', background: '#AE6441', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><BarChart3 size={16} /></span>
-                      <span style={{ fontSize: '0.9rem' }}>Test recomendado</span>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '1rem', fontWeight: 700, color: '#29342E', lineHeight: 1.3 }}>{getRecommendedTestInfo().title}</div>
-                      <p style={{ marginTop: '0.65rem', fontSize: '0.85rem', color: '#53615A', lineHeight: 1.6 }}>{getRecommendedTestInfo().explanation}</p>
-                    </div>
-                    <div style={{ marginTop: '1rem', padding: '0.9rem', borderRadius: '16px', background: 'white', border: '1px solid #DCE4DF' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#53615A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Alternativa no paramétrica</div>
-                      <div style={{ marginTop: '0.45rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.9rem', color: '#29342E' }}>{getRecommendedTestInfo().alternative}</span>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={useNonParametric} onChange={() => setUseNonParametric(prev => !prev)} style={{ width: '1rem', height: '1rem' }} />
-                          <span style={{ fontSize: '0.75rem', color: '#53615A' }}>Activar</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid #DCE4DF', paddingTop: '1rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#53615A', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Verificación de supuestos</div>
-                    <div style={{ marginTop: '0.85rem', display: 'grid', gap: '0.65rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
-                        <span>Normalidad (Shapiro-Wilk)</span>
-                        <span style={{ background: '#EAF3ED', color: '#4E806A', padding: '0.25rem 0.6rem', borderRadius: '999px', fontWeight: 700, fontSize: '0.75rem' }}>Paso</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
-                        <span>Homocedasticidad (Levene)</span>
-                        <span style={{ background: '#EAF3ED', color: '#4E806A', padding: '0.25rem 0.6rem', borderRadius: '999px', fontWeight: 700, fontSize: '0.75rem' }}>Paso</span>
-                      </div>
-                      {selectedAnalysis?.id === 'compare' && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
-                          <span>Muestras pareadas (Antes / Después)</span>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={isPaired}
-                              onChange={(e) => setIsPaired(e.target.checked)}
-                              style={{ width: '1rem', height: '1rem' }}
-                            />
-                            <span style={{ fontSize: '0.75rem', color: '#53615A' }}>Sí</span>
-                          </label>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
-                        <span>Nivel de confianza</span>
-                        <select
-                          value={confLevel}
-                          onChange={(e) => setConfLevel(Number(e.target.value))}
-                          style={{ borderRadius: '8px', border: '1px solid #DCE4DF', padding: '0.35rem 0.7rem', fontSize: '0.8rem', color: '#29342E', background: 'white' }}
-                        >
-                          <option value={0.95}>95% (α = 0.05)</option>
-                          <option value={0.99}>99% (α = 0.01)</option>
-                          <option value={0.90}>90% (α = 0.10)</option>
+                    {advancedOptionsOpen && (
+                      <label className="analysis-confidence-field">
+                        <span>Nivel de confianza del intervalo</span>
+                        <select value={confLevel} onChange={event => setConfLevel(Number(event.target.value))}>
+                          <option value={0.95}>95 %</option>
+                          <option value={0.99}>99 %</option>
+                          <option value={0.90}>90 %</option>
                         </select>
-                      </div>
-                    </div>
-                  </div>
+                      </label>
+                    )}
+                  </section>}
 
-                  <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#53615A' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
-                      <span>Creado</span>
-                      <span style={{ fontWeight: 700, color: '#29342E' }}>{new Date().toLocaleString()}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Actualizado</span>
-                      <span style={{ fontWeight: 700, color: '#29342E' }}>Ahora</span>
-                    </div>
-                  </div>
+                  <p className="analysis-guidance-note">Los supuestos y avisos disponibles se mostrarán después de ejecutar el análisis. No se marcarán como verificados antes de calcularlos.</p>
                 </div>
 
-                <div style={{ padding: '1.5rem', borderTop: '1px solid #DCE4DF', background: '#F5F7F5' }}>
+                <div className="analysis-run-footer">
                   <button
                     onClick={handleRunAnalysis}
                     disabled={!isSelectionComplete()}
-                    style={{
-                      width: '100%',
-                      padding: '1rem',
-                      borderRadius: '18px',
-                      border: 'none',
-                      background: !isSelectionComplete() ? 'rgba(156, 76, 46, 0.48)' : '#9C4C2E',
-                      color: 'white',
-                      fontWeight: 700,
-                      fontSize: '0.95rem',
-                      cursor: !isSelectionComplete() ? 'not-allowed' : 'pointer',
-                    }}
+                    className="ms-btn ms-btn-primary"
                   >
-                    Ejecutar análisis y ver resultados
+                    Ejecutar análisis
                   </button>
                 </div>
               </div>

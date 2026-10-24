@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -30,7 +31,7 @@ from backend.core.results_schema import (
 class LogisticRegressionAnalysis(BaseAnalysis):
     analysis_type = "logistic-regression"
     title = "Regresión Logística Binaria"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         dep_var = params.get("dep_var")
@@ -95,6 +96,8 @@ class LogisticRegressionAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -154,23 +157,27 @@ class LogisticRegressionAnalysis(BaseAnalysis):
         img_base64 <- ""
         tryCatch({{
             tmp_img <- tempfile(fileext = ".png")
-            png(tmp_img, width = 600, height = 360, res = 110)
-            par(mar = c(4, 8, 3, 2))
             terms <- rownames(coefs)[-1]
             if (length(terms) > 0) {{
                 or_sub <- ors[-1]
                 ci_l <- ci_or[-1, 1]
                 ci_u <- ci_or[-1, 2]
-                y_pos <- length(terms):1
-
-                plot(or_sub, y_pos, xlim = c(max(0.01, min(ci_l, na.rm=TRUE)*0.8), min(20, max(ci_u, na.rm=TRUE)*1.2)),
-                     ylim = c(0.5, length(terms) + 0.5), yaxt = "n", xlab = "Odds Ratio (IC 95%)",
-                     ylab = "", pch = 18, col = "#2563eb", cex = 1.8, log = "x", main = "Forest Plot de Predictores (OR)")
-                axis(2, at = y_pos, labels = terms, las = 2, cex.axis = 0.85)
-                abline(v = 1, col = "darkred", lty = 2, lwd = 1.5)
-                segments(ci_l, y_pos, ci_u, y_pos, col = "#2563eb", lwd = 2)
+                forest_data <- data.frame(term = factor(terms, levels = rev(terms)), or = as.numeric(or_sub),
+                                          lower = as.numeric(ci_l), upper = as.numeric(ci_u))
+                forest_data <- forest_data[is.finite(forest_data$or) & forest_data$or > 0 &
+                                           is.finite(forest_data$lower) & forest_data$lower > 0 &
+                                           is.finite(forest_data$upper) & forest_data$upper > 0, ]
+                if (nrow(forest_data) > 0) {{
+                    p <- ggplot(forest_data, aes(y = term, x = or)) +
+                        geom_vline(xintercept = 1, colour = "#A65336", linetype = "dashed", linewidth = 0.8) +
+                        geom_segment(aes(x = lower, xend = upper, yend = term), colour = "#8A7568", linewidth = 1) +
+                        geom_point(colour = medstats_palette[1], size = 3.1) +
+                        scale_x_log10() +
+                        labs(title = "Odds ratios del modelo", subtitle = "Estimación e intervalo de confianza", x = "Odds ratio (escala logarítmica)", y = NULL) +
+                        theme_medstats + theme(panel.grid.major.y = element_blank())
+                    save_medstats_plot(tmp_img, p, height = max(4.8, min(9, 2.8 + nrow(forest_data) * 0.38)))
+                }}
             }}
-            dev.off()
             img_base64 <- jsonlite::base64_enc(readBin(tmp_img, "raw", n = file.info(tmp_img)$size))
             unlink(tmp_img)
         }}, error = function(e) {{}})
@@ -360,7 +367,7 @@ class LogisticRegressionAnalysis(BaseAnalysis):
             aic=aic,
             log_likelihood=raw_r_output.get("residual_deviance", 0.0) / -2,
             convergence=raw_r_output.get("converged", True),
-            packages_used=["stats", "jsonlite"]
+            packages_used=["stats", "jsonlite", "ggplot2"]
         )
 
         # 6. Gráficos

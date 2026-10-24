@@ -6,6 +6,7 @@ import {
   FolderTree,
   Trash2,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   Layers,
   Activity,
@@ -33,34 +34,28 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
         return <BarChart3 size={15} color="#9C4C2E" />;
       case 'compare':
       case 'anova':
-        return <GitCompare size={15} color="#16a34a" />;
+        return <GitCompare size={15} color="#A65336" />;
       case 'correlation':
-        return <TrendingUp size={15} color="#9333ea" />;
+        return <TrendingUp size={15} color="#718477" />;
       case 'linear-regression':
       case 'logistic-regression':
-        return <FileSpreadsheet size={15} color="#0284c7" />;
+        return <FileSpreadsheet size={15} color="#718477" />;
       case 'roc-curve':
       case 'kaplan-meier':
-        return <Activity size={15} color="#ea580c" />;
+        return <Activity size={15} color="#A65336" />;
       default:
         return <Layers size={15} color="#64748b" />;
     }
   };
 
-  const scrollToAnalysis = (analysisId: string) => {
-    setSelectedId(analysisId);
-    const element = document.getElementById(`analysis-block-${analysisId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   useEffect(() => {
-    if (!initialSelectedId) return;
-    setSelectedId(initialSelectedId);
-    window.requestAnimationFrame(() => {
-      document.getElementById(`analysis-block-${initialSelectedId}`)?.scrollIntoView({ block: 'start' });
-    });
+    if (initialSelectedId && results.some(result => result.metadata.analysis_id === initialSelectedId)) {
+      setSelectedId(initialSelectedId);
+      return;
+    }
+    setSelectedId(current => results.some(result => result.metadata.analysis_id === current)
+      ? current
+      : results[0]?.metadata.analysis_id || null);
   }, [initialSelectedId, results]);
 
   if (!results || results.length === 0) {
@@ -117,26 +112,8 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
             margin: '0 0 1.5rem 0',
           }}
         >
-          Selecciona una prueba estadística en el panel lateral (Descriptivos, Comparación de Grupos, Correlación, Regresión o Supervivencia) para generar un informe reproducible estructurado de 5 capas.
+          Ejecuta un análisis desde los datos para consultar una explicación clara junto con estimaciones, tablas, diagnósticos, gráficos y código reproducible cuando estén disponibles.
         </p>
-
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            backgroundColor: '#f8f6f1',
-            border: '1px solid #e3ded3',
-            padding: '0.5rem 1rem',
-            borderRadius: '999px',
-            fontSize: '0.78rem',
-            color: '#475569',
-          }}
-        >
-          <span>Estándar editorial: <strong>APA 7ª Edición</strong></span>
-          <span style={{ color: '#cbd5e1' }}>•</span>
-          <span>Motor de cálculo: <strong>R 4.3+ Backend</strong></span>
-        </div>
       </div>
     );
   }
@@ -178,7 +155,7 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <FolderTree size={16} color="#9C4C2E" />
             <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#10232e', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Índice de Salida
+              Análisis guardados
             </span>
             <span
               style={{
@@ -227,12 +204,12 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
           {results.map((res, index) => {
             const isSelected = selectedId === res.metadata.analysis_id;
             const pValMetric = res.summary.key_metrics.find(m => m.p_value !== undefined);
-            const isSignificant = pValMetric && pValMetric.p_value !== undefined && pValMetric.p_value < 0.05;
 
             return (
               <button
                 key={res.metadata.analysis_id}
-                onClick={() => scrollToAnalysis(res.metadata.analysis_id)}
+                onClick={() => setSelectedId(res.metadata.analysis_id)}
+                aria-pressed={isSelected}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -286,11 +263,11 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
                     {pValMetric && (
                       <span
                         style={{
-                          color: isSignificant ? '#16a34a' : '#64748b',
-                          fontWeight: 700,
+                          color: '#716860',
+                          fontWeight: 600,
                         }}
                       >
-                        • {pValMetric.formatted}
+                        · {pValMetric.formatted}
                       </span>
                     )}
                   </div>
@@ -307,15 +284,32 @@ export const OutputViewer: React.FC<Props> = ({ results, onDeleteResult, onClear
         </div>
       </div>
 
-      {/* 2. Documento Principal con los Bloques de Resultados */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', minWidth: 0 }}>
-        {results.map(res => (
-          <AnalysisBlock
-            key={res.metadata.analysis_id}
-            result={res}
-            onDelete={onDeleteResult}
-          />
-        ))}
+      {/* Cada resultado ocupa el área de trabajo; se navega entre análisis sin una columna interminable. */}
+      <div className="analysis-output-detail">
+        {(() => {
+          const selectedIndex = results.findIndex(result => result.metadata.analysis_id === selectedId);
+          const currentIndex = selectedIndex >= 0 ? selectedIndex : 0;
+          const result = results[currentIndex];
+          return result ? (
+            <>
+              <nav className="analysis-result-navigation" aria-label="Navegación entre resultados">
+                <div>
+                  <span className="analysis-result-navigation-kicker">Resultado {currentIndex + 1} de {results.length}</span>
+                  <strong>{result.metadata.title}</strong>
+                </div>
+                <div className="analysis-result-navigation-actions">
+                  <button type="button" onClick={() => setSelectedId(results[Math.max(0, currentIndex - 1)].metadata.analysis_id)} disabled={currentIndex === 0}>
+                    <ChevronLeft size={16} /> Anterior
+                  </button>
+                  <button type="button" onClick={() => setSelectedId(results[Math.min(results.length - 1, currentIndex + 1)].metadata.analysis_id)} disabled={currentIndex === results.length - 1}>
+                    Siguiente <ChevronRight size={16} />
+                  </button>
+                </div>
+              </nav>
+              <AnalysisBlock key={result.metadata.analysis_id} result={result} onDelete={onDeleteResult} />
+            </>
+          ) : null;
+        })()}
       </div>
     </div>
   );

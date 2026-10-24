@@ -9,6 +9,7 @@ import uuid
 from typing import Dict, Any, List, Tuple
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -21,13 +22,14 @@ from backend.core.results_schema import (
     WarningSeverity,
     TechnicalDetails,
     ReproducibleCode,
+    AnalysisPlot,
 )
 
 
 class DescriptiveAnalysis(BaseAnalysis):
     analysis_type = "descriptive"
     title = "Estadísticos Descriptivos"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         columns = params.get("columns", [])
@@ -66,6 +68,8 @@ class DescriptiveAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
         num_results <- list()
@@ -114,9 +118,58 @@ class DescriptiveAnalysis(BaseAnalysis):
             }}
         }}
 
+        plot_results <- list(numeric = "", categorical = "")
+        tryCatch({{
+            numeric_cols <- c({cols_r_vector})[vapply(c({cols_r_vector}), function(col) is.numeric(datos[[col]]) && any(is.finite(datos[[col]])), logical(1))]
+            if (length(numeric_cols) > 0) {{
+                numeric_plot_data <- do.call(rbind, lapply(numeric_cols, function(col) {{
+                    data.frame(variable = col, value = as.numeric(datos[[col]]))
+                }}))
+                p_numeric <- ggplot(numeric_plot_data, aes(x = value)) +
+                    geom_histogram(bins = 24, fill = medstats_palette[1], colour = "white", linewidth = 0.35) +
+                    facet_wrap(~variable, scales = "free", ncol = 2) +
+                    labs(title = "Distribución de variables numéricas", x = "Valor", y = "Frecuencia") +
+                    theme_medstats + theme(panel.grid.major.y = element_line(colour = "#ECE7E1"))
+                plot_path <- tempfile(fileext = ".png")
+                save_medstats_plot(plot_path, p_numeric, height = max(5.5, min(10, 2.7 + ceiling(length(numeric_cols) / 2) * 2.1)))
+                plot_results$numeric <- jsonlite::base64_enc(readBin(plot_path, "raw", n = file.info(plot_path)$size))
+                unlink(plot_path)
+            }}
+
+            categorical_cols <- c({cols_r_vector})[!vapply(c({cols_r_vector}), function(col) is.numeric(datos[[col]]), logical(1))]
+            if (length(categorical_cols) > 0) {{
+                categorical_frames <- Filter(Negate(is.null), lapply(categorical_cols, function(col) {{
+                    values <- as.character(datos[[col]])
+                    counts <- sort(table(values, useNA = "no"), decreasing = TRUE)
+                    if (length(counts) == 0) return(NULL)
+                    if (length(counts) > 12) {{
+                        top_categories <- names(counts)[seq_len(12)]
+                        values[!is.na(values) & !values %in% top_categories] <- "Otros"
+                        counts <- table(values, useNA = "no")
+                    }}
+                    count_data <- data.frame(categoria = names(counts), frecuencia = as.numeric(counts), stringsAsFactors = FALSE)
+                    count_data$variable <- col
+                    count_data
+                }}))
+                if (length(categorical_frames) > 0) {{
+                    categorical_plot_data <- do.call(rbind, categorical_frames)
+                    p_categorical <- ggplot(categorical_plot_data, aes(x = reorder(categoria, frecuencia), y = frecuencia)) +
+                        geom_col(fill = medstats_palette[2], width = 0.72) +
+                        coord_flip() + facet_wrap(~variable, scales = "free", ncol = 2) +
+                        labs(title = "Distribución de variables categóricas", subtitle = "Categorías menos frecuentes agrupadas cuando hay más de 12", x = NULL, y = "Frecuencia") +
+                        theme_medstats + theme(panel.grid.major.y = element_blank())
+                    plot_path <- tempfile(fileext = ".png")
+                    save_medstats_plot(plot_path, p_categorical, height = max(5.5, min(10, 2.7 + ceiling(length(categorical_frames) / 2) * 2.1)))
+                    plot_results$categorical <- jsonlite::base64_enc(readBin(plot_path, "raw", n = file.info(plot_path)$size))
+                    unlink(plot_path)
+                }}
+            }}
+        }}, error = function(e) {{}})
+
         res <- list(
             numeric = num_results,
-            categorical = cat_results
+            categorical = cat_results,
+            plots = plot_results
         )
         cat(toJSON(res, auto_unbox = TRUE, na = "null"))
         """
@@ -210,6 +263,29 @@ class DescriptiveAnalysis(BaseAnalysis):
 
         summary_text = f"Análisis descriptivo completado para {len(columns)} variable(s) sobre una muestra de N = {total_rows} observaciones."
 
+        raw_plots = raw_r_output.get("plots", {}) or {}
+        plots = []
+        numeric_plot = raw_plots.get("numeric") if isinstance(raw_plots, dict) else None
+        categorical_plot = raw_plots.get("categorical") if isinstance(raw_plots, dict) else None
+        if numeric_plot:
+            plots.append(AnalysisPlot(
+                id="descriptive_numeric_distributions",
+                title="Distribución de variables numéricas",
+                plot_type="histogram",
+                image_base64=numeric_plot,
+                description="Histogramas para explorar forma, concentración y posibles valores extremos en las variables seleccionadas.",
+                script_r=script_r,
+            ))
+        if categorical_plot:
+            plots.append(AnalysisPlot(
+                id="descriptive_categorical_distributions",
+                title="Distribución de variables categóricas",
+                plot_type="barplot",
+                image_base64=categorical_plot,
+                description="Recuentos por categoría; en variables con más de 12 niveles, los niveles menos frecuentes se agrupan como «Otros» para mantener legible la figura.",
+                script_r=script_r,
+            ))
+
         return AnalysisResult(
             metadata=AnalysisMetadata(
                 analysis_id=analysis_id,
@@ -228,7 +304,7 @@ class DescriptiveAnalysis(BaseAnalysis):
             tables=tables,
             diagnostics=[],
             warnings=warnings,
-            plots=[],
+            plots=plots,
             technical=TechnicalDetails(
                 method="Estadística univariada no paramétrica y paramétrica",
                 r_version="R Core Team",

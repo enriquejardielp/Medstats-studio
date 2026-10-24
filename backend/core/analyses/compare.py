@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -30,7 +31,7 @@ from backend.core.results_schema import (
 class CompareTwoGroupsAnalysis(BaseAnalysis):
     analysis_type = "compare"
     title = "Comparación de Dos Grupos"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         num_var = params.get("num_var")
@@ -89,6 +90,8 @@ class CompareTwoGroupsAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -155,14 +158,15 @@ class CompareTwoGroupsAnalysis(BaseAnalysis):
         img_base64 <- ""
         tryCatch({{
             tmp_img <- tempfile(fileext = ".png")
-            png(tmp_img, width = 550, height = 360, res = 110)
-            par(mar = c(4, 4, 3, 1))
-            boxplot({r_num} ~ {r_cat}, data = datos, col = c("#dbeafe", "#fce7f3"),
-                    border = c("#1d4ed8", "#be185d"), names = c(paste0(niveles[1], " (n=", n1, ")"), paste0(niveles[2], " (n=", n2, ")")),
-                    main = "Distribución por Grupos", ylab = "{num_var}", xlab = "{cat_var}", outline = FALSE)
-            stripchart({r_num} ~ {r_cat}, data = datos, vertical = TRUE, method = "jitter",
-                       add = TRUE, pch = 21, bg = "white", col = "gray40", cex = 0.9)
-            dev.off()
+            p <- ggplot(datos, aes(x = .data[["{r_cat}"]], y = .data[["{r_num}"]], fill = .data[["{r_cat}"]])) +
+                geom_boxplot(width = 0.58, alpha = 0.72, outlier.shape = NA, colour = "#66584F", linewidth = 0.65) +
+                geom_jitter(aes(colour = .data[["{r_cat}"]]), width = 0.12, alpha = 0.58, size = 1.8, show.legend = FALSE) +
+                scale_fill_manual(values = medstats_palette[1:2]) +
+                scale_colour_manual(values = medstats_palette[1:2]) +
+                scale_x_discrete(labels = c(paste0(niveles[1], " (n=", n1, ")"), paste0(niveles[2], " (n=", n2, ")"))) +
+                labs(title = "Distribución por grupos", x = "{cat_var}", y = "{num_var}") +
+                theme_medstats
+            save_medstats_plot(tmp_img, p)
             img_base64 <- jsonlite::base64_enc(readBin(tmp_img, "raw", n = file.info(tmp_img)$size))
             unlink(tmp_img)
         }}, error = function(e) {{}})
@@ -374,7 +378,7 @@ class CompareTwoGroupsAnalysis(BaseAnalysis):
             method=test_label,
             formula=f"{num_var} ~ {cat_var}",
             degrees_of_freedom=raw_r_output.get("df"),
-            packages_used=["stats", "jsonlite"]
+            packages_used=["stats", "jsonlite", "ggplot2"]
         )
 
         # 6. Gráficos

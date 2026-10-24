@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -30,7 +31,7 @@ from backend.core.results_schema import (
 class AnovaAnalysis(BaseAnalysis):
     analysis_type = "anova"
     title = "ANOVA de un Factor / Kruskal-Wallis"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         dep_var = params.get("dep_var")
@@ -86,6 +87,8 @@ class AnovaAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -152,15 +155,15 @@ class AnovaAnalysis(BaseAnalysis):
         img_base64 <- ""
         tryCatch({{
             tmp_img <- tempfile(fileext = ".png")
-            png(tmp_img, width = 600, height = 380, res = 110)
-            par(mar = c(5, 4, 3, 1))
-            col_palette <- rainbow(k, s = 0.4, v = 0.95)
-            boxplot({r_dep} ~ {r_group}, data = datos, col = col_palette,
-                    main = "Distribución de '{dep_var}' por '{group_var}'",
-                    xlab = "{group_var}", ylab = "{dep_var}", las = 1)
-            stripchart({r_dep} ~ {r_group}, data = datos, vertical = TRUE, method = "jitter",
-                       add = TRUE, pch = 19, col = "black", cex = 0.6)
-            dev.off()
+            col_palette <- grDevices::colorRampPalette(medstats_palette)(k)
+            p <- ggplot(datos, aes(x = .data[["{r_group}"]], y = .data[["{r_dep}"]], fill = .data[["{r_group}"]])) +
+                geom_boxplot(width = 0.62, alpha = 0.72, outlier.shape = NA, colour = "#66584F", linewidth = 0.65) +
+                geom_jitter(aes(colour = .data[["{r_group}"]]), width = 0.14, alpha = 0.48, size = 1.6, show.legend = FALSE) +
+                scale_fill_manual(values = col_palette) +
+                scale_colour_manual(values = col_palette) +
+                labs(title = "Distribución por grupos", subtitle = "{dep_var} según {group_var}", x = "{group_var}", y = "{dep_var}") +
+                theme_medstats + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
+            save_medstats_plot(tmp_img, p, height = 5.8)
             img_base64 <- jsonlite::base64_enc(readBin(tmp_img, "raw", n = file.info(tmp_img)$size))
             unlink(tmp_img)
         }}, error = function(e) {{}})
@@ -349,7 +352,7 @@ class AnovaAnalysis(BaseAnalysis):
             method="ANOVA de un factor (Modelado Lineal F)" if not is_non_param else "Test de Kruskal-Wallis (Rangos)",
             formula=f"{dep_var} ~ {group_var}",
             degrees_of_freedom=[raw_r_output.get("df_between", 1), raw_r_output.get("df_within", total_n - 2)] if not is_non_param else raw_r_output.get("kw_df", 1),
-            packages_used=["stats", "jsonlite"]
+            packages_used=["stats", "jsonlite", "ggplot2"]
         )
 
         # 6. Gráficos

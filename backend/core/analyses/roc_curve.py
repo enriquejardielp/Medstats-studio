@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from backend.core.base_analysis import BaseAnalysis
+from backend.core.plot_style import R_PLOT_STYLE
 from backend.core.results_schema import (
     AnalysisResult,
     AnalysisMetadata,
@@ -30,7 +31,7 @@ from backend.core.results_schema import (
 class RocCurveAnalysis(BaseAnalysis):
     analysis_type = "roc-curve"
     title = "Curva ROC y Precisión Diagnóstica"
-    required_packages = ["jsonlite"]
+    required_packages = ["jsonlite", "ggplot2"]
 
     def validate_data(self, df: pd.DataFrame, params: dict) -> Tuple[pd.DataFrame, List[AnalysisWarning]]:
         outcome = params.get("outcome")
@@ -76,6 +77,8 @@ class RocCurveAnalysis(BaseAnalysis):
 
         return f"""
         library(jsonlite)
+        library(ggplot2)
+        {R_PLOT_STYLE}
 
         datos <- read.csv('{data_path}', check.names = FALSE, encoding = 'UTF-8-sig')
 
@@ -144,20 +147,19 @@ class RocCurveAnalysis(BaseAnalysis):
         img_base64 <- ""
         tryCatch({{
             tmp_img <- tempfile(fileext = ".png")
-            png(tmp_img, width = 550, height = 450, res = 110)
-            par(mar = c(4.5, 4.5, 3, 2))
-            plot(fpr_s, tpr_s, type = "l", lwd = 3, col = "#2563eb",
-                 xlab = "1 - Especificidad (Tasa de Falsos Positivos)",
-                 ylab = "Sensibilidad (Tasa de Verdaderos Positivos)",
-                 main = paste0("Curva ROC (AUC = ", sprintf("%.3f", auc_val), ")"),
-                 xlim = c(0, 1), ylim = c(0, 1))
-            abline(0, 1, lty = 2, col = "#94a3b8", lwd = 1.5)
-            grid(col = "#e2e8f0")
-            points(1 - opt_spec, opt_sens, pch = 19, col = "#dc2626", cex = 1.5)
-            text(1 - opt_spec + 0.05, opt_sens - 0.05,
-                 labels = paste0("Punto óptimo: ", sprintf("%.2f", opt_cutoff), "\\n(S=", sprintf("%.2f", opt_sens), ", E=", sprintf("%.2f", opt_spec), ")"),
-                 adj = 0, cex = 0.85, col = "#991b1b")
-            dev.off()
+            roc_data <- data.frame(fpr = fpr_s, tpr = tpr_s)
+            optimal_point <- data.frame(fpr = 1 - opt_spec, tpr = opt_sens)
+            p <- ggplot(roc_data, aes(x = fpr, y = tpr)) +
+                geom_abline(intercept = 0, slope = 1, colour = "#B8AEA4", linetype = "dashed", linewidth = 0.8) +
+                geom_line(colour = medstats_palette[1], linewidth = 1.35, linejoin = "round") +
+                geom_point(data = optimal_point, colour = medstats_palette[2], size = 3.2) +
+                annotate("label", x = min(0.98, optimal_point$fpr + 0.13), y = max(0.04, optimal_point$tpr - 0.10),
+                         label = paste0("Corte óptimo: ", sprintf("%.2f", opt_cutoff), "\\nSensibilidad ", sprintf("%.2f", opt_sens), " · Especificidad ", sprintf("%.2f", opt_spec)),
+                         hjust = 0.5, size = 3.1, colour = "#514941", fill = "white", label.size = 0.25) +
+                coord_equal(xlim = c(0, 1), ylim = c(0, 1), expand = FALSE) +
+                labs(title = "Curva ROC", subtitle = paste0("AUC = ", sprintf("%.3f", auc_val)), x = "1 − especificidad", y = "Sensibilidad") +
+                theme_medstats + theme(panel.grid.major = element_line(colour = "#ECE7E1"))
+            save_medstats_plot(tmp_img, p, width = 7.5, height = 6.5)
             img_base64 <- jsonlite::base64_enc(readBin(tmp_img, "raw", n = file.info(tmp_img)$size))
             unlink(tmp_img)
         }}, error = function(e) {{}})
@@ -313,7 +315,7 @@ class RocCurveAnalysis(BaseAnalysis):
         technical = TechnicalDetails(
             method="Análisis de Curva ROC no paramétrico con intervalos de confianza de Hanley-McNeil",
             formula=f"{outcome} ~ {predictor}",
-            packages_used=["stats", "jsonlite"]
+            packages_used=["stats", "jsonlite", "ggplot2"]
         )
 
         # 6. Gráficos

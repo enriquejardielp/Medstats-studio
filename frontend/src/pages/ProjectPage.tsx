@@ -2490,4 +2490,52 @@ const ProjectPage: React.FC = () => {
                 <Sparkles size={16} /> Nuevo análisis
               </button>
             </div>
-        
+          </header>
+          <div className="project-results-content">
+            {outputResults.length > 0 ? (
+              <OutputViewer
+                results={outputResults}
+                onDeleteResult={handleDeleteOutputResult}
+                onClearAll={handleClearAllOutputs}
+                initialSelectedId={viewingHistoryId}
+              />
+            ) : (
+              <div className="project-results-empty">
+                <div className="project-results-empty-icon"><BarChart3 size={26} /></div>
+                <h2>Aún no hay resultados</h2>
+                <p>Ejecuta un análisis desde la base de datos y aparecerá aquí para que puedas consultarlo después.</p>
+                <button type="button" className="ms-btn ms-btn-primary" onClick={openNewAnalysis}>
+                  <Sparkles size={16} /> Lanzar un análisis
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+      )}
+
+      {/* ESTILOS EMBEBIDOS */}
+      <style>{`
+        .numeric-header::after {
+          content: ' [123]';
+          font-size: 0.65rem;
+          color: #53615A;
+          margin-left: 4px;
+          font-weight: 400;
+        }
+        .categorical-header::after {
+          content: ' [Abc]';
+          font-size: 0.65rem;
+          color: #53615A;
+          margin-left: 4px;
+          font-weight: 400;
+        }
+        .ag-cell-invalid {
+          background-color: #fef2f2 !important;
+          border: 1px solid #fca5a5 !important;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default ProjectPage;

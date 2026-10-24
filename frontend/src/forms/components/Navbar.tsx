@@ -37,12 +37,12 @@ export function Navbar(props: NavbarProps) {
         <div className="ecrf-heading">
           <div className="ecrf-mark"><FileSpreadsheet size={19} /></div>
           <div className="ecrf-heading-copy">
-            <div className="ecrf-kicker">Cuaderno de recogida de datos</div>
+            <div className="ecrf-kicker">Espacio clínico · eCRF</div>
             <div className="ecrf-title-row">
               <h1>{activeForm?.title || 'Formulario eCRF'}</h1>
               {currentProjectName && <span className="ecrf-project"><Layers size={13} />{currentProjectName}</span>}
             </div>
-            <div className="ecrf-summary">{recordCount} {recordCount === 1 ? 'caso registrado' : 'casos registrados'} · {activeForm?.fields.length || 0} variables</div>
+            <div className="ecrf-summary">{currentProjectName ? `Estudio vinculado a ${currentProjectName}` : 'Captura, revisa y prepara los datos de tu estudio'}</div>
           </div>
         </div>
         <div className="ecrf-controls">
@@ -63,14 +63,22 @@ export function Navbar(props: NavbarProps) {
           </details>
         </div>
       </div>
-      <nav className="ecrf-tabs" aria-label="Secciones del eCRF">
+      <div className="ecrf-workspace-strip">
+        <div className="ecrf-workspace-label">
+          <span>Tu espacio de trabajo</span>
+          <strong>{recordCount} {recordCount === 1 ? 'caso' : 'casos'} <i>·</i> {activeForm?.fields.length || 0} variables</strong>
+        </div>
+        <nav className="ecrf-tabs" aria-label="Secciones del eCRF">
         {tabs.map(({ id, label, icon: Icon, description }) => <button
           key={id} type="button" onClick={() => setActiveTab(id)} title={description}
           aria-current={activeTab === id ? 'page' : undefined}
           className={`ecrf-tab${activeTab === id ? ' is-active' : ''}`}>
-          <Icon size={16} /><span>{label}</span>{id === 'records' && <span className="ecrf-tab-count">{recordCount}</span>}
+          <span className="ecrf-tab-icon"><Icon size={17} /></span>
+          <span className="ecrf-tab-copy"><strong>{label}</strong><small>{description}</small></span>
+          {id === 'records' && <span className="ecrf-tab-count">{recordCount}</span>}
         </button>)}
-      </nav>
+        </nav>
+      </div>
     </header>
   );
 }

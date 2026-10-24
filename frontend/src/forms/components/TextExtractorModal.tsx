@@ -238,8 +238,8 @@ export function TextExtractorModal({
   const selectedCount = Object.values(selectedMatches).filter(Boolean).length;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-lg border border-slate-200 shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="ecrf-modal-backdrop fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="ecrf-modal ecrf-modal-extractor bg-white rounded-lg border border-slate-200 shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Header */}
         <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">

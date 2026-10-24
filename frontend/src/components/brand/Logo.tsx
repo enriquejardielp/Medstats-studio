@@ -4,21 +4,24 @@ interface LogoProps {
   showText?: boolean;
 }
 
-// Marca de MedStats: curva escalonada tipo Kaplan-Meier sobre unos ejes
+// Marca de MedStats: gráfico de tendencia y barras en una paleta serena.
 export function LogoMark({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="#252422" />
-      <path d="M7 9v14h18" stroke="#CCC5B9" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      <path d="M8 11h4v3h4v4h3v2h5" stroke="#EB5E28" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="24" cy="20" r="1.8" fill="#EB5E28" />
+      <rect width="32" height="32" rx="10" fill="#58796F" />
+      <path d="M7 23.5h18" stroke="#DDE8E2" strokeWidth="1.35" strokeLinecap="round" opacity=".8" />
+      <rect x="8" y="16" width="3.2" height="7.5" rx="1.4" fill="#E7EFEB" opacity=".75" />
+      <rect x="14.4" y="11.5" width="3.2" height="12" rx="1.4" fill="#E7EFEB" opacity=".88" />
+      <rect x="20.8" y="7.5" width="3.2" height="16" rx="1.4" fill="#FFFFFF" />
+      <path d="m8.5 13.5 6-4 6.2 1.5 3-3" stroke="#B8D0C5" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="23.7" cy="8" r="1.65" fill="#F7F8F6" />
     </svg>
   );
 }
 
 export default function Logo({ size = 36, variant = 'dark', showText = true }: LogoProps) {
   const textColor = variant === 'light' ? '#FFFFFF' : 'var(--color-ink)';
-  const subColor = variant === 'light' ? '#CCC5B9' : 'var(--color-text-secondary)';
+  const subColor = variant === 'light' ? '#D6E0DB' : 'var(--color-text-secondary)';
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
       <LogoMark size={size} />

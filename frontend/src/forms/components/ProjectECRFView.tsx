@@ -205,7 +205,7 @@ export const ProjectECRFView: React.FC<ProjectECRFViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 overflow-y-auto">
+    <div className="ecrf-project-view flex-1 flex flex-col h-full bg-slate-50 overflow-y-auto">
       {/* Barra Superior del eCRF del Proyecto */}
       <div className="bg-white border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20 shadow-2xs">
         <div className="flex items-center gap-3">
@@ -281,7 +281,7 @@ export const ProjectECRFView: React.FC<ProjectECRFViewProps> = ({
       )}
 
       {/* Pestañas secundarias de navegación del eCRF */}
-      <div className="bg-white border-b border-slate-200 px-6 py-2 flex items-center gap-1 overflow-x-auto">
+      <div className="ecrf-project-tabs bg-white border-b border-slate-200 px-6 py-2 flex items-center gap-1 overflow-x-auto">
         <button
           onClick={() => setActiveTab('intake')}
           className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${

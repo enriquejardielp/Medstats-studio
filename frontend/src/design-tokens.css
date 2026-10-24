@@ -5,50 +5,50 @@
 
   /* 1. Paleta de Colores Global */
   /* Fondo principal (predominante) */
-  --color-bg: #FFFCF2;
-  --color-bg-deep: #F5EFE6;
-  --color-bg-subtle: #F7F4EB;
+  --color-bg: #F5F7F5;
+  --color-bg-deep: #EDF1EE;
+  --color-bg-subtle: #F1F4F2;
 
   /* Superficies, bordes y divisores */
   --color-surface: #FFFFFF;
-  --color-surface-muted: #F8F6F0;
-  --color-border: #CCC5B9;
-  --color-border-strong: #CCC5B9;
-  --color-border-subtle: #E6E1D8;
-  --color-divider: #CCC5B9;
+  --color-surface-muted: #F8FAF8;
+  --color-border: #DCE4DF;
+  --color-border-strong: #C8D4CD;
+  --color-border-subtle: #E8EEEA;
+  --color-divider: #DCE4DF;
 
   /* Texto secundario / elementos neutros */
-  --color-text-secondary: #403D39;
-  --color-text-tertiary: #6E6A63;
-  --color-neutral-muted: #8A847A;
+  --color-text-secondary: #53615A;
+  --color-text-tertiary: #748078;
+  --color-neutral-muted: #98A39C;
 
   /* Texto principal / header / sidebar */
-  --color-text-primary: #252422;
-  --color-ink: #252422;
-  --color-ink-soft: #403D39;
-  --color-sidebar-bg: #252422;
-  --color-sidebar-text: #CCC5B9;
-  --color-sidebar-border: #403D39;
-  --color-header-bg: #FFFCF2;
-  --color-header-border: #CCC5B9;
+  --color-text-primary: #29342E;
+  --color-ink: #29342E;
+  --color-ink-soft: #53615A;
+  --color-sidebar-bg: #EEF3F0;
+  --color-sidebar-text: #52645B;
+  --color-sidebar-border: #DCE4DF;
+  --color-header-bg: #FFFFFF;
+  --color-header-border: #DCE4DF;
 
   /* Acento (CTAs, estados activos, focos) */
-  --color-accent: #EB5E28;
-  --color-accent-hover: #D84F1B;
-  --color-accent-strong: #D84F1B;
-  --color-accent-soft: rgba(235, 94, 40, 0.12);
-  --color-accent-glow: rgba(235, 94, 40, 0.25);
-  --color-action: #EB5E28;
-  --color-action-hover: #D84F1B;
-  --color-focus: #EB5E28;
+  --color-accent: #587D71;
+  --color-accent-hover: #466B60;
+  --color-accent-strong: #42655B;
+  --color-accent-soft: rgba(88, 125, 113, 0.12);
+  --color-accent-glow: rgba(88, 125, 113, 0.18);
+  --color-action: #587D71;
+  --color-action-hover: #466B60;
+  --color-focus: #587D71;
 
   /* Feedback contextual */
-  --color-success: #2F8F5B;
-  --color-success-soft: #E8F5EE;
-  --color-warning: #C98A1B;
-  --color-warning-soft: #FEF7EA;
-  --color-error: #C2413A;
-  --color-error-soft: #FDEEE9;
+  --color-success: #4E806A;
+  --color-success-soft: #EAF3ED;
+  --color-warning: #A77D3F;
+  --color-warning-soft: #F7F2E8;
+  --color-error: #B45F59;
+  --color-error-soft: #F8ECEA;
 
   /* 2. Tipografía Unificada */
   --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -64,10 +64,10 @@
   --radius-pill: 9999px;
 
   /* 4. Sombras Unificadas */
-  --shadow-xs: 0 1px 2px rgba(37, 36, 34, 0.04);
-  --shadow-sm: 0 1px 3px rgba(37, 36, 34, 0.06);
-  --shadow-md: 0 4px 12px -2px rgba(37, 36, 34, 0.08), 0 2px 4px -1px rgba(37, 36, 34, 0.04);
-  --shadow-lg: 0 12px 28px -6px rgba(37, 36, 34, 0.12), 0 4px 10px -2px rgba(37, 36, 34, 0.06);
+  --shadow-xs: 0 1px 2px rgba(41, 52, 46, 0.035);
+  --shadow-sm: 0 1px 3px rgba(41, 52, 46, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(41, 52, 46, 0.07), 0 2px 4px -1px rgba(41, 52, 46, 0.03);
+  --shadow-lg: 0 12px 28px -6px rgba(41, 52, 46, 0.1), 0 4px 10px -2px rgba(41, 52, 46, 0.04);
 
   /* 5. Dimensiones Unificadas */
   --header-height: 3.75rem;

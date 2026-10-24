@@ -537,7 +537,7 @@ export function FormBuilder({
       </div>
 
       {/* Two-Panel Layout on Desktop: Structure (Left) & Field Editor (Right) */}
-      <div className="ms-form-builder-layout">
+      <div className={`ms-form-builder-layout ${editingField ? 'has-active-editor' : 'is-idle'}`}>
         {/* LEFT PANEL: Sections & Variables Structure Tree */}
         <div className="space-y-5">
           {/* Sections Toolbar & Creation Bar */}

@@ -368,7 +368,7 @@ export default function FormsPage() {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100%', background: 'var(--color-bg)' }}>
+    <div className="ecrf-page" style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100%', background: 'var(--color-bg)' }}>
       {/* Barra de Proyecto Vinculado */}
       {linkedProject && (
         <div style={{
@@ -418,8 +418,8 @@ export default function FormsPage() {
 
       {/* ESTADO INICIAL LIMPIO: Si no hay formularios creados */}
       {forms.length === 0 || !activeForm ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1.5rem' }}>
-          <div className="ms-card slide-up" style={{ maxWidth: '580px', width: '100%', padding: '3.25rem 2.25rem', textAlign: 'center' }}>
+        <div className="ecrf-empty-state" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1.5rem' }}>
+          <div className="ecrf-empty-card ms-card slide-up" style={{ maxWidth: '720px', width: '100%', padding: '3rem 2.5rem', textAlign: 'center' }}>
             <div style={{
               width: '4rem',
               height: '4rem',
@@ -450,7 +450,7 @@ export default function FormsPage() {
               Crea un cuaderno eCRF con validaciones en tiempo real para tu estudio, o carga una plantilla clínica preconfigurada lista para recolectar datos.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'center' }}>
+            <div className="ecrf-empty-actions" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'center' }}>
               <button
                 type="button"
                 onClick={() => handleCreateNewForm('Nuevo Formulario Clínico', 'PAC-')}
@@ -502,7 +502,7 @@ export default function FormsPage() {
 
           {/* Banner de Productividad Clínica Descartable */}
           {showHelperBanner && activeTab === 'intake' && (
-            <div style={{
+            <div className="ecrf-helper-banner" style={{
               background: 'var(--color-bg-subtle, #F7F4EB)',
               borderBottom: '1px solid var(--color-border)',
               padding: '0.65rem 1.75rem',

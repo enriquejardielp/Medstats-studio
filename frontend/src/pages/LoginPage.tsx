@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../auth/authContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import AuthShell from '../components/brand/AuthShell';
 
 const LoginPage: React.FC = () => {
@@ -151,6 +151,13 @@ const LoginPage: React.FC = () => {
           )}
         </button>
       </form>
+      <aside className="ms-auth-project-notice" role="note" aria-label="Aviso sobre el proyecto">
+        <ShieldAlert size={19} aria-hidden="true" />
+        <div>
+          <strong>Proyecto en construcción</strong>
+          <p>La seguridad de esta aplicación no está asegurada. No introduzcas datos personales, clínicos identificables ni ningún otro dato sensible.</p>
+        </div>
+      </aside>
     </AuthShell>
   );
 };

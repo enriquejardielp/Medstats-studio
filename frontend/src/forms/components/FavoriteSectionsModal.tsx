@@ -147,8 +147,8 @@ export function FavoriteSectionsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg border border-slate-200 shadow-xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="ecrf-modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="ecrf-modal ecrf-modal-favorites bg-white rounded-lg border border-slate-200 shadow-xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-2">

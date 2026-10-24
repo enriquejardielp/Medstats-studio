@@ -264,8 +264,8 @@ export function DataTable({
 
       {/* Quick Edit Record Modal */}
       {selectedRecordForEdit && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="ms-form-card max-w-2xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-xl">
+        <div className="ecrf-modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="ecrf-modal ecrf-modal-edit-record ms-form-card max-w-2xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-xl">
             <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-[var(--color-accent)]" />

@@ -20,6 +20,7 @@ import {
   Layers,
   Sparkles,
   SlidersHorizontal,
+  Search,
 } from 'lucide-react';
 import apiClient from '../api/client';
 import type { ColumnType } from '../types';
@@ -39,40 +40,15 @@ class TypeSelectorHeader {
     const onTypeChange = params.onTypeChange;
 
     this.eGui = document.createElement('div');
-    this.eGui.style.display = 'flex';
-    this.eGui.style.flexDirection = 'column';
-    this.eGui.style.alignItems = 'flex-start';
-    this.eGui.style.justifyContent = 'center';
-    this.eGui.style.width = '100%';
-    this.eGui.style.padding = '6px 10px';
-    this.eGui.style.gap = '5px';
+    this.eGui.className = 'project-grid-column-header';
 
     const nameSpan = document.createElement('span');
-    nameSpan.style.fontSize = '14px';
-    nameSpan.style.fontWeight = '700';
-    nameSpan.style.color = '#252422';
-    nameSpan.style.maxWidth = '100%';
-    nameSpan.style.overflow = 'hidden';
-    nameSpan.style.textOverflow = 'ellipsis';
-    nameSpan.style.whiteSpace = 'nowrap';
-    nameSpan.style.lineHeight = '1.3';
-    nameSpan.style.letterSpacing = '-0.01em';
+    nameSpan.className = 'project-grid-column-name';
     nameSpan.textContent = displayName;
     nameSpan.title = displayName;
 
     const select = document.createElement('select');
-    select.style.fontSize = '12px';
-    select.style.fontWeight = '600';
-    select.style.padding = '4px 8px';
-    select.style.borderRadius = '4px';
-    select.style.border = '1px solid #CCC5B9';
-    select.style.background = '#FFFFFF';
-    select.style.color = '#252422';
-    select.style.cursor = 'pointer';
-    select.style.height = '30px';
-    select.style.width = '100%';
-    select.style.outline = 'none';
-    select.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.04)';
+    select.className = 'project-grid-type-select';
 
     const typeLabels: Record<string, string> = {
       numeric: '123 Numérica',
@@ -138,7 +114,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Estadística Descriptiva',
     category: '1. Descriptiva y Basal',
     badge: 'Media, DE, Mediana, IQR',
-    icon: <BarChart3 size={18} color="#EB5E28" />,
+    icon: <BarChart3 size={18} color="#587D71" />,
     description: 'Resumen numérico y categórico univariado con test de normalidad.',
     requiredTypes: { numeric: 1, categorical: 0 },
     allowMore: true,
@@ -148,7 +124,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Tabla 1 Basal (Lancet / NEJM)',
     category: '1. Descriptiva y Basal',
     badge: 'Características Basales',
-    icon: <Table2 size={18} color="#EB5E28" />,
+    icon: <Table2 size={18} color="#587D71" />,
     description: 'Demografía y variables basales estratificadas con comparaciones.',
     requiredTypes: { numeric: 1, categorical: 0 },
     allowMore: true,
@@ -158,7 +134,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Comparar 2 Grupos (t / Mann-Whitney)',
     category: '2. Comparación de Grupos',
     badge: 't de Student / Welch / U',
-    icon: <GitCompare size={18} color="#EB5E28" />,
+    icon: <GitCompare size={18} color="#587D71" />,
     description: 'Diferencia de medias o rangos para muestras independientes o pareadas.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -168,7 +144,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Comparar 3+ Grupos (ANOVA / Kruskal)',
     category: '2. Comparación de Grupos',
     badge: 'ANOVA / Kruskal-Wallis',
-    icon: <Layers size={18} color="#EB5E28" />,
+    icon: <Layers size={18} color="#587D71" />,
     description: 'Prueba F global, homocedasticidad de Levene y comparaciones post-hoc Tukey.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -178,7 +154,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Correlación Bivariada',
     category: '3. Asociación y Contingencia',
     badge: 'Pearson / Spearman',
-    icon: <TrendingUp size={18} color="#EB5E28" />,
+    icon: <TrendingUp size={18} color="#587D71" />,
     description: 'Fuerza y dirección de asociación lineal o monótona con IC 95%.',
     requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: false,
@@ -188,7 +164,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Tablas de Contingencia (Chi² / Fisher)',
     category: '3. Asociación y Contingencia',
     badge: 'Odds Ratio / Riesgo Relativo',
-    icon: <Sparkles size={18} color="#EB5E28" />,
+    icon: <Sparkles size={18} color="#587D71" />,
     description: 'Asociación entre cualitativas, corrección de Yates y corrección de Haldane.',
     requiredTypes: { numeric: 0, categorical: 2 },
     allowMore: false,
@@ -198,7 +174,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Regresión Lineal Múltiple',
     category: '4. Modelos Predictivos',
     badge: 'Ajuste de Covariables',
-    icon: <SlidersHorizontal size={18} color="#EB5E28" />,
+    icon: <SlidersHorizontal size={18} color="#587D71" />,
     description: 'Estimación de coeficientes beta, R² ajustado y diagnóstico de residuos.',
     requiredTypes: { numeric: 2, categorical: 0 },
     allowMore: true,
@@ -208,7 +184,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Regresión Logística Binaria',
     category: '4. Modelos Predictivos',
     badge: 'Odds Ratios Ajustados',
-    icon: <Activity size={18} color="#EB5E28" />,
+    icon: <Activity size={18} color="#587D71" />,
     description: 'Modelado de desenlace clínico binario con Hosmer-Lemeshow y Nagelkerke.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: true,
@@ -218,7 +194,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Curva ROC & Biomarcadores',
     category: '5. Medicina Diagnóstica & Supervivencia',
     badge: 'AUC & Índice Youden',
-    icon: <Activity size={18} color="#EB5E28" />,
+    icon: <Activity size={18} color="#587D71" />,
     description: 'Capacidad diagnóstica, sensibilidad, especificidad y punto de corte.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -228,7 +204,7 @@ const analysisOptions: AnalysisOption[] = [
     label: 'Supervivencia Kaplan-Meier',
     category: '5. Medicina Diagnóstica & Supervivencia',
     badge: 'Curvas & Log-Rank Test',
-    icon: <Activity size={18} color="#EB5E28" />,
+    icon: <Activity size={18} color="#587D71" />,
     description: 'Tiempo hasta el evento, medianas de supervivencia y contraste Log-Rank.',
     requiredTypes: { numeric: 1, categorical: 1 },
     allowMore: false,
@@ -242,6 +218,7 @@ const ProjectPage: React.FC = () => {
 
   const [project, setProject] = useState<ProjectInfo | null>(null);
   const [rowData, setRowData] = useState<RowData[]>([]);
+  const [gridSearch, setGridSearch] = useState('');
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
   const [columnTypes, setColumnTypes] = useState<Record<string, ColumnType>>({});
   const [loading, setLoading] = useState(true);
@@ -426,6 +403,9 @@ const ProjectPage: React.FC = () => {
     if (!selectedAnalysis) return selectedVars;
 
     switch (selectedAnalysis.id) {
+      case 'descriptive':
+      case 'table1':
+        return (selectedRoleValues.columns as string[] | undefined) || [];
       case 'linear-regression':
       case 'logistic-regression': {
         const depVar = selectedRoleValues.dep_var as string | undefined;
@@ -943,9 +923,10 @@ const ProjectPage: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', background: 'var(--color-bg)' }}>
+    <div className="project-page" style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', background: 'var(--color-bg)' }}>
       {/* HEADER DEL PROYECTO */}
       <header
+        className="project-topbar"
         style={{
           height: '60px',
           background: 'var(--color-bg)',
@@ -1063,20 +1044,41 @@ const ProjectPage: React.FC = () => {
       )}
 
       {/* CONTENEDOR PRINCIPAL */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div className="project-workspace" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <div
+          className="project-grid-pane"
           style={{
             flex: 1,
             minWidth: 0,
             height: '100%',
           }}
         >
-          <div className="ag-theme-alpine" style={{ height: '100%', width: '100%' }}>
+          <div className="project-grid-toolbar">
+            <div className="project-grid-intro">
+              <span className="project-grid-kicker">Datos del estudio</span>
+              <strong>{rowData.length.toLocaleString()} registros <span>·</span> {columnDefs.length} variables</strong>
+            </div>
+            <label className="project-grid-search">
+              <Search size={17} aria-hidden="true" />
+              <input
+                type="search"
+                value={gridSearch}
+                onChange={(event) => setGridSearch(event.target.value)}
+                placeholder="Buscar en los datos…"
+                aria-label="Buscar en las filas del proyecto"
+              />
+              {gridSearch && <button type="button" onClick={() => setGridSearch('')} aria-label="Limpiar búsqueda"><X size={15} /></button>}
+            </label>
+            <span className="project-grid-hint">Edita celdas y cambia el tipo desde cada columna</span>
+          </div>
+          <div className="ag-theme-alpine project-data-grid">
             <AgGridReact
               ref={gridRef}
               rowData={rowData}
+              quickFilterText={gridSearch}
               columnDefs={columnDefs}
-              headerHeight={70}
+              headerHeight={82}
+              rowHeight={48}
               defaultColDef={{
                 sortable: true,
                 filter: true,
@@ -1084,9 +1086,12 @@ const ProjectPage: React.FC = () => {
                 minWidth: 160,
                 flex: 1,
                 editable: true,
+                wrapHeaderText: true,
+                autoHeaderHeight: true,
               }}
               pagination={true}
-              paginationPageSize={100}
+              paginationPageSize={50}
+              animateRows={true}
             />
           </div>
         </div>
@@ -1270,19 +1275,19 @@ const ProjectPage: React.FC = () => {
 
                     <div
                       style={{
-                        background: 'linear-gradient(135deg, #FFFCF2 0%, #F5EFE6 100%)',
-                        border: '1px solid #CCC5B9',
+                        background: 'linear-gradient(135deg, #F5F7F5 0%, #EDF1EE 100%)',
+                        border: '1px solid #DCE4DF',
                         borderRadius: '10px',
                         padding: '1rem 1.25rem',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
-                        <Sparkles size={15} color="#EB5E28" />
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#D84F1B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <Sparkles size={15} color="#587D71" />
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#466B60', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Catálogo de Procedimientos Estadísticos
                         </span>
                       </div>
-                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#403D39', lineHeight: 1.45 }}>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#53615A', lineHeight: 1.45 }}>
                         Selecciona un test estadístico para configurar las variables clínicas, ajustar covariables de confusión y verificar supuestos con el motor R.
                       </p>
                     </div>
@@ -1297,18 +1302,18 @@ const ProjectPage: React.FC = () => {
                             style={{
                               fontSize: '0.74rem',
                               fontWeight: 800,
-                              color: '#403D39',
+                              color: '#53615A',
                               textTransform: 'uppercase',
                               letterSpacing: '0.06em',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.5rem',
                               paddingBottom: '0.25rem',
-                              borderBottom: '1px solid #F5EFE6',
+                              borderBottom: '1px solid #EDF1EE',
                             }}
                           >
                             <span>{categoryName}</span>
-                            <span style={{ color: '#CCC5B9' }}>({optionsInCategory.length})</span>
+                            <span style={{ color: '#DCE4DF' }}>({optionsInCategory.length})</span>
                           </div>
 
                           <div
@@ -1328,22 +1333,22 @@ const ProjectPage: React.FC = () => {
                                   gap: '0.85rem',
                                   padding: '0.9rem 1rem',
                                   background: 'white',
-                                  border: '1px solid #CCC5B9',
+                                  border: '1px solid #DCE4DF',
                                   borderRadius: '10px',
                                   cursor: 'pointer',
                                   textAlign: 'left',
                                   transition: 'all 0.15s ease',
-                                  color: '#252422',
+                                  color: '#29342E',
                                   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                                 }}
                                 onMouseEnter={e => {
-                                  e.currentTarget.style.borderColor = 'rgba(235, 94, 40, 0.4)';
-                                  e.currentTarget.style.backgroundColor = '#FFFCF2';
+                                  e.currentTarget.style.borderColor = 'rgba(88, 125, 113, 0.48)';
+                                  e.currentTarget.style.backgroundColor = '#F5F7F5';
                                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.05)';
                                   e.currentTarget.style.transform = 'translateY(-1px)';
                                 }}
                                 onMouseLeave={e => {
-                                  e.currentTarget.style.borderColor = '#CCC5B9';
+                                  e.currentTarget.style.borderColor = '#DCE4DF';
                                   e.currentTarget.style.backgroundColor = 'white';
                                   e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
                                   e.currentTarget.style.transform = 'translateY(0)';
@@ -1354,7 +1359,7 @@ const ProjectPage: React.FC = () => {
                                     width: '36px',
                                     height: '36px',
                                     borderRadius: '8px',
-                                    backgroundColor: '#F5EFE6',
+                                    backgroundColor: '#EDF1EE',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -1367,15 +1372,15 @@ const ProjectPage: React.FC = () => {
 
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '3px' }}>
-                                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#252422' }}>
+                                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#29342E' }}>
                                       {option.label}
                                     </div>
                                     {option.badge && (
                                       <span
                                         style={{
-                                          backgroundColor: '#e7f4f2',
-                                          color: '#D84F1B',
-                                          border: '1px solid #b6ddd8',
+                                          backgroundColor: '#EFF5F1',
+                                          color: '#466B60',
+                                          border: '1px solid #C4D9CE',
                                           fontSize: '0.66rem',
                                           fontWeight: 700,
                                           padding: '1px 6px',
@@ -1388,7 +1393,7 @@ const ProjectPage: React.FC = () => {
                                     )}
                                   </div>
 
-                                  <div style={{ fontSize: '0.76rem', color: '#403D39', lineHeight: 1.4 }}>
+                                  <div style={{ fontSize: '0.76rem', color: '#53615A', lineHeight: 1.4 }}>
                                     {option.description}
                                   </div>
                                 </div>
@@ -1402,7 +1407,7 @@ const ProjectPage: React.FC = () => {
                 ) : (
                   <div>
                     {history.length === 0 ? (
-                      <div style={{ textAlign: 'center', color: '#403D39', padding: '2rem 1rem' }}>
+                      <div style={{ textAlign: 'center', color: '#53615A', padding: '2rem 1rem' }}>
                         <History size={32} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
                         <p>No hay análisis previos en esta sesión.</p>
                       </div>
@@ -1443,6 +1448,7 @@ const ProjectPage: React.FC = () => {
       {/* MODAL DE SELECCIÓN DE VARIABLES */}
       {modalOpen && selectedAnalysis && (
         <div
+          className="project-analysis-backdrop"
           style={{
             position: 'fixed',
             inset: 0,
@@ -1456,6 +1462,7 @@ const ProjectPage: React.FC = () => {
           onClick={closeModal}
         >
           <div
+            className="project-analysis-modal"
             style={{
               background: 'white',
               width: '100%',
@@ -1471,47 +1478,47 @@ const ProjectPage: React.FC = () => {
           >
             <div
               style={{
-                background: '#FFFCF2',
-                borderBottom: '1px solid #CCC5B9',
+                background: '#F5F7F5',
+                borderBottom: '1px solid #DCE4DF',
                 padding: '1rem 1.5rem',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#334155', fontSize: '0.85rem' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#252422', fontWeight: 600 }}>
-                  <span style={{ width: '2rem', height: '2rem', borderRadius: '0.75rem', background: '#EB5E28', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#53615A', fontSize: '0.85rem' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#29342E', fontWeight: 600 }}>
+                  <span style={{ width: '2rem', height: '2rem', borderRadius: '0.75rem', background: '#587D71', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                     <BarChart3 size={16} />
                   </span>
                   MedStats Analytics
                 </span>
-                <span style={{ color: '#403D39' }}>/</span>
+                <span style={{ color: '#53615A' }}>/</span>
                 <span>{project?.name || 'Proyecto Actual'}</span>
-                <span style={{ color: '#403D39' }}>/</span>
-                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
+                <span style={{ color: '#53615A' }}>/</span>
+                <span style={{ background: '#EAF1ED', color: '#42655B', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
                   {project?.filename || 'Dataset activo'}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <button title="Cerrar modal" onClick={closeModal} style={{ border: 'none', background: 'transparent', color: '#403D39', cursor: 'pointer', fontSize: '1.25rem' }}>
+                <button title="Cerrar modal" onClick={closeModal} style={{ border: 'none', background: 'transparent', color: '#53615A', cursor: 'pointer', fontSize: '1.25rem' }}>
                   <X size={24} />
                 </button>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              <div style={{ width: '65%', padding: '1.5rem', overflowY: 'auto', background: '#FFFCF2', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="project-analysis-content" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              <div className="project-analysis-options" style={{ width: '65%', padding: '1.5rem', overflowY: 'auto', background: '#F5F7F5', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#252422' }}>Configuración del análisis estadístico</h2>
-                  <p style={{ marginTop: '0.65rem', fontSize: '0.95rem', color: '#403D39', lineHeight: 1.7 }}>
+                  <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#29342E' }}>Configuración del análisis estadístico</h2>
+                  <p style={{ marginTop: '0.65rem', fontSize: '0.95rem', color: '#53615A', lineHeight: 1.7 }}>
                     Selecciona las variables clave e incorpora covariables para ajustar tu modelo. El panel está diseñado para guiar tu flujo como si fuera un tablero de Jira, con pasos claros y recomendaciones inteligentes.
                   </p>
                 </div>
 
-                <div style={{ background: 'white', border: '1px solid #CCC5B9', borderRadius: '18px', padding: '1rem', display: 'grid', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#164e63', fontWeight: 700, fontSize: '0.8rem' }}>
-                    <span style={{ width: '0.75rem', height: '0.75rem', borderRadius: '999px', background: '#0ea5e9' }}></span>
+                <div style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem', display: 'grid', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#42655B', fontWeight: 700, fontSize: '0.8rem' }}>
+                    <span style={{ width: '0.75rem', height: '0.75rem', borderRadius: '999px', background: '#668F7F' }}></span>
                     Selección de variables para {selectedAnalysis.label}
                   </div>
 
@@ -1519,11 +1526,11 @@ const ProjectPage: React.FC = () => {
                     {selectedAnalysis.id === 'linear-regression' && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variable dependiente</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable dependiente</div>
                           <select
                             value={selectedRoleValues.dep_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, dep_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('dep').map(colName => (
@@ -1532,12 +1539,12 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variables independientes</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variables independientes</div>
                           <div style={{ display: 'grid', gap: '0.65rem' }}>
                             {getAllowedColumnsForRole('indep').map(colName => {
                               const checked = (selectedRoleValues.indep_vars as string[] | undefined)?.includes(colName) || false;
                               return (
-                                <label key={`linear-indep-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', background: '#FFFCF2' }}>
+                                <label key={`linear-indep-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
                                   <input
                                     type="checkbox"
                                     checked={checked}
@@ -1549,7 +1556,7 @@ const ProjectPage: React.FC = () => {
                                       });
                                     }}
                                   />
-                                  <span style={{ color: '#252422' }}>{colName}</span>
+                                  <span style={{ color: '#29342E' }}>{colName}</span>
                                 </label>
                               );
                             })}
@@ -1561,11 +1568,11 @@ const ProjectPage: React.FC = () => {
                     {selectedAnalysis.id === 'logistic-regression' && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variable dependiente (binaria)</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable dependiente (binaria)</div>
                           <select
                             value={selectedRoleValues.dep_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, dep_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('dep').map(colName => (
@@ -1574,12 +1581,12 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variables independientes</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variables independientes</div>
                           <div style={{ display: 'grid', gap: '0.65rem' }}>
                             {getAllowedColumnsForRole('indep').map(colName => {
                               const checked = (selectedRoleValues.indep_vars as string[] | undefined)?.includes(colName) || false;
                               return (
-                                <label key={`logistic-indep-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', background: '#FFFCF2' }}>
+                                <label key={`logistic-indep-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
                                   <input
                                     type="checkbox"
                                     checked={checked}
@@ -1591,7 +1598,7 @@ const ProjectPage: React.FC = () => {
                                       });
                                     }}
                                   />
-                                  <span style={{ color: '#252422' }}>{colName}</span>
+                                  <span style={{ color: '#29342E' }}>{colName}</span>
                                 </label>
                               );
                             })}
@@ -1603,11 +1610,11 @@ const ProjectPage: React.FC = () => {
                     {selectedAnalysis.id === 'anova' && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variable dependiente</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable dependiente</div>
                           <select
                             value={selectedRoleValues.dep_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, dep_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('dep').map(colName => (
@@ -1616,11 +1623,11 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variable de grupo</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable de grupo</div>
                           <select
                             value={selectedRoleValues.group_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, group_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('group').map(colName => (
@@ -1634,11 +1641,11 @@ const ProjectPage: React.FC = () => {
                     {selectedAnalysis.id === 'compare' && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variable numérica</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable numérica</div>
                           <select
                             value={selectedRoleValues.num_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, num_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('num').map(colName => (
@@ -1647,11 +1654,11 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Variable categórica</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable categórica</div>
                           <select
                             value={selectedRoleValues.cat_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, cat_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('cat').map(colName => (
@@ -1665,11 +1672,11 @@ const ProjectPage: React.FC = () => {
                     {(['correlation', 'chi-square'].includes(selectedAnalysis.id)) && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>{selectedAnalysis.id === 'correlation' ? 'Variable 1' : 'Variable 1 (categórica)'}</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>{selectedAnalysis.id === 'correlation' ? 'Variable 1' : 'Variable 1 (categórica)'}</div>
                           <select
                             value={selectedRoleValues.var1 || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, var1: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('var1').map(colName => (
@@ -1678,11 +1685,11 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>{selectedAnalysis.id === 'correlation' ? 'Variable 2' : 'Variable 2 (categórica)'}</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>{selectedAnalysis.id === 'correlation' ? 'Variable 2' : 'Variable 2 (categórica)'}</div>
                           <select
                             value={selectedRoleValues.var2 || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, var2: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('var2').map(colName => (
@@ -1696,11 +1703,11 @@ const ProjectPage: React.FC = () => {
                     {selectedAnalysis.id === 'roc-curve' && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Resultado / outcome</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Resultado / outcome</div>
                           <select
                             value={selectedRoleValues.outcome || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, outcome: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('outcome').map(colName => (
@@ -1709,11 +1716,11 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Predictores</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Predictores</div>
                           <select
                             value={selectedRoleValues.predictor || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, predictor: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('predictor').map(colName => (
@@ -1727,11 +1734,11 @@ const ProjectPage: React.FC = () => {
                     {selectedAnalysis.id === 'kaplan-meier' && (
                       <>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Tiempo</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Tiempo</div>
                           <select
                             value={selectedRoleValues.time_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, time_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('time').map(colName => (
@@ -1740,11 +1747,11 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Evento</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Evento</div>
                           <select
                             value={selectedRoleValues.event_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, event_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Selecciona una variable</option>
                             {getAllowedColumnsForRole('event').map(colName => (
@@ -1753,11 +1760,11 @@ const ProjectPage: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#252422', marginBottom: '0.5rem' }}>Grupo (opcional)</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Grupo (opcional)</div>
                           <select
                             value={selectedRoleValues.group_var || ''}
                             onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, group_var: e.target.value }))}
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem', color: '#252422' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
                           >
                             <option value="">Ninguno</option>
                             {getAllowedColumnsForRole('group').map(colName => (
@@ -1768,10 +1775,15 @@ const ProjectPage: React.FC = () => {
                       </>
                     )}
 
-                    {selectedAnalysis.id === 'descriptive' && (
+                    {['descriptive', 'table1'].includes(selectedAnalysis.id) && (
                       <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <p style={{ margin: '0 0 .25rem', color: '#63716b', fontSize: '.88rem' }}>
+                          {selectedAnalysis.id === 'table1'
+                            ? 'Elige las variables que aparecerán en la tabla basal.'
+                            : 'Elige las variables que quieres resumir.'}
+                        </p>
                         {Object.entries(columnTypes).map(([colName, colType]) => (
-                          <label key={colName} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', background: '#FFFCF2' }}>
+                          <label key={colName} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
                             <input
                               type="checkbox"
                               checked={(selectedRoleValues.columns as string[] | undefined)?.includes(colName) || false}
@@ -1783,8 +1795,8 @@ const ProjectPage: React.FC = () => {
                                 });
                               }}
                             />
-                            <span style={{ color: '#252422' }}>{colName}</span>
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#403D39' }}>{colType === 'numeric' ? 'Numérica' : colType === 'binary' ? 'Binaria' : colType === 'categorical' ? 'Categórica' : colType}</span>
+                            <span style={{ color: '#29342E' }}>{colName}</span>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#53615A' }}>{colType === 'numeric' ? 'Numérica' : colType === 'binary' ? 'Binaria' : colType === 'categorical' ? 'Categórica' : colType}</span>
                           </label>
                         ))}
                       </div>
@@ -1792,97 +1804,97 @@ const ProjectPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ background: 'white', border: '1px solid #CCC5B9', borderRadius: '18px', overflow: 'hidden' }}>
-                  <div style={{ padding: '1rem', borderBottom: '1px solid #CCC5B9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '18px', overflow: 'hidden' }}>
+                  <div style={{ padding: '1rem', borderBottom: '1px solid #DCE4DF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#252422' }}>Variables de ajuste y covariables</div>
-                      <div style={{ fontSize: '0.8rem', color: '#403D39', marginTop: '0.25rem' }}>Añade columnas que controlen el efecto de confusión en tus modelos.</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#29342E' }}>Variables de ajuste y covariables</div>
+                      <div style={{ fontSize: '0.8rem', color: '#53615A', marginTop: '0.25rem' }}>Añade columnas que controlen el efecto de confusión en tus modelos.</div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#403D39', fontWeight: 600 }}>{Math.min(100, Math.round((covariates.length / 4) * 100))}% procesado</span>
+                    <span style={{ fontSize: '0.75rem', color: '#53615A', fontWeight: 600 }}>{Math.min(100, Math.round((covariates.length / 4) * 100))}% procesado</span>
                   </div>
-                  <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '0.75rem', display: 'grid', gap: '0.75rem', background: '#FFFCF2' }}>
+                  <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '0.75rem', display: 'grid', gap: '0.75rem', background: '#F5F7F5' }}>
                     {covariates.length === 0 ? (
-                      <div style={{ color: '#403D39', textAlign: 'center', padding: '1.5rem 0' }}>No hay variables de ajuste añadidas.</div>
+                      <div style={{ color: '#53615A', textAlign: 'center', padding: '1.5rem 0' }}>No hay variables de ajuste añadidas.</div>
                     ) : covariates.map((cov) => (
-                      <div key={cov.id} style={{ background: 'white', border: '1px solid #CCC5B9', borderRadius: '14px', padding: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div key={cov.id} style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '14px', padding: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#252422' }}>{cov.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#403D39', marginTop: '0.15rem' }}>{cov.type}</div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#29342E' }}>{cov.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#53615A', marginTop: '0.15rem' }}>{cov.type}</div>
                         </div>
                         <button onClick={() => deleteCovariate(cov.id)} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '1rem' }} title="Eliminar covariable">×</button>
                       </div>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', padding: '0.85rem 1rem', background: 'white', borderTop: '1px solid #CCC5B9' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', padding: '0.85rem 1rem', background: 'white', borderTop: '1px solid #DCE4DF' }}>
                     <select
                       value={newCovariateOption}
                       onChange={(e) => setNewCovariateOption(e.target.value)}
-                      style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '14px', border: '1px solid #CCC5B9', outline: 'none', fontSize: '0.9rem' }}
+                      style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem' }}
                     >
                       <option value="Edad">[Num] Edad</option>
                       <option value="Género">[Cat] Género</option>
                       <option value="PSistólica (Pre)">[Num] PSistólica (Pre)</option>
                       <option value="Estadio Tumor">[Ord] Estadio Tumor</option>
                     </select>
-                    <button onClick={addCovariate} style={{ padding: '0.75rem 1rem', borderRadius: '14px', border: 'none', background: '#EB5E28', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Agregar variable</button>
+                    <button onClick={addCovariate} style={{ padding: '0.75rem 1rem', borderRadius: '14px', border: 'none', background: '#587D71', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Agregar variable</button>
                   </div>
                 </div>
 
-                <div style={{ background: 'white', border: '1px solid #CCC5B9', borderRadius: '18px', padding: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#252422', marginBottom: '0.75rem' }}>Notas del investigador</div>
+                <div style={{ background: 'white', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#29342E', marginBottom: '0.75rem' }}>Notas del investigador</div>
                   <textarea
                     value={analysisNotes}
                     onChange={(e) => setAnalysisNotes(e.target.value)}
                     placeholder="Añade observaciones sobre los supuestos estadísticos o limitaciones del análisis..."
-                    style={{ width: '100%', minHeight: '120px', resize: 'vertical', borderRadius: '16px', border: '1px solid #CCC5B9', padding: '1rem', fontSize: '0.9rem', color: '#252422' }}
+                    style={{ width: '100%', minHeight: '120px', resize: 'vertical', borderRadius: '16px', border: '1px solid #DCE4DF', padding: '1rem', fontSize: '0.9rem', color: '#29342E' }}
                   />
-                  <p style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#403D39' }}>Tip: usa este bloque para documentar ajustes clínicos y supuestos de tu prueba.</p>
+                  <p style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#53615A' }}>Tip: usa este bloque para documentar ajustes clínicos y supuestos de tu prueba.</p>
                 </div>
               </div>
 
-              <div style={{ width: '35%', background: '#ffffff', borderLeft: '1px solid #CCC5B9', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflowY: 'auto' }}>
+              <div className="project-analysis-summary" style={{ width: '35%', background: '#ffffff', borderLeft: '1px solid #DCE4DF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflowY: 'auto' }}>
                 <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#403D39' }}>Estado del análisis</div>
-                    <button style={{ width: '100%', marginTop: '0.85rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #bae6fd', background: '#ecfeff', color: '#0369a1', fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#53615A' }}>Estado del análisis</div>
+                    <button style={{ width: '100%', marginTop: '0.85rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #C4D9CE', background: '#F1F6F2', color: '#42655B', fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}>
                       Listo para ejecutar
                     </button>
                   </div>
 
-                  <div style={{ background: '#FFFCF2', border: '1px solid #CCC5B9', borderRadius: '18px', padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem', color: '#252422', fontWeight: 700 }}>
-                      <span style={{ width: '1.75rem', height: '1.75rem', borderRadius: '0.75rem', background: '#0ea5e9', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><BarChart3 size={16} /></span>
+                  <div style={{ background: '#F5F7F5', border: '1px solid #DCE4DF', borderRadius: '18px', padding: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem', color: '#29342E', fontWeight: 700 }}>
+                      <span style={{ width: '1.75rem', height: '1.75rem', borderRadius: '0.75rem', background: '#668F7F', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><BarChart3 size={16} /></span>
                       <span style={{ fontSize: '0.9rem' }}>Test recomendado</span>
                     </div>
                     <div>
-                      <div style={{ fontSize: '1rem', fontWeight: 700, color: '#252422', lineHeight: 1.3 }}>{getRecommendedTestInfo().title}</div>
-                      <p style={{ marginTop: '0.65rem', fontSize: '0.85rem', color: '#403D39', lineHeight: 1.6 }}>{getRecommendedTestInfo().explanation}</p>
+                      <div style={{ fontSize: '1rem', fontWeight: 700, color: '#29342E', lineHeight: 1.3 }}>{getRecommendedTestInfo().title}</div>
+                      <p style={{ marginTop: '0.65rem', fontSize: '0.85rem', color: '#53615A', lineHeight: 1.6 }}>{getRecommendedTestInfo().explanation}</p>
                     </div>
-                    <div style={{ marginTop: '1rem', padding: '0.9rem', borderRadius: '16px', background: 'white', border: '1px solid #CCC5B9' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#403D39', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Alternativa no paramétrica</div>
+                    <div style={{ marginTop: '1rem', padding: '0.9rem', borderRadius: '16px', background: 'white', border: '1px solid #DCE4DF' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#53615A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Alternativa no paramétrica</div>
                       <div style={{ marginTop: '0.45rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.9rem', color: '#252422' }}>{getRecommendedTestInfo().alternative}</span>
+                        <span style={{ fontSize: '0.9rem', color: '#29342E' }}>{getRecommendedTestInfo().alternative}</span>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
                           <input type="checkbox" checked={useNonParametric} onChange={() => setUseNonParametric(prev => !prev)} style={{ width: '1rem', height: '1rem' }} />
-                          <span style={{ fontSize: '0.75rem', color: '#403D39' }}>Activar</span>
+                          <span style={{ fontSize: '0.75rem', color: '#53615A' }}>Activar</span>
                         </label>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #CCC5B9', paddingTop: '1rem' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#403D39', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Verificación de supuestos</div>
+                  <div style={{ borderTop: '1px solid #DCE4DF', paddingTop: '1rem' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#53615A', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Verificación de supuestos</div>
                     <div style={{ marginTop: '0.85rem', display: 'grid', gap: '0.65rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#334155' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
                         <span>Normalidad (Shapiro-Wilk)</span>
-                        <span style={{ background: '#dcfce7', color: '#166534', padding: '0.25rem 0.6rem', borderRadius: '999px', fontWeight: 700, fontSize: '0.75rem' }}>Paso</span>
+                        <span style={{ background: '#EAF3ED', color: '#4E806A', padding: '0.25rem 0.6rem', borderRadius: '999px', fontWeight: 700, fontSize: '0.75rem' }}>Paso</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#334155' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
                         <span>Homocedasticidad (Levene)</span>
-                        <span style={{ background: '#dcfce7', color: '#166534', padding: '0.25rem 0.6rem', borderRadius: '999px', fontWeight: 700, fontSize: '0.75rem' }}>Paso</span>
+                        <span style={{ background: '#EAF3ED', color: '#4E806A', padding: '0.25rem 0.6rem', borderRadius: '999px', fontWeight: 700, fontSize: '0.75rem' }}>Paso</span>
                       </div>
                       {selectedAnalysis?.id === 'compare' && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#334155' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
                           <span>Muestras pareadas (Antes / Después)</span>
                           <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
                             <input
@@ -1891,16 +1903,16 @@ const ProjectPage: React.FC = () => {
                               onChange={(e) => setIsPaired(e.target.checked)}
                               style={{ width: '1rem', height: '1rem' }}
                             />
-                            <span style={{ fontSize: '0.75rem', color: '#403D39' }}>Sí</span>
+                            <span style={{ fontSize: '0.75rem', color: '#53615A' }}>Sí</span>
                           </label>
                         </div>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#334155' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#53615A' }}>
                         <span>Nivel de confianza</span>
                         <select
                           value={confLevel}
                           onChange={(e) => setConfLevel(Number(e.target.value))}
-                          style={{ borderRadius: '8px', border: '1px solid #CCC5B9', padding: '0.35rem 0.7rem', fontSize: '0.8rem', color: '#252422', background: 'white' }}
+                          style={{ borderRadius: '8px', border: '1px solid #DCE4DF', padding: '0.35rem 0.7rem', fontSize: '0.8rem', color: '#29342E', background: 'white' }}
                         >
                           <option value={0.95}>95% (α = 0.05)</option>
                           <option value={0.99}>99% (α = 0.01)</option>
@@ -1910,19 +1922,19 @@ const ProjectPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#403D39' }}>
+                  <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#53615A' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.55rem' }}>
                       <span>Creado</span>
-                      <span style={{ fontWeight: 700, color: '#252422' }}>{new Date().toLocaleString()}</span>
+                      <span style={{ fontWeight: 700, color: '#29342E' }}>{new Date().toLocaleString()}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span>Actualizado</span>
-                      <span style={{ fontWeight: 700, color: '#252422' }}>Ahora</span>
+                      <span style={{ fontWeight: 700, color: '#29342E' }}>Ahora</span>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ padding: '1.5rem', borderTop: '1px solid #CCC5B9', background: '#FFFCF2' }}>
+                <div style={{ padding: '1.5rem', borderTop: '1px solid #DCE4DF', background: '#F5F7F5' }}>
                   <button
                     onClick={handleRunAnalysis}
                     disabled={!isSelectionComplete()}
@@ -1931,7 +1943,7 @@ const ProjectPage: React.FC = () => {
                       padding: '1rem',
                       borderRadius: '18px',
                       border: 'none',
-                      background: !isSelectionComplete() ? 'rgba(235, 94, 40, 0.4)' : '#EB5E28',
+                      background: !isSelectionComplete() ? 'rgba(88, 125, 113, 0.48)' : '#587D71',
                       color: 'white',
                       fontWeight: 700,
                       fontSize: '0.95rem',
@@ -1952,14 +1964,14 @@ const ProjectPage: React.FC = () => {
         .numeric-header::after {
           content: ' [123]';
           font-size: 0.65rem;
-          color: #403D39;
+          color: #53615A;
           margin-left: 4px;
           font-weight: 400;
         }
         .categorical-header::after {
           content: ' [Abc]';
           font-size: 0.65rem;
-          color: #403D39;
+          color: #53615A;
           margin-left: 4px;
           font-weight: 400;
         }

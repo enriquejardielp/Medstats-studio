@@ -2059,6 +2059,7 @@ const ProjectPage: React.FC = () => {
           >
             <div
               style={{
+                flexShrink: 0,
                 background: '#F5F7F5',
                 borderBottom: '1px solid #DCE4DF',
                 padding: '1rem 1.5rem',
@@ -2088,8 +2089,33 @@ const ProjectPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="project-analysis-content" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              <div className="project-analysis-options" style={{ width: '65%', padding: '1.5rem', overflowY: 'auto', background: '#F5F7F5', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div
+              className="project-analysis-content"
+              style={{
+                display: 'flex',
+                flex: '1 1 0%',
+                minHeight: 0,
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                className="project-analysis-options"
+                style={{
+                  width: '65%',
+                  flex: '1 1 65%',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  padding: '1.5rem',
+                  overflowY: 'auto',
+                  WebkitOverflowScrolling: 'touch',
+                  background: '#F5F7F5',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.5rem',
+                }}
+              >
                 <div>
                   <h2 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#29342E' }}>Configura el análisis</h2>
                   <p style={{ marginTop: '0.65rem', fontSize: '0.95rem', color: '#53615A', lineHeight: 1.7 }}>
@@ -2356,13 +2382,196 @@ const ProjectPage: React.FC = () => {
                       </>
                     )}
 
-                    {['descriptive', 'table1'].includes(selectedAnalysis.id) && (
+                    {selectedAnalysis.id === 'cox-regression' && (
+                      <>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable de tiempo</div>
+                          <select
+                            value={selectedRoleValues.time_var || ''}
+                            onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, time_var: e.target.value }))}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
+                          >
+                            <option value="">Selecciona una variable</option>
+                            {getAllowedColumnsForRole('time').map(colName => (
+                              <option key={`cox-time-${colName}`} value={colName}>{colName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable de evento / censura</div>
+                          <select
+                            value={selectedRoleValues.event_var || ''}
+                            onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, event_var: e.target.value }))}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
+                          >
+                            <option value="">Selecciona una variable</option>
+                            {getAllowedColumnsForRole('event').map(colName => (
+                              <option key={`cox-event-${colName}`} value={colName}>{colName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Covariables / Predictores</div>
+                          <div style={{ display: 'grid', gap: '0.65rem' }}>
+                            {getAllowedColumnsForRole('covariates').map(colName => {
+                              const checked = (selectedRoleValues.covariates as string[] | undefined)?.includes(colName) || false;
+                              return (
+                                <label key={`cox-cov-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => {
+                                      setSelectedRoleValues(prev => {
+                                        const current = (prev.covariates as string[] | undefined) || [];
+                                        const next = checked ? current.filter(v => v !== colName) : [...current, colName];
+                                        return { ...prev, covariates: next };
+                                      });
+                                    }}
+                                  />
+                                  <span style={{ color: '#29342E' }}>{colName}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {selectedAnalysis.id === 'ancova' && (
+                      <>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable dependiente</div>
+                          <select
+                            value={selectedRoleValues.dep_var || ''}
+                            onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, dep_var: e.target.value }))}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
+                          >
+                            <option value="">Selecciona una variable</option>
+                            {getAllowedColumnsForRole('dep').map(colName => (
+                              <option key={`ancova-dep-${colName}`} value={colName}>{colName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable de grupo</div>
+                          <select
+                            value={selectedRoleValues.group_var || ''}
+                            onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, group_var: e.target.value }))}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
+                          >
+                            <option value="">Selecciona una variable</option>
+                            {getAllowedColumnsForRole('group').map(colName => (
+                              <option key={`ancova-group-${colName}`} value={colName}>{colName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Covariables</div>
+                          <div style={{ display: 'grid', gap: '0.65rem' }}>
+                            {getAllowedColumnsForRole('covariates').map(colName => {
+                              const checked = (selectedRoleValues.covariates as string[] | undefined)?.includes(colName) || false;
+                              return (
+                                <label key={`ancova-cov-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => {
+                                      setSelectedRoleValues(prev => {
+                                        const current = (prev.covariates as string[] | undefined) || [];
+                                        const next = checked ? current.filter(v => v !== colName) : [...current, colName];
+                                        return { ...prev, covariates: next };
+                                      });
+                                    }}
+                                  />
+                                  <span style={{ color: '#29342E' }}>{colName}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {['mcnemar', 'kappa', 'bland-altman', 'odds-ratio', 'paired-comparison'].includes(selectedAnalysis.id) && (
+                      <>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable 1</div>
+                          <select
+                            value={selectedRoleValues.var1 || ''}
+                            onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, var1: e.target.value }))}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
+                          >
+                            <option value="">Selecciona una variable</option>
+                            {getAllowedColumnsForRole('var1').map(colName => (
+                              <option key={`paired-v1-${colName}`} value={colName}>{colName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#29342E', marginBottom: '0.5rem' }}>Variable 2</div>
+                          <select
+                            value={selectedRoleValues.var2 || ''}
+                            onChange={(e) => setSelectedRoleValues(prev => ({ ...prev, var2: e.target.value }))}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', outline: 'none', fontSize: '0.9rem', color: '#29342E' }}
+                          >
+                            <option value="">Selecciona una variable</option>
+                            {getAllowedColumnsForRole('var2').map(colName => (
+                              <option key={`paired-v2-${colName}`} value={colName}>{colName}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    {['icc', 'friedman'].includes(selectedAnalysis.id) && (
                       <div style={{ display: 'grid', gap: '0.75rem' }}>
                         <p style={{ margin: '0 0 .25rem', color: '#63716b', fontSize: '.88rem' }}>
-                          {selectedAnalysis.id === 'table1'
-                            ? 'Elige las variables que aparecerán en la tabla basal.'
-                            : 'Elige las variables que quieres resumir.'}
+                          Elige las columnas que representan las mediciones repetidas o de diferentes evaluadores.
                         </p>
+                        {getAllowedColumnsForRole('columns').map(colName => (
+                          <label key={`repeat-${colName}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #DCE4DF', background: '#F5F7F5' }}>
+                            <input
+                              type="checkbox"
+                              checked={(selectedRoleValues.columns as string[] | undefined)?.includes(colName) || false}
+                              onChange={() => {
+                                setSelectedRoleValues(prev => {
+                                  const current = (prev.columns as string[] | undefined) || [];
+                                  const next = current.includes(colName) ? current.filter(v => v !== colName) : [...current, colName];
+                                  return { ...prev, columns: next };
+                                });
+                              }}
+                            />
+                            <span style={{ color: '#29342E' }}>{colName}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {['descriptive', 'table1'].includes(selectedAnalysis.id) && (
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <p style={{ margin: 0, color: '#63716b', fontSize: '.88rem' }}>
+                            {selectedAnalysis.id === 'table1'
+                              ? 'Elige las variables que aparecerán en la tabla basal.'
+                              : 'Elige las variables que quieres resumir.'}
+                          </p>
+                          <div style={{ display: 'flex', gap: '0.45rem' }}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRoleValues(prev => ({ ...prev, columns: Object.keys(columnTypes) }))}
+                              style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid #DCE4DF', background: 'white', color: '#53615A', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Seleccionar todas
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRoleValues(prev => ({ ...prev, columns: [] }))}
+                              style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid #DCE4DF', background: 'white', color: '#53615A', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Limpiar
+                            </button>
+                          </div>
+                        </div>
                         {selectedAnalysis.id === 'table1' && (
                           <label className="analysis-role-field">
                             <span>Separar la tabla por grupos <small>Opcional</small></span>
@@ -2401,8 +2610,34 @@ const ProjectPage: React.FC = () => {
 
               </div>
 
-              <div className="project-analysis-summary">
-                <div className="project-analysis-summary-content">
+              <div
+                className="project-analysis-summary"
+                style={{
+                  width: '35%',
+                  flex: '0 0 35%',
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  borderLeft: '1px solid #DCE4DF',
+                  background: 'white',
+                }}
+              >
+                <div
+                  className="project-analysis-summary-content"
+                  style={{
+                    flex: '1 1 0%',
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.15rem',
+                    padding: '1.35rem',
+                  }}
+                >
                   <div className="analysis-summary-heading">
                     <span className="analysis-summary-kicker">Configuración</span>
                     <h3>{selectedAnalysis.label}</h3>
@@ -2457,7 +2692,7 @@ const ProjectPage: React.FC = () => {
                   <p className="analysis-guidance-note">Los supuestos y avisos disponibles se mostrarán después de ejecutar el análisis. No se marcarán como verificados antes de calcularlos.</p>
                 </div>
 
-                <div className="analysis-run-footer">
+                <div className="analysis-run-footer" style={{ flexShrink: 0 }}>
                   <button
                     onClick={handleRunAnalysis}
                     disabled={!isSelectionComplete()}

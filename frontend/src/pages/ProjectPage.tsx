@@ -2093,9 +2093,10 @@ const ProjectPage: React.FC = () => {
               className="project-analysis-content"
               style={{
                 display: 'flex',
-                flex: '1 1 0%',
+                flex: '1 1 auto',
                 minHeight: 0,
-                height: '100%',
+                height: 'calc(100% - 61px)',
+                maxHeight: 'calc(100% - 61px)',
                 overflow: 'hidden',
               }}
             >
@@ -2620,7 +2621,9 @@ const ProjectPage: React.FC = () => {
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  overflow: 'hidden',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  WebkitOverflowScrolling: 'touch',
                   borderLeft: '1px solid #DCE4DF',
                   background: 'white',
                 }}
@@ -2628,10 +2631,8 @@ const ProjectPage: React.FC = () => {
                 <div
                   className="project-analysis-summary-content"
                   style={{
-                    flex: '1 1 0%',
+                    flex: '1 0 auto',
                     minHeight: 0,
-                    overflowY: 'auto',
-                    WebkitOverflowScrolling: 'touch',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '1.15rem',
@@ -2647,7 +2648,7 @@ const ProjectPage: React.FC = () => {
                   <section className="analysis-selection-summary" aria-live="polite">
                     <div className="analysis-summary-kicker">Variables seleccionadas</div>
                     {getCurrentSelectedVars().length ? (
-                      <div className="analysis-variable-chips">
+                      <div className="analysis-variable-chips" style={{ maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
                         {getCurrentSelectedVars().map(variable => (
                           <span className="analysis-variable-chip" key={variable}>
                             <span>{variable}</span>
@@ -2672,27 +2673,41 @@ const ProjectPage: React.FC = () => {
                     </section>
                   )}
 
-                  {['compare', 'correlation', 'linear-regression', 'logistic-regression', 'roc-curve', 'kaplan-meier'].includes(selectedAnalysis.id) && <section className="analysis-advanced-section">
-                    <button type="button" className="analysis-advanced-toggle" onClick={() => setAdvancedOptionsOpen(value => !value)} aria-expanded={advancedOptionsOpen}>
-                      <span>Opciones del análisis</span>
-                      <span>{advancedOptionsOpen ? '−' : '+'}</span>
-                    </button>
-                    {advancedOptionsOpen && (
-                      <label className="analysis-confidence-field">
-                        <span>Nivel de confianza del intervalo</span>
-                        <select value={confLevel} onChange={event => setConfLevel(Number(event.target.value))}>
-                          <option value={0.95}>95 %</option>
-                          <option value={0.99}>99 %</option>
-                          <option value={0.90}>90 %</option>
-                        </select>
-                      </label>
-                    )}
-                  </section>}
+                  {['compare', 'anova', 'correlation', 'linear-regression', 'logistic-regression', 'roc-curve', 'kaplan-meier', 'cox-regression', 'ancova', 'paired-comparison'].includes(selectedAnalysis.id) && (
+                    <section className="analysis-advanced-section">
+                      <button type="button" className="analysis-advanced-toggle" onClick={() => setAdvancedOptionsOpen(value => !value)} aria-expanded={advancedOptionsOpen}>
+                        <span>Opciones del análisis</span>
+                        <span>{advancedOptionsOpen ? '−' : '+'}</span>
+                      </button>
+                      {advancedOptionsOpen && (
+                        <label className="analysis-confidence-field">
+                          <span>Nivel de confianza del intervalo</span>
+                          <select value={confLevel} onChange={event => setConfLevel(Number(event.target.value))}>
+                            <option value={0.95}>95 %</option>
+                            <option value={0.99}>99 %</option>
+                            <option value={0.90}>90 %</option>
+                          </select>
+                        </label>
+                      )}
+                    </section>
+                  )}
 
                   <p className="analysis-guidance-note">Los supuestos y avisos disponibles se mostrarán después de ejecutar el análisis. No se marcarán como verificados antes de calcularlos.</p>
                 </div>
 
-                <div className="analysis-run-footer" style={{ flexShrink: 0 }}>
+                <div
+                  className="analysis-run-footer"
+                  style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    marginTop: 'auto',
+                    flexShrink: 0,
+                    background: '#FBFAF8',
+                    borderTop: '1px solid #E6DED4',
+                    padding: '1rem 1.35rem',
+                    zIndex: 10,
+                  }}
+                >
                   <button
                     onClick={handleRunAnalysis}
                     disabled={!isSelectionComplete()}

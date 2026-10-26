@@ -2618,9 +2618,10 @@ label.ms-form-label {
 }
 .project-analysis-content {
   display: flex !important;
-  flex: 1 1 0% !important;
+  flex: 1 1 auto !important;
   min-height: 0 !important;
-  height: 100% !important;
+  height: calc(100% - 61px) !important;
+  max-height: calc(100% - 61px) !important;
   overflow: hidden !important;
 }
 .project-analysis-options {
@@ -2630,7 +2631,6 @@ label.ms-form-label {
   min-height: 0 !important;
   height: 100% !important;
   overflow-y: auto !important;
-  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 .project-analysis-summary {
@@ -2641,9 +2641,11 @@ label.ms-form-label {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: hidden !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   border-left: 1px solid #DCE4DF;
   background: white;
+  -webkit-overflow-scrolling: touch;
 }
 .project-analysis-summary button:disabled { opacity: .55; }
 .project-analysis-summary button[disabled] { cursor: not-allowed !important; }
@@ -2661,18 +2663,21 @@ label.ms-form-label {
   flex-direction: column !important;
   gap: 1.15rem;
   padding: 1.35rem;
-  overflow-y: auto !important;
-  overscroll-behavior: contain;
-  flex: 1 1 0% !important;
+  flex: 1 0 auto !important;
   min-height: 0 !important;
-  -webkit-overflow-scrolling: touch;
 }
 .analysis-summary-heading { padding-bottom: 1rem; border-bottom: 1px solid #EAE3DA; }
 .analysis-summary-kicker { display: block; margin-bottom: .4rem; color: #756B60; font-size: .68rem; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
 .analysis-summary-heading h3 { margin: 0; color: #342F2A; font-size: 1.12rem; line-height: 1.35; }
 .analysis-summary-heading p, .analysis-method-card p { margin: .45rem 0 0; color: #665D54; font-size: .84rem; line-height: 1.55; }
 .analysis-selection-summary, .analysis-method-card { padding: 1rem; background: #F8F5F0; border: 1px solid #E6DED4; border-radius: 13px; }
-.analysis-variable-chips { display: grid; gap: .5rem; }
+.analysis-variable-chips {
+  display: grid;
+  gap: .5rem;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
 .analysis-variable-chip { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .6rem .7rem; color: #3C352F; background: white; border: 1px solid #E5DDD3; border-radius: 9px; font-size: .84rem; font-weight: 650; }
 .analysis-variable-chip span { overflow-wrap: anywhere; }
 .analysis-variable-chip small { flex: 0 0 auto; color: #716860; font-size: .7rem; font-weight: 550; }
@@ -2694,7 +2699,17 @@ label.ms-form-label {
 .analysis-confidence-field { display: flex; align-items: center; justify-content: space-between; gap: .7rem; padding: .8rem 1rem; color: #51483F; background: #FAF8F5; border-top: 1px solid #EAE3DA; font-size: .8rem; }
 .analysis-confidence-field select { padding: .45rem .65rem; color: #342F2A; background: #fff; border: 1px solid #D9CFC3; border-radius: 8px; font: inherit; }
 .analysis-guidance-note { margin: 0; padding: .8rem .9rem; color: #665D54; background: #F7F3EC; border-left: 3px solid #C28A6B; border-radius: 4px 9px 9px 4px; font-size: .76rem; line-height: 1.5; }
-.analysis-run-footer { position: sticky; bottom: 0; padding: 1rem 1.35rem; background: #FBFAF8; border-top: 1px solid #E6DED4; }
+.analysis-run-footer {
+  position: sticky !important;
+  bottom: 0 !important;
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+  padding: 1rem 1.35rem !important;
+  background: #FBFAF8 !important;
+  border-top: 1px solid #E6DED4 !important;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+  z-index: 10 !important;
+}
 .analysis-run-footer .ms-btn { width: 100%; justify-content: center; min-height: 3rem; }
 .analysis-run-footer .ms-btn:not(:disabled) { transition: transform .15s ease, box-shadow .15s ease; }
 .analysis-run-footer .ms-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(99,52,35,.18); }

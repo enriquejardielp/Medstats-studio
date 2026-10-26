@@ -1016,7 +1016,7 @@ const ProjectPage: React.FC = () => {
     }
 
     return { title, explanation, alternative };
-  }, [selectedAnalysis, covariates.length, useNonParametric]);
+  }, [selectedAnalysis, useNonParametric]);
 
   const handleRunAnalysis = async () => {
     if (!selectedAnalysis || !isSelectionComplete()) return;

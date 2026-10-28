@@ -3012,3 +3012,15 @@ label.ms-form-label {
   .ecrf-merge-mapping .max-h-64 > div { align-items: flex-start; flex-direction: column; }
   .ecrf-merge-mapping select { width: 100%; max-width: none; }
 }
+
+/* Animaciones y utilidades de la Landing Page */
+@keyframes msFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (min-width: 820px) {
+  .md-nav-links {
+    display: flex !important;
+  }
+}

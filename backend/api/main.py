@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import pandas as pd
 import base64
 import json
@@ -615,6 +615,35 @@ class UnifiedAnalysisRequest(BaseModel):
     project_id: int
     analysis_type: str
     params: dict = {}
+
+class GuestAnalysisRequest(BaseModel):
+    analysis_type: str
+    csv_data: Optional[str] = None
+    data: Optional[List[Dict[str, Any]]] = None
+    params: dict = {}
+
+@app.post("/api/analysis/guest-run", response_model=AnalysisResult)
+@app.post("/api/analysis/guest-run/", response_model=AnalysisResult)
+def run_guest_analysis(req: GuestAnalysisRequest):
+    try:
+        if req.csv_data:
+            df = pd.read_csv(StringIO(req.csv_data))
+        elif req.data:
+            df = pd.DataFrame(req.data)
+        else:
+            raise HTTPException(status_code=400, detail="Se requiere csv_data o data estructurada")
+        
+        # Límite preventivo de memoria en modo invitado
+        if len(df) > 5000:
+            df = df.iloc[:5000]
+            
+        analyzer = AnalysisRegistry.get(req.analysis_type)
+        return analyzer.run(df, req.params)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error en guest analysis: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/analysis/run", response_model=AnalysisResult)
 @app.post("/api/analysis/run/", response_model=AnalysisResult)

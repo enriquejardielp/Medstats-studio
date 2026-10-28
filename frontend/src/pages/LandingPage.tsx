@@ -3,16 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/authContext';
 import Logo from '../components/brand/Logo';
 import { ClinicalShowcase } from '../components/landing/ClinicalShowcase';
+import { FormDatabaseShowcase } from '../components/landing/FormDatabaseShowcase';
 import { StudioSandbox } from '../components/landing/StudioSandbox';
 import { AuthModal } from '../components/auth/AuthModal';
 import {
   FileSpreadsheet,
   ShieldCheck,
   ArrowRight,
-  Sparkles,
   Layers,
   BarChart3,
   ClipboardList,
+  Database,
   Zap,
   FileCheck,
   Lock,
@@ -37,6 +38,13 @@ export const LandingPage: React.FC = () => {
 
   const scrollToSandbox = () => {
     const el = document.getElementById('sandbox-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const scrollToForms = () => {
+    const el = document.getElementById('forms-database-section');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
@@ -85,6 +93,9 @@ export const LandingPage: React.FC = () => {
             }}
             className="md-nav-links"
           >
+            <a href="#forms-database-section" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Formularios y Bases de Datos
+            </a>
             <a href="#showcase-section" style={{ textDecoration: 'none', color: 'inherit' }}>
               Figuras Clínicas
             </a>
@@ -93,9 +104,6 @@ export const LandingPage: React.FC = () => {
             </a>
             <a href="#sandbox-section" style={{ textDecoration: 'none', color: 'inherit' }}>
               Prueba tu Excel
-            </a>
-            <a href="#pillars-section" style={{ textDecoration: 'none', color: 'inherit' }}>
-              Capacidades
             </a>
             <a href="#faq-section" style={{ textDecoration: 'none', color: 'inherit' }}>
               Preguntas Frecuentes
@@ -154,20 +162,20 @@ export const LandingPage: React.FC = () => {
       {/* ============================================================== */}
       <section
         style={{
-          padding: 'clamp(3.5rem, 7vw, 6rem) 1.5rem 3rem',
+          padding: 'clamp(3.5rem, 6vw, 5.5rem) 1.5rem 3rem',
           maxWidth: '1240px',
           margin: '0 auto',
           textAlign: 'center',
           position: 'relative',
         }}
       >
-        {/* Badge superior */}
+        {/* Badge superior sin estrellitas */}
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.55rem',
-            padding: '0.35rem 0.95rem',
+            padding: '0.35rem 1rem',
             borderRadius: '9999px',
             backgroundColor: '#FFFFFF',
             border: '1px solid var(--color-border)',
@@ -178,7 +186,6 @@ export const LandingPage: React.FC = () => {
             color: 'var(--color-accent)',
           }}
         >
-          <Sparkles size={15} />
           <span>La Suite Bioestadística para Médicos e Investigadores Clínicos</span>
         </div>
 
@@ -186,30 +193,30 @@ export const LandingPage: React.FC = () => {
         <h1
           className="ms-display"
           style={{
-            fontSize: 'clamp(2.4rem, 5.5vw, 4.4rem)',
-            lineHeight: 1.08,
-            maxWidth: '960px',
-            margin: '0 auto 1.25rem',
+            fontSize: 'clamp(2.3rem, 5vw, 4.2rem)',
+            lineHeight: 1.1,
+            maxWidth: '1000px',
+            margin: '0 auto 1.35rem',
             color: 'var(--color-ink)',
             letterSpacing: '-0.025em',
           }}
         >
-          La ciencia de tus datos clínicos,{' '}
-          <span style={{ color: 'var(--color-accent)', fontStyle: 'italic' }}>con rigor bioestadístico</span> y sin escribir una sola línea de código.
+          Crea tu base de datos con formularios a medida{' '}
+          <span style={{ color: 'var(--color-accent)', fontStyle: 'italic' }}>y analiza tus datos clínicos</span> con rigor bioestadístico.
         </h1>
 
         {/* Subtítulo explicativo */}
         <p
           style={{
-            fontSize: 'clamp(1.05rem, 2vw, 1.25rem)',
+            fontSize: 'clamp(1.05rem, 1.8vw, 1.25rem)',
             color: 'var(--color-text-secondary)',
-            maxWidth: '780px',
+            maxWidth: '820px',
             margin: '0 auto 2.5rem',
             lineHeight: 1.6,
             fontWeight: 400,
           }}
         >
-          Convierte hojas de cálculo y cohortes de pacientes en análisis de supervivencia Kaplan-Meier, modelos multivariantes de regresión y tablas basales formateadas para revistas científicas de alto impacto en segundos.
+          Diseña cuadernos de recogida de datos (eCRF) con validaciones en tiempo real para estructurar tu cohorte sin errores, o sube tu propia hoja de cálculo Excel para generar curvas de supervivencia, modelos multivariantes y tablas basales de publicación sin programar en R.
         </p>
 
         {/* Botones de Acción Primarios */}
@@ -242,15 +249,19 @@ export const LandingPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => handleOpenAuth('register')}
+            onClick={scrollToForms}
             className="ms-btn ms-btn-secondary ms-btn-lg"
             style={{
               padding: '0.9rem 1.6rem',
               fontSize: '1rem',
               backgroundColor: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
             }}
           >
-            <span>Crear cuenta gratuita</span>
+            <Database size={17} color="var(--color-accent)" />
+            <span>Crear Base de Datos con eCRF</span>
           </button>
         </div>
 
@@ -271,6 +282,10 @@ export const LandingPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <ClipboardList size={16} color="var(--color-accent)" />
+            <span>Formularios eCRF a medida</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
             <ShieldCheck size={16} color="var(--color-success)" />
             <span>Normas ICMJE, STROBE & CONSORT</span>
           </div>
@@ -284,13 +299,39 @@ export const LandingPage: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
             <Lock size={16} color="var(--color-text-tertiary)" />
-            <span>Modo de prueba sin registro previo</span>
+            <span>Evaluación en modo de prueba local</span>
           </div>
         </div>
       </section>
 
       {/* ============================================================== */}
-      {/* 3. FIGURAS CLÍNICAS INTERACTIVAS (SHOWCASE)                    */}
+      {/* 3. PILAR: CREACIÓN DE BASE DE DATOS A PARTIR DE FORMULARIOS   */}
+      {/* ============================================================== */}
+      <section
+        id="forms-database-section"
+        style={{
+          padding: '2.5rem 1.5rem 4rem',
+          maxWidth: '1240px',
+          margin: '0 auto',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div className="ms-eyebrow" style={{ color: 'var(--color-accent)' }}>
+            Pilar Fundamental de la Plataforma
+          </div>
+          <h2 className="ms-display" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.7rem)', color: 'var(--color-ink)', marginTop: '0.35rem' }}>
+            Crea tu base de datos clínica con formularios customizables
+          </h2>
+          <p style={{ maxWidth: '740px', margin: '0.65rem auto 0', color: 'var(--color-text-secondary)', fontSize: '0.98rem', lineHeight: 1.6 }}>
+            Elimina las hojas de cálculo desordenadas y con errores de entrada. Diseña cuadernos de recogida de datos electrónicos (eCRF) adaptados a tu estudio, valida límites fisiológicos en el momento del registro y obtén automáticamente una base de datos estructurada y conectada directamente al motor de análisis estadístico.
+          </p>
+        </div>
+
+        <FormDatabaseShowcase onOpenAuthModal={(reason) => handleOpenAuth('register', reason)} />
+      </section>
+
+      {/* ============================================================== */}
+      {/* 4. FIGURAS CLÍNICAS INTERACTIVAS (SHOWCASE)                    */}
       {/* ============================================================== */}
       <section
         id="showcase-section"
@@ -302,13 +343,13 @@ export const LandingPage: React.FC = () => {
       >
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div className="ms-eyebrow" style={{ color: 'var(--color-accent)' }}>
-            Demostración en Vivo
+            Demostración Bioestadística en Vivo
           </div>
           <h2 className="ms-display" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.7rem)', color: 'var(--color-ink)', marginTop: '0.35rem' }}>
             Visualizaciones estadísticas interactivas de publicación
           </h2>
           <p style={{ maxWidth: '640px', margin: '0.65rem auto 0', color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
-            Interactúa directamente con las figuras clínicas: ajusta el horizonte temporal de supervivencia, calibra el umbral diagnóstico de la curva ROC o inspecciona los Odds Ratios.
+            Interactúa directamente con las figuras clínicas: ajusta el horizonte temporal de supervivencia, calibra el umbral diagnóstico de la curva ROC o inspecciona los Odds Ratios del modelo multivariante.
           </p>
         </div>
 
@@ -316,7 +357,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ============================================================== */}
-      {/* 4. METODOLOGÍA Y FLUJO EN 3 PASOS                             */}
+      {/* 5. METODOLOGÍA Y FLUJO EN 3 PASOS                             */}
       {/* ============================================================== */}
       <section
         id="workflow-section"
@@ -333,7 +374,7 @@ export const LandingPage: React.FC = () => {
               Metodología Diseñada para Clínicos
             </div>
             <h2 className="ms-display" style={{ fontSize: 'clamp(1.8rem, 3vw, 2.5rem)', color: 'var(--color-ink)', marginTop: '0.35rem' }}>
-              De la cohorte bruta a la publicación en tres pasos
+              De la captura de datos a la publicación en tres pasos
             </h2>
           </div>
 
@@ -367,10 +408,10 @@ export const LandingPage: React.FC = () => {
                 01
               </div>
               <h3 className="ms-display" style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--color-ink)' }}>
-                Importa o diseña tu cuaderno eCRF
+                Diseña tu eCRF o importa tu Excel
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                Arrastra tu hoja de cálculo Excel (.xlsx) o CSV. Si estás comenzando un nuevo estudio observacional o ensayo clínico, utiliza nuestro creador visual de formularios eCRF con validación hospitalaria.
+                Construye el cuaderno de recogida de datos (eCRF) a medida de tu cohorte para capturar información con validación de rangos, o bien importa directamente una hoja de cálculo existente en formato .xlsx o .csv.
               </p>
             </div>
 
@@ -403,10 +444,10 @@ export const LandingPage: React.FC = () => {
                 02
               </div>
               <h3 className="ms-display" style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--color-ink)' }}>
-                Verificación de supuestos y selección de test
+                Base de datos limpia y verificación de supuestos
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                MedStats Studio ejecuta pruebas automáticas de normalidad (Shapiro-Wilk) y homocedasticidad (Levene). Si los datos no son paramétricos, aplica U de Mann-Whitney o Kruskal-Wallis sin que tengas que configurarlo a mano.
+                Los datos se ordenan automáticamente en una base estructurada. MedStats comprueba supuestos de normalidad (Shapiro-Wilk) y homogeneidad (Levene), seleccionando el test paramétrico o no paramétrico idóneo.
               </p>
             </div>
 
@@ -442,7 +483,7 @@ export const LandingPage: React.FC = () => {
                 Resultados en 5 capas y código R reproducible
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                Obtén un resumen redactado en lenguaje médico comprensible, tablas APA listas para pegar en Word, gráficos vectoriales para la revista y el script en R para cumplir con los comités de ética.
+                Obtén un resumen redactado en lenguaje médico formal, tablas APA listas para pegar en Word, gráficos vectoriales de alta resolución y el script R completo para auditar ante comités de ética y revisores.
               </p>
             </div>
           </div>
@@ -450,14 +491,14 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ============================================================== */}
-      {/* 5. SANDBOX INTERACTIVO (PRUEBA CON TU PROPIO EXCEL)            */}
+      {/* 6. SANDBOX INTERACTIVO (SUBIDA DE EXCEL PROPIO)                */}
       {/* ============================================================== */}
       <StudioSandbox
         onOpenAuthModal={(reason, data) => handleOpenAuth('register', reason, data)}
       />
 
       {/* ============================================================== */}
-      {/* 6. BENTO GRID DE CAPACIDADES CLÍNICAS                          */}
+      {/* 7. BENTO GRID DE CAPACIDADES CLÍNICAS                          */}
       {/* ============================================================== */}
       <section
         id="pillars-section"
@@ -475,12 +516,52 @@ export const LandingPage: React.FC = () => {
             Diseñado para cumplir con los estándares biomédicos más exigentes
           </h2>
           <p style={{ maxWidth: '640px', margin: '0.65rem auto 0', color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
-            Todo lo necesario para llevar una hipótesis clínica a una comunicación oral o publicación científica de impacto.
+            La combinación perfecta entre recogida de datos hospitalaria rigurosa y potencia bioestadística.
           </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
-          {/* Card 1 */}
+          {/* Card 1: Bases de datos y eCRF */}
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '2rem',
+              border: '1px solid var(--color-border)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  backgroundColor: 'var(--color-teal-100)',
+                  color: 'var(--color-accent)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <ClipboardList size={22} />
+              </div>
+              <h3 className="ms-display" style={{ fontSize: '1.35rem', marginBottom: '0.6rem', color: 'var(--color-ink)' }}>
+                Bases de Datos con Formularios eCRF a Medida
+              </h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+                Construye cuadernos de recogida de datos electrónicos para estudios prospectivos. Define variables numéricas con rangos de plausibilidad fisiológica, menús desplegables para clasificaciones diagnósticas y vinculación directa al motor bioestadístico sin hojas de cálculo rotas.
+              </p>
+            </div>
+            <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)', fontSize: '0.78rem', color: 'var(--color-accent)', fontWeight: 700 }}>
+              Control de calidad de datos hospitalarios →
+            </div>
+          </div>
+
+          {/* Card 2: Salida 5 Capas */}
           <div
             style={{
               backgroundColor: '#FFFFFF',
@@ -512,7 +593,7 @@ export const LandingPage: React.FC = () => {
                 Arquitectura de Salida en 5 Capas
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                Olvídate de pantallas confusas con decenas de tablas crudas. MedStats divide cada análisis en 5 capas especializadas: Resumen clínico en texto narrativo, Tablas de publicación, Diagnósticos de supuestos, Métricas técnicas completas y Código R 100% reproducible.
+                Cada análisis se desglosa en 5 niveles: Resumen clínico en texto narrativo claro, Tablas de publicación APA/ICMJE, Diagnósticos de supuestos, Métricas técnicas completas y Código R 100% reproducible.
               </p>
             </div>
             <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)', fontSize: '0.78rem', color: 'var(--color-accent)', fontWeight: 700 }}>
@@ -520,47 +601,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 2 */}
-          <div
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '20px',
-              padding: '2rem',
-              border: '1px solid var(--color-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  backgroundColor: 'var(--color-teal-100)',
-                  color: 'var(--color-accent)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <ClipboardList size={22} />
-              </div>
-              <h3 className="ms-display" style={{ fontSize: '1.35rem', marginBottom: '0.6rem', color: 'var(--color-ink)' }}>
-                Formularios eCRF Digitalizados
-              </h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                Construye cuadernos de recogida de datos electrónicos para estudios prospectivos. Define variables numéricas con rangos de plausibilidad fisiológica, menús desplegables para clasificaciones diagnósticas y exportación directa al motor bioestadístico.
-              </p>
-            </div>
-            <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)', fontSize: '0.78rem', color: 'var(--color-accent)', fontWeight: 700 }}>
-              Control de calidad de datos hospitalarios →
-            </div>
-          </div>
-
-          {/* Card 3 */}
+          {/* Card 3: Catálogo */}
           <div
             style={{
               backgroundColor: '#FFFFFF',
@@ -589,21 +630,21 @@ export const LandingPage: React.FC = () => {
                 <BarChart3 size={22} />
               </div>
               <h3 className="ms-display" style={{ fontSize: '1.35rem', marginBottom: '0.6rem', color: 'var(--color-ink)' }}>
-                Catálogo Estadístico Integral
+                Catálogo Estadístico Completo
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-                Tabla 1 descriptiva, test t de Student, ANOVA de 1 y 2 factores, U de Mann-Whitney, Kruskal-Wallis, Chi-cuadrado y test exacto de Fisher, Correlación de Pearson y Spearman, Regresión Lineal y Logística multivariante, Curvas ROC y Supervivencia Kaplan-Meier.
+                Tabla 1 descriptiva, test t de Student, ANOVA, U de Mann-Whitney, Kruskal-Wallis, Chi-cuadrado y Fisher, Correlación, Regresión Lineal y Logística multivariante, Curvas ROC diagnósticas y Supervivencia Kaplan-Meier.
               </p>
             </div>
             <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)', fontSize: '0.78rem', color: 'var(--color-accent)', fontWeight: 700 }}>
-              Desde el MIR hasta proyectos de investigación FIS →
+              Desde el MIR hasta tesis y proyectos de investigación →
             </div>
           </div>
         </div>
       </section>
 
       {/* ============================================================== */}
-      {/* 7. PREGUNTAS FRECUENTES (FAQ)                                  */}
+      {/* 8. PREGUNTAS FRECUENTES (FAQ)                                  */}
       {/* ============================================================== */}
       <section
         id="faq-section"
@@ -627,20 +668,20 @@ export const LandingPage: React.FC = () => {
           <div style={{ display: 'grid', gap: '1.25rem' }}>
             {[
               {
+                q: '¿Cómo funciona la creación de bases de datos con formularios eCRF?',
+                a: 'En lugar de rellenar hojas de cálculo donde se introducen textos erróneos o valores imposibles, diseñas un formulario clínico con tus variables y rangos permitidos. Cada paciente registrado a través del formulario se añade automáticamente a una base de datos rectangular y limpia, lista para ser analizada con un solo clic.',
+              },
+              {
                 q: '¿Necesito saber programar en R o Python para usar MedStats Studio?',
                 a: 'En absoluto. MedStats Studio fue concebido específicamente para médicos, biólogos sanitarios e investigadores que desean rigor estadístico formal sin la barrera de la programación o la sintaxis compleja de software anticuado.',
               },
               {
-                q: '¿Cómo se garantiza la confidencialidad de los datos de mis pacientes?',
-                a: 'En el modo de prueba, los análisis se procesan de forma transitoria en tu sesión sin ser persistidos. Al crear tu cuenta, tus proyectos y cuadernos eCRF quedan resguardados bajo tu perfil privado con almacenamiento seguro.',
+                q: '¿Puedo importar mis bases de datos ya existentes en Excel o CSV?',
+                a: 'Sí. Puedes subir cualquier archivo .xlsx o .csv en cualquier momento. MedStats detectará automáticamente los nombres de columnas y sus tipos de datos para que comiences el análisis de inmediato.',
               },
               {
-                q: '¿Puedo copiar las tablas y gráficos directamente a mi manuscrito o tesis?',
-                a: 'Sí. Las tablas están diseñadas conforme a las directrices de publicación biomédica (ICMJE, STROBE y APA 7ª) para permitir copiar y pegar directamente a Microsoft Word o exportar a LaTeX.',
-              },
-              {
-                q: '¿Qué diferencia a MedStats de programas comerciales como SPSS o GraphPad Prism?',
-                a: 'MedStats Studio no solo calcula números: interpreta los resultados en lenguaje clínico claro, comprueba activamente los supuestos matemáticos antes de mostrar un p-valor, genera cuadernos eCRF y entrega el código R reproducible para que cualquier revisor de revista pueda auditarlo.',
+                q: '¿Son válidas las tablas y gráficos para manuscritos de revistas internacionales?',
+                a: 'Totalmente. Tanto las tablas como los gráficos están formateados conforme a las directrices de publicación biomédica (ICMJE, STROBE y APA 7ª) para permitir copiar y pegar directamente a Microsoft Word o exportar a LaTeX.',
               },
             ].map((item, idx) => (
               <div
@@ -665,7 +706,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ============================================================== */}
-      {/* 8. LLAMADA A LA ACCIÓN FINAL (HERO INFERIOR)                   */}
+      {/* 9. LLAMADA A LA ACCIÓN FINAL (HERO INFERIOR)                   */}
       {/* ============================================================== */}
       <section
         style={{
@@ -709,7 +750,7 @@ export const LandingPage: React.FC = () => {
               lineHeight: 1.6,
             }}
           >
-            Crea tu cuenta gratuita en segundos o prueba el visor con tu propio archivo Excel sin registrarte.
+            Crea tu cuenta gratuita en segundos para guardar tus formularios y proyectos, o prueba el visor con tu propio archivo Excel sin registrarte.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -742,7 +783,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ============================================================== */}
-      {/* 9. PIE DE PÁGINA (FOOTER)                                      */}
+      {/* 10. PIE DE PÁGINA (FOOTER)                                     */}
       {/* ============================================================== */}
       <footer
         style={{

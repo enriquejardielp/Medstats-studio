@@ -139,13 +139,13 @@ export const ClinicalShowcase: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.75rem', alignItems: 'center' }}>
             <div>
               <div className="ms-eyebrow" style={{ color: 'var(--color-accent)' }}>
-                Oncología Médica · Ensayo Fase III
+                Análisis de Supervivencia · Modelización Temporal
               </div>
               <h3 className="ms-display" style={{ fontSize: '1.5rem', margin: '0.25rem 0 0.5rem', color: 'var(--color-ink)' }}>
-                Supervivencia Global por Brazo Terapéutico
+                Supervivencia Global por Brazo de Estudio
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.55 }}>
-                Comparación de Inmunoterapia combinada frente al régimen de Quimioterapia estándar.
+                Comparación del brazo experimental frente al tratamiento de control estándar.
                 Desliza la barra temporal para inspeccionar la probabilidad acumulada y los pacientes en riesgo a diferentes horizontes clínicos.
               </p>
 
@@ -205,7 +205,7 @@ export const ClinicalShowcase: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginTop: '1.15rem' }}>
                 <div style={{ padding: '0.9rem', backgroundColor: '#FDF7F3', borderRadius: '12px', border: '1px solid #F3DAC8' }}>
                   <div style={{ fontSize: '0.72rem', color: '#9C4C2E', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Inmunoterapia (n=150)
+                    Brazo Experimental (n=150)
                   </div>
                   <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#713820', marginTop: '2px' }}>
                     {kmStats.expSurvival}%
@@ -217,7 +217,7 @@ export const ClinicalShowcase: React.FC = () => {
 
                 <div style={{ padding: '0.9rem', backgroundColor: '#F1F5F9', borderRadius: '12px', border: '1px solid #CBD5E1' }}>
                   <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Quimioterapia (n=150)
+                    Brazo Control (n=150)
                   </div>
                   <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1E293B', marginTop: '2px' }}>
                     {kmStats.ctlSurvival}%
@@ -293,7 +293,7 @@ export const ClinicalShowcase: React.FC = () => {
                   </>
                 )}
 
-                {/* Curva Escalonada Tratamiento Experimental (Inmunoterapia) en terracota */}
+                {/* Curva Escalonada Tratamiento Experimental en terracota */}
                 <path
                   d="M 45 30 L 85 30 L 85 45 L 140 45 L 140 65 L 190 65 L 190 85 L 260 85 L 260 110 L 320 110 L 320 130 L 380 130 L 380 145 L 425 145"
                   fill="none"
@@ -301,7 +301,7 @@ export const ClinicalShowcase: React.FC = () => {
                   strokeWidth="2.8"
                 />
 
-                {/* Curva Escalonada Control (Quimioterapia) en azul pizarra */}
+                {/* Curva Escalonada Control en azul pizarra */}
                 <path
                   d="M 45 30 L 70 30 L 70 65 L 115 65 L 115 105 L 165 105 L 165 145 L 230 145 L 230 180 L 295 180 L 295 200 L 360 200 L 360 210 L 425 210"
                   fill="none"
@@ -327,11 +327,11 @@ export const ClinicalShowcase: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '0.75rem', fontSize: '0.78rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ width: '16px', height: '3px', backgroundColor: '#9C4C2E' }} />
-                  <span style={{ fontWeight: 600, color: 'var(--color-ink)' }}>Inmunoterapia (Anti-PD-1)</span>
+                  <span style={{ fontWeight: 600, color: 'var(--color-ink)' }}>Tratamiento Experimental</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ width: '16px', height: '3px', backgroundColor: '#475569', borderTop: '2px dashed #475569' }} />
-                  <span style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>Quimioterapia estándar</span>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>Tratamiento Control</span>
                 </div>
               </div>
             </div>
@@ -345,13 +345,13 @@ export const ClinicalShowcase: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.75rem', alignItems: 'center' }}>
             <div>
               <div className="ms-eyebrow" style={{ color: 'var(--color-accent)' }}>
-                Cardiología Diagnóstica · Biomarcador Sérico
+                Evaluación Diagnóstica · Sensibilidad y Especificidad
               </div>
               <h3 className="ms-display" style={{ fontSize: '1.5rem', margin: '0.25rem 0 0.5rem', color: 'var(--color-ink)' }}>
                 Curva ROC y Punto de Corte Óptimo
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.55 }}>
-                Evaluación del poder discriminatorio de Troponina T ultrasensible para la detección temprana de isquemia miocárdica frente a angiografía.
+                Evaluación de la capacidad discriminatoria de una prueba diagnóstica continua frente al estándar de referencia.
                 Mueve el umbral para observar el compromiso clínico entre Sensibilidad y Especificidad.
               </p>
 
@@ -498,23 +498,23 @@ export const ClinicalShowcase: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.75rem', alignItems: 'center' }}>
             <div>
               <div className="ms-eyebrow" style={{ color: 'var(--color-accent)' }}>
-                Medicina Interna · Modelo Multivariante
+                Modelos de Regresión · Factores Pronósticos
               </div>
               <h3 className="ms-display" style={{ fontSize: '1.5rem', margin: '0.25rem 0 0.5rem', color: 'var(--color-ink)' }}>
-                Forest Plot de Factores de Riesgo
+                Forest Plot de Efectos y Factores Pronósticos
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.55 }}>
-                Modelo de regresión logística multivariante para predicción de complicaciones graves a 30 días.
-                Genera representaciones gráficas de Odds Ratios con sus intervalos de confianza al 95% listas para publicación en revistas Q1.
+                Modelo de regresión multivariante con cálculo directo de Odds Ratios o Hazard Ratios con sus intervalos de confianza al 95%.
+                Genera representaciones gráficas listas para publicación en revistas biomédicas internacionales.
               </p>
 
               <div style={{ marginTop: '1.25rem', display: 'grid', gap: '0.6rem' }}>
                 {[
-                  { name: 'Fracción eyección < 35%', or: 2.45, ci: '1.72 - 3.49', p: '< 0.001', type: 'risk' },
-                  { name: 'Diabetes Mellitus Tipo 2', or: 1.84, ci: '1.29 - 2.63', p: '0.001', type: 'risk' },
-                  { name: 'Edad > 70 años', or: 1.62, ci: '1.14 - 2.31', p: '0.007', type: 'risk' },
-                  { name: 'Filtrado glomerular < 60', or: 1.58, ci: '1.08 - 2.30', p: '0.018', type: 'risk' },
-                  { name: 'Tratamiento iSGLT2', or: 0.58, ci: '0.41 - 0.82', p: '0.002', type: 'protect' },
+                  { name: 'Variable predictora 1 (Alto riesgo)', or: 2.45, ci: '1.72 - 3.49', p: '< 0.001', type: 'risk' },
+                  { name: 'Comorbilidad basal mayor', or: 1.84, ci: '1.29 - 2.63', p: '0.001', type: 'risk' },
+                  { name: 'Edad avanzada (> 70 años)', or: 1.62, ci: '1.14 - 2.31', p: '0.007', type: 'risk' },
+                  { name: 'Biomarcador alterado', or: 1.58, ci: '1.08 - 2.30', p: '0.018', type: 'risk' },
+                  { name: 'Tratamiento protector', or: 0.58, ci: '0.41 - 0.82', p: '0.002', type: 'protect' },
                 ].map((item, idx) => (
                   <div
                     key={idx}
@@ -576,11 +576,11 @@ export const ClinicalShowcase: React.FC = () => {
 
                 {/* Variables y líneas horizontales */}
                 {[
-                  { name: 'FEVI < 35%', center: 275, low: 220, high: 360, y: 40, color: '#9C4C2E' },
-                  { name: 'Diabetes M2', center: 227, low: 183, high: 290, y: 75, color: '#9C4C2E' },
+                  { name: 'Predictor 1', center: 275, low: 220, high: 360, y: 40, color: '#9C4C2E' },
+                  { name: 'Comorbilidad', center: 227, low: 183, high: 290, y: 75, color: '#9C4C2E' },
                   { name: 'Edad > 70a', center: 210, low: 171, high: 265, y: 110, color: '#9C4C2E' },
-                  { name: 'FGe < 60', center: 206, low: 166, high: 264, y: 145, color: '#9C4C2E' },
-                  { name: 'iSGLT2', center: 126, low: 112, high: 145, y: 180, color: '#10B981' },
+                  { name: 'Biomarcador', center: 206, low: 166, high: 264, y: 145, color: '#9C4C2E' },
+                  { name: 'Tratamiento', center: 126, low: 112, high: 145, y: 180, color: '#10B981' },
                 ].map((row, i) => (
                   <g key={i}>
                     {/* Nombre */}
